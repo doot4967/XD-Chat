@@ -1,0 +1,1592 @@
+/*
+==================================================
+Project : XD Chat
+Version : 1.0.0
+File    : 04-layout.css
+Module  : Layout
+Status  : Production Ready
+Author  : Umesh + ChatGPT
+Created : 04 July 2026
+==================================================
+*/
+
+
+/* ==================================================
+   01. HEADER
+================================================== */
+
+.xd-header {
+
+    width: 100%;
+
+    background: var(--xd-bg-card);
+
+    border-bottom: 1px solid var(--xd-border-light);
+
+    box-shadow: var(--xd-shadow-sm);
+
+}
+
+
+/* ==================================================
+   02. HEADER WRAPPER
+================================================== */
+
+.xd-header-wrapper {
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    height: var(--xd-header-height);
+
+}
+
+
+/* ==================================================
+   03. LOGO
+================================================== */
+
+.xd-logo {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: var(--xd-space-4);
+
+}
+
+
+/* ==================================================
+   04. LOGO ICON
+================================================== */
+
+.xd-logo-icon {
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    width: 3rem;
+
+    height: 3rem;
+
+    border-radius: var(--xd-radius-card);
+
+    background: var(--xd-color-primary);
+
+    color: var(--xd-text-white);
+
+    font-weight: var(--xd-font-bold);
+
+    font-size: var(--xd-font-size-lg);
+
+}
+
+
+/* ==================================================
+   05. LOGO TEXT
+================================================== */
+
+.xd-logo-text h2 {
+
+    font-size: var(--xd-font-size-lg);
+
+    color: var(--xd-text-heading);
+
+}
+
+.xd-logo-text small {
+
+    display: block;
+
+    color: var(--xd-text-muted);
+
+}
+
+
+/* ==================================================
+   06. HEADER RIGHT
+================================================== */
+
+.xd-header-right {
+
+    display: flex;
+
+    align-items: center;
+
+}
+/* ==================================================
+   07. HERO SECTION
+================================================== */
+
+.xd-hero {
+
+    display: flex;
+
+    align-items: center;
+
+    min-height: calc(100vh - var(--xd-header-height));
+
+    padding-block: var(--xd-space-12);
+
+}
+
+
+/* ==================================================
+   08. HERO CONTENT
+================================================== */
+
+.xd-hero-content {
+
+    max-width: 42rem;
+
+}
+
+
+/* ==================================================
+   09. HERO BADGE
+================================================== */
+
+.xd-badge {
+
+    display: inline-flex;
+
+    align-items: center;
+
+    padding: 0.5rem 1rem;
+
+    margin-bottom: var(--xd-space-6);
+
+    border: 1px solid var(--xd-border-light);
+
+    border-radius: var(--xd-radius-full);
+
+    background: #eff6ff;
+
+    color: var(--xd-color-primary);
+
+    font-size: var(--xd-font-size-sm);
+
+    font-weight: var(--xd-font-semibold);
+
+}
+
+
+/* ==================================================
+   10. HERO TITLE
+================================================== */
+
+.xd-hero-title {
+
+    font-size: 4rem;
+
+    line-height: 1.1;
+
+    margin-bottom: var(--xd-space-6);
+
+}
+
+
+/* ==================================================
+   11. HERO DESCRIPTION
+================================================== */
+
+.xd-hero-description {
+
+    max-width: 38rem;
+
+    margin-bottom: var(--xd-space-8);
+
+    font-size: var(--xd-font-size-lg);
+
+    color: var(--xd-text-main);
+
+}
+/* ==================================================
+   12. HERO WRAPPER
+================================================== */
+
+.xd-hero-wrapper {
+
+    display: grid;
+
+    grid-template-columns: 1.1fr 0.9fr;
+
+    align-items: center;
+
+    gap: var(--xd-space-12);
+
+}
+
+
+/* ==================================================
+   13. DASHBOARD PREVIEW
+================================================== */
+
+.xd-dashboard-preview {
+
+    display: flex;
+
+    justify-content: center;
+
+}
+
+
+/* ==================================================
+   14. DASHBOARD CARD
+================================================== */
+
+.xd-dashboard-card {
+
+    width: 100%;
+
+    max-width: 28rem;
+
+    background: var(--xd-bg-card);
+
+    border: 1px solid var(--xd-border-light);
+
+    border-radius: var(--xd-radius-card);
+
+    box-shadow: var(--xd-shadow-lg);
+
+    overflow: hidden;
+
+}
+
+
+/* ==================================================
+   15. DASHBOARD HEADER
+================================================== */
+
+.xd-dashboard-header {
+
+    display: flex;
+
+    gap: var(--xd-space-2);
+
+    padding: var(--xd-space-4);
+
+    border-bottom: 1px solid var(--xd-border-light);
+
+}
+
+.xd-dashboard-header span {
+
+    width: 0.75rem;
+
+    height: 0.75rem;
+
+    border-radius: var(--xd-radius-full);
+
+    background: var(--xd-text-muted);
+
+}
+
+
+/* ==================================================
+   16. DASHBOARD BODY
+================================================== */
+
+.xd-dashboard-body {
+
+    padding: var(--xd-space-5);
+
+}
+
+
+/* ==================================================
+   17. CHAT ITEM
+================================================== */
+
+.xd-chat-item {
+
+    display: flex;
+
+    justify-content: space-between;
+
+    align-items: center;
+
+    padding: var(--xd-space-4);
+
+    margin-bottom: var(--xd-space-3);
+
+    background: var(--xd-bg-soft);
+
+    border-radius: var(--xd-radius-md);
+
+}
+
+.xd-chat-item strong {
+
+    color: var(--xd-text-heading);
+
+}
+
+.xd-chat-item small {
+
+    color: var(--xd-color-success);
+
+    font-weight: var(--xd-font-medium);
+
+}/* ==================================================
+   18. PREVIEW STATS
+================================================== */
+
+.xd-preview-stats {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--xd-space-3);
+    margin-bottom: var(--xd-space-5);
+}
+
+.xd-preview-stats div {
+    padding: var(--xd-space-4);
+    background: var(--xd-bg-soft);
+    border-radius: var(--xd-radius-md);
+}
+
+.xd-preview-stats strong {
+    display: block;
+    color: var(--xd-text-heading);
+    font-size: var(--xd-font-size-xl);
+    font-weight: var(--xd-font-bold);
+}
+
+.xd-preview-stats small {
+    color: var(--xd-text-muted);
+    font-size: var(--xd-font-size-xs);
+}
+
+
+/* ==================================================
+   19. PREVIEW CHAT
+================================================== */
+
+.xd-preview-chat {
+    display: grid;
+    gap: var(--xd-space-3);
+}
+/* ==================================================
+   20. HERO BACKGROUND
+================================================== */
+
+.xd-hero {
+
+    position: relative;
+
+    overflow: hidden;
+
+    background:
+        radial-gradient(circle at top left,
+        rgba(37, 99, 235, 0.08),
+        transparent 35%),
+
+        radial-gradient(circle at bottom right,
+        rgba(59, 130, 246, 0.06),
+        transparent 40%);
+
+}
+
+
+/* ==================================================
+   21. HERO GLOW
+================================================== */
+
+.xd-hero::before {
+
+    content: "";
+
+    position: absolute;
+
+    top: -12rem;
+
+    right: -12rem;
+
+    width: 28rem;
+
+    height: 28rem;
+
+    border-radius: 50%;
+
+    background: rgba(37, 99, 235, 0.08);
+
+    filter: blur(6rem);
+
+    z-index: 0;
+
+}
+
+
+.xd-hero>*{
+
+    position: relative;
+
+    z-index: 1;
+
+}
+/* ==================================================
+   22. FEATURES SECTION
+================================================== */
+
+.xd-features {
+
+    padding-block: var(--xd-space-16);
+
+}
+
+
+/* ==================================================
+   23. SECTION HEADING
+================================================== */
+
+.xd-section-heading {
+
+    text-align: center;
+
+    max-width: 48rem;
+
+    margin-inline: auto;
+
+    margin-bottom: var(--xd-space-12);
+
+}
+
+.xd-section-title {
+
+    margin-top: var(--xd-space-4);
+
+    margin-bottom: var(--xd-space-4);
+
+    font-size: var(--xd-font-size-5xl);
+
+    font-weight: var(--xd-font-bold);
+
+    color: var(--xd-text-heading);
+
+}
+
+.xd-section-description {
+
+    color: var(--xd-text-muted);
+
+    line-height: 1.8;
+
+}
+
+
+/* ==================================================
+   24. FEATURES GRID
+================================================== */
+
+.xd-features-grid {
+
+    display: grid;
+
+    grid-template-columns: repeat(3, 1fr);
+
+    gap: var(--xd-space-6);
+
+}
+
+
+/* ==================================================
+   25. FEATURE CARD
+================================================== */
+
+.xd-feature-card {
+
+    padding: var(--xd-space-8);
+
+    background: var(--xd-bg-card);
+
+    border: 1px solid var(--xd-border-light);
+
+    border-radius: var(--xd-radius-card);
+
+    box-shadow: var(--xd-shadow-md);
+
+    transition: all var(--xd-transition-fast);
+
+}
+
+.xd-feature-card:hover {
+
+    transform: translateY(-6px);
+
+    box-shadow: var(--xd-shadow-lg);
+
+}
+
+.xd-feature-card h3 {
+
+    margin-bottom: var(--xd-space-3);
+
+    font-size: var(--xd-font-size-xl);
+
+    color: var(--xd-text-heading);
+
+}
+
+.xd-feature-card p {
+
+    color: var(--xd-text-muted);
+
+    line-height: 1.7;
+   
+}
+/* ==================================================
+   26. DASHBOARD DEMO SECTION
+================================================== */
+
+.xd-dashboard-demo {
+
+    padding-block: var(--xd-space-16);
+
+}
+
+
+/* ==================================================
+   27. DEMO WINDOW
+================================================== */
+
+/* ==================================================
+   27. DEMO BROWSER
+================================================== */
+
+.xd-demo-browser{
+
+    background:#ffffff;
+
+    border:1px solid var(--xd-border-light);
+
+    border-radius:var(--xd-radius-card);
+
+    overflow:hidden;
+
+    box-shadow:var(--xd-shadow-lg);
+
+}
+
+
+/* ==================================================
+   28. SIDEBAR
+================================================== */
+
+.xd-demo-sidebar {
+
+    display: flex;
+
+    flex-direction: column;
+
+    gap: var(--xd-space-5);
+
+    padding: var(--xd-space-6);
+
+    background: #0f172a;
+
+    color: #ffffff;
+
+}
+
+.xd-demo-sidebar strong {
+
+    margin-bottom: var(--xd-space-4);
+
+}
+
+
+/* ==================================================
+   29. CONVERSATION LIST
+================================================== */
+
+.xd-demo-list {
+
+    padding: var(--xd-space-6);
+
+    border-right: 1px solid var(--xd-border-light);
+
+}
+
+.xd-demo-user {
+
+    display: flex;
+
+    justify-content: space-between;
+
+    padding-block: var(--xd-space-4);
+
+    border-bottom: 1px solid var(--xd-border-light);
+
+}
+
+.xd-demo-user small {
+
+    color: var(--xd-color-success);
+
+}
+
+
+/* ==================================================
+   30. CHAT WINDOW
+================================================== */
+
+.xd-demo-chat {
+
+    padding: var(--xd-space-6);
+
+}
+
+.xd-demo-chat h3 {
+
+    margin-bottom: var(--xd-space-6);
+
+}
+
+.xd-message-left,
+.xd-message-right {
+
+    max-width: 18rem;
+
+    padding: var(--xd-space-4);
+
+    margin-bottom: var(--xd-space-4);
+
+    border-radius: var(--xd-radius-md);
+
+}
+
+.xd-message-left {
+
+    background: #f1f5f9;
+
+}
+
+.xd-message-right {
+
+    margin-left: auto;
+
+    background: var(--xd-color-primary);
+
+    color: #ffffff;
+
+}
+/* ==================================================
+   31. DEMO TOPBAR
+================================================== */
+
+.xd-demo-topbar{
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:space-between;
+
+    padding:1rem 1.5rem;
+
+    border-bottom:1px solid var(--xd-border-light);
+
+    background:#ffffff;
+
+}
+
+
+/* ==================================================
+   32. BROWSER DOTS
+================================================== */
+
+.xd-demo-dots{
+
+    display:flex;
+
+    gap:.5rem;
+
+}
+
+.xd-demo-dots span{
+
+    width:.75rem;
+
+    height:.75rem;
+
+    border-radius:50%;
+
+    background:#d1d5db;
+
+}
+
+
+/* ==================================================
+   33. SEARCH BOX
+================================================== */
+
+.xd-demo-search{
+
+    padding:.55rem 1rem;
+
+    background:#f8fafc;
+
+    border:1px solid var(--xd-border-light);
+
+    border-radius:999px;
+
+    color:#94a3b8;
+
+    font-size:.85rem;
+
+}
+
+
+
+/* ==================================================
+   34. DEMO APP
+================================================== */
+
+.xd-demo-app{
+
+    display:grid;
+
+    grid-template-columns:15rem 18rem 1fr 16rem;
+
+    min-height:34rem;
+
+}
+/* ==================================================
+   35. VISITOR PANEL
+================================================== */
+
+.xd-demo-visitor{
+
+    padding:var(--xd-space-6);
+
+    border-left:1px solid var(--xd-border-light);
+
+    background:#ffffff;
+
+}
+
+.xd-demo-visitor h3{
+
+    margin-bottom:var(--xd-space-5);
+
+}
+
+.xd-demo-visitor p{
+
+    margin-bottom:1rem;
+
+    color:var(--xd-text-muted);
+
+}
+/* ==================================================
+   36. DEMO BROWSER BAR POLISH
+================================================== */
+
+.xd-demo-browser-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--xd-space-4);
+    padding: var(--xd-space-4) var(--xd-space-6);
+    border-bottom: 1px solid var(--xd-border-light);
+    background: var(--xd-bg-card);
+}
+
+.xd-demo-browser-bar strong {
+    color: var(--xd-text-heading);
+    font-size: var(--xd-font-size-sm);
+}
+
+.xd-demo-search {
+    min-width: 14rem;
+    padding: var(--xd-space-2) var(--xd-space-4);
+    border: 1px solid var(--xd-border-light);
+    border-radius: var(--xd-radius-full);
+    color: var(--xd-text-muted);
+    background: var(--xd-bg-main);
+}
+
+
+/* ==================================================
+   37. DEMO SIDEBAR ACTIVE
+================================================== */
+
+.xd-demo-sidebar span {
+    padding: var(--xd-space-3) var(--xd-space-4);
+    border-radius: var(--xd-radius-md);
+}
+
+.xd-demo-sidebar span:hover,
+.xd-demo-sidebar .xd-demo-active {
+    background: var(--xd-color-primary);
+    color: var(--xd-text-white);
+}
+
+/* ==================================================
+   38. CONVERSATION STATUS
+================================================== */
+
+.xd-user-left{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:0.75rem;
+
+}
+
+.xd-status-dot{
+
+    width:10px;
+
+    height:10px;
+
+    border-radius:50%;
+
+    display:inline-block;
+
+}
+
+.xd-online{
+
+    background:#22c55e;
+
+}
+
+.xd-waiting{
+
+    background:#f59e0b;
+
+}
+
+.xd-typing{
+
+    background:#3b82f6;
+
+}
+/* ==================================================
+   39. CHAT INPUT
+================================================== */
+
+.xd-demo-input{
+
+    margin-top:auto;
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:space-between;
+
+    gap:1rem;
+
+    padding:0.85rem 1rem;
+
+    border:1px solid var(--xd-border-light);
+
+    border-radius:999px;
+
+    background:#ffffff;
+
+}
+
+.xd-demo-input span{
+
+    color:var(--xd-text-muted);
+
+}
+
+.xd-send-btn{
+
+    width:42px;
+
+    height:42px;
+
+    border:none;
+
+    border-radius:50%;
+
+    background:var(--xd-color-primary);
+
+    color:#ffffff;
+
+    font-size:1rem;
+
+    cursor:pointer;
+
+    transition:0.3s;
+
+}
+
+.xd-send-btn:hover{
+
+    transform:scale(1.08);
+
+}
+/* ==================================================
+   40. VISITOR CARD
+================================================== */
+
+.xd-visitor-card{
+
+    margin-top:1rem;
+
+    padding:1.25rem;
+
+    border-radius:16px;
+
+    background:#f8fafc;
+
+    border:1px solid var(--xd-border-light);
+
+}
+
+.xd-visitor-card h4{
+
+    margin-bottom:1rem;
+
+}
+
+.xd-visitor-card p{
+
+    margin-bottom:0.8rem;
+
+    color:var(--xd-text-muted);
+
+}
+
+.xd-visitor-card hr{
+
+    margin:1rem 0;
+
+    border:none;
+
+    border-top:1px solid var(--xd-border-light);
+
+}
+/* ==================================================
+   41. PRICING SECTION
+================================================== */
+
+.xd-pricing {
+    padding-block: var(--xd-space-16);
+    background: var(--xd-bg-main);
+}
+
+
+/* ==================================================
+   42. PRICING GRID
+================================================== */
+
+.xd-pricing-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--xd-space-6);
+}
+
+
+/* ==================================================
+   43. PRICING CARD
+================================================== */
+
+.xd-pricing-card {
+    position: relative;
+    padding: var(--xd-space-8);
+    background: var(--xd-bg-card);
+    border: 1px solid var(--xd-border-light);
+    border-radius: var(--xd-radius-card);
+    box-shadow: var(--xd-shadow-md);
+    transition: all var(--xd-transition-fast) var(--xd-ease);
+}
+
+.xd-pricing-card:hover {
+    transform: translateY(-0.375rem);
+    border-color: var(--xd-color-primary);
+    box-shadow: var(--xd-shadow-lg);
+}
+
+.xd-pricing-card h3 {
+    margin-bottom: var(--xd-space-4);
+    font-size: var(--xd-font-size-xl);
+    color: var(--xd-text-heading);
+}
+
+.xd-price {
+    display: block;
+    margin-bottom: var(--xd-space-4);
+    font-size: var(--xd-font-size-2xl);
+    color: var(--xd-color-primary);
+}
+
+.xd-pricing-card p {
+    margin-bottom: var(--xd-space-6);
+    color: var(--xd-text-muted);
+}
+
+.xd-pricing-card ul {
+    display: grid;
+    gap: var(--xd-space-3);
+    margin-bottom: var(--xd-space-8);
+}
+
+.xd-pricing-card li {
+    color: var(--xd-text-main);
+    font-size: var(--xd-font-size-sm);
+}
+
+
+/* ==================================================
+   44. POPULAR PRICING CARD
+================================================== */
+
+.xd-pricing-popular {
+    border-color: var(--xd-color-primary);
+    transform: translateY(-1rem);
+}
+
+.xd-popular-badge {
+    display: inline-flex;
+    margin-bottom: var(--xd-space-4);
+    padding: var(--xd-space-2) var(--xd-space-4);
+    border-radius: var(--xd-radius-full);
+    background: var(--xd-color-primary);
+    color: var(--xd-text-white);
+    font-size: var(--xd-font-size-xs);
+    font-weight: var(--xd-font-semibold);
+}
+/* ==================================================
+   45. PRICING TOGGLE
+================================================== */
+
+.xd-pricing-toggle{
+
+    display:flex;
+
+    justify-content:center;
+
+    align-items:center;
+
+    gap:1rem;
+
+    margin:2rem 0 4rem;
+
+}
+
+.xd-toggle-switch{
+
+    width:70px;
+
+    height:36px;
+
+    background:#dbeafe;
+
+    border-radius:999px;
+
+    position:relative;
+
+}
+
+.xd-toggle-switch::after{
+
+    content:"";
+
+    position:absolute;
+
+    top:4px;
+
+    left:4px;
+
+    width:28px;
+
+    height:28px;
+
+    border-radius:50%;
+
+    background:#2563eb;
+
+}
+/* ==================================================
+   46. PREMIUM CARD EFFECT
+================================================== */
+
+.xd-pricing-popular{
+
+    transform:translateY(-24px);
+
+    background:linear-gradient(
+        180deg,
+        #ffffff 0%,
+        #f8fbff 100%
+    );
+
+    box-shadow:0 25px 60px rgba(37,99,235,.18);
+
+}
+
+.xd-pricing-card:hover{
+
+    transform:translateY(-10px);
+
+    box-shadow:0 20px 45px rgba(0,0,0,.12);
+
+}
+/* ==================================================
+   47. PRICING BUTTON
+================================================== */
+
+.xd-pricing-card button{
+
+    width:100%;
+
+}
+/* ==================================================
+   48. CTA SECTION
+================================================== */
+
+.xd-cta {
+    padding-block: var(--xd-space-16);
+}
+
+
+/* ==================================================
+   49. CTA BOX
+================================================== */
+
+.xd-cta-box {
+    text-align: center;
+    padding: var(--xd-space-16) var(--xd-space-8);
+    border-radius: var(--xd-radius-card);
+    background:
+        radial-gradient(circle at top left, rgba(37, 99, 235, 0.18), transparent 35%),
+        linear-gradient(135deg, #ffffff 0%, #f8fbff 100%);
+    border: 1px solid var(--xd-border-light);
+    box-shadow: var(--xd-shadow-lg);
+}
+
+.xd-cta-box .xd-section-title {
+    margin-top: var(--xd-space-5);
+}
+
+.xd-cta-box .xd-section-description {
+    max-width: 42rem;
+    margin-inline: auto;
+    margin-bottom: var(--xd-space-8);
+}
+
+.xd-cta-box .xd-hero-actions {
+    justify-content: center;
+}
+/* ==================================================
+   50. FAQ SECTION
+================================================== */
+
+.xd-faq{
+
+    padding-block:var(--xd-space-16);
+
+    background:var(--xd-bg-main);
+
+}
+
+
+/* ==================================================
+   51. FAQ LIST
+================================================== */
+
+.xd-faq-list{
+
+    max-width:900px;
+
+    margin:0 auto;
+
+    display:grid;
+
+    gap:var(--xd-space-5);
+
+}
+
+
+/* ==================================================
+   52. FAQ ITEM
+================================================== */
+
+.xd-faq-item{
+
+    padding:var(--xd-space-6);
+
+    background:var(--xd-bg-card);
+
+    border:1px solid var(--xd-border-light);
+
+    border-radius:var(--xd-radius-card);
+
+    box-shadow:var(--xd-shadow-sm);
+
+    transition:all var(--xd-transition-fast) var(--xd-ease);
+
+}
+
+.xd-faq-item:hover{
+
+    transform:translateY(-4px);
+
+    border-color:var(--xd-color-primary);
+
+    box-shadow:var(--xd-shadow-md);
+
+}
+
+
+/* ==================================================
+   53. FAQ TITLE
+================================================== */
+
+.xd-faq-item h3{
+
+    margin-bottom:var(--xd-space-3);
+
+    font-size:var(--xd-font-size-lg);
+
+    color:var(--xd-text-heading);
+
+}
+
+
+/* ==================================================
+   54. FAQ DESCRIPTION
+================================================== */
+
+.xd-faq-item p{
+
+    color:var(--xd-text-muted);
+
+    line-height:1.8;
+
+}
+
+/* ==================================================
+   55. TESTIMONIALS SECTION
+================================================== */
+
+.xd-testimonials{
+
+    padding-block:var(--xd-space-16);
+
+}
+
+
+/* ==================================================
+   56. TESTIMONIAL GRID
+================================================== */
+
+.xd-testimonial-grid{
+
+    display:grid;
+
+    grid-template-columns:repeat(3,1fr);
+
+    gap:var(--xd-space-6);
+
+}
+
+
+/* ==================================================
+   57. TESTIMONIAL CARD
+================================================== */
+
+.xd-testimonial-card{
+
+    padding:var(--xd-space-8);
+
+    background:var(--xd-bg-card);
+
+    border:1px solid var(--xd-border-light);
+
+    border-radius:var(--xd-radius-card);
+
+    box-shadow:var(--xd-shadow-sm);
+
+    transition:all var(--xd-transition-fast) var(--xd-ease);
+
+}
+
+.xd-testimonial-card:hover{
+
+    transform:translateY(-6px);
+
+    box-shadow:var(--xd-shadow-lg);
+
+    border-color:var(--xd-color-primary);
+
+}
+
+
+/* ==================================================
+   58. TESTIMONIAL CONTENT
+================================================== */
+
+.xd-stars{
+
+    font-size:1.25rem;
+
+    margin-bottom:var(--xd-space-4);
+
+}
+.xd-stars{
+
+    font-size:1.25rem;
+
+    margin-bottom:var(--xd-space-4);
+
+    color:#fbbf24;
+
+}
+
+.xd-testimonial-text{
+
+    margin-bottom:var(--xd-space-6);
+
+    color:var(--xd-text-muted);
+
+    line-height:1.8;
+
+}
+
+.xd-testimonial-name{
+
+    font-size:var(--xd-font-size-lg);
+
+    font-weight:700;
+
+    color:var(--xd-text-heading);
+
+}
+
+.xd-testimonial-role{
+
+    margin-top:0.25rem;
+
+    color:var(--xd-text-muted);
+
+    font-size:var(--xd-font-size-sm);
+
+}
+/* ==================================================
+   59. INTEGRATIONS SECTION
+================================================== */
+
+.xd-integrations{
+
+    padding-top:var(--xd-space-16);
+
+    padding-bottom:5rem;
+
+}
+
+
+/* ==================================================
+   60. INTEGRATIONS GRID
+================================================== */
+
+.xd-integrations-grid{
+
+    display:grid;
+
+    grid-template-columns:repeat(6,1fr);
+
+    gap:var(--xd-space-5);
+
+    margin-top:var(--xd-space-10);
+
+}
+
+
+/* ==================================================
+   61. INTEGRATION CARD
+================================================== */
+
+.xd-integration-card{
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    min-height:120px;
+
+    padding:var(--xd-space-6);
+
+    background:var(--xd-bg-card);
+
+    border:1px solid var(--xd-border-light);
+
+    border-radius:var(--xd-radius-card);
+
+    box-shadow:var(--xd-shadow-sm);
+
+    font-size:var(--xd-font-size-lg);
+
+    font-weight:600;
+
+    transition:all var(--xd-transition-fast) var(--xd-ease);
+
+}
+
+.xd-integration-card:hover{
+
+    transform:translateY(-6px);
+
+    border-color:var(--xd-color-primary);
+
+    box-shadow:var(--xd-shadow-lg);
+
+}
+/* ==================================================
+   62. FOOTER
+================================================== */
+.xd-footer{
+
+    margin-top:0;
+
+    padding-top:var(--xd-space-16);
+
+    background:#0f172a;
+
+    color:#ffffff;
+
+}
+
+
+/* ==================================================
+   63. FOOTER GRID
+================================================== */
+
+.xd-footer-grid{
+
+    display:grid;
+
+    grid-template-columns:2fr 1fr 1fr 2fr;
+
+    gap:var(--xd-space-10);
+
+    padding-bottom:var(--xd-space-12);
+
+}
+
+
+/* ==================================================
+   64. FOOTER HEADINGS
+================================================== */
+
+.xd-footer h2,
+.xd-footer h3{
+
+    margin-bottom:var(--xd-space-5);
+
+    color:#ffffff;
+
+}
+
+
+/* ==================================================
+   65. FOOTER LINKS
+================================================== */
+
+.xd-footer-links{
+
+    display:flex;
+
+    flex-direction:column;
+
+    gap:1rem;
+
+}
+
+.xd-footer-links a{
+
+    color:#cbd5e1;
+
+    transition:all .3s ease;
+
+}
+
+.xd-footer-links a:hover{
+
+    color:#ffffff;
+
+}
+
+
+/* ==================================================
+   66. NEWSLETTER
+================================================== */
+
+.xd-footer-form{
+
+    display:flex;
+
+    margin-top:var(--xd-space-5);
+
+    gap:1rem;
+
+}
+
+.xd-footer-form input{
+
+    flex:1;
+
+    padding:.9rem 1rem;
+
+    border:none;
+
+    border-radius:10px;
+
+}
+
+.xd-footer-form button{
+
+    padding:.9rem 1.5rem;
+
+    border:none;
+
+    border-radius:10px;
+
+    background:#2563eb;
+
+    color:#ffffff;
+
+    cursor:pointer;
+
+}
+
+
+/* ==================================================
+   67. FOOTER BOTTOM
+================================================== */
+
+.xd-footer-bottom{
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:center;
+
+    padding:2rem 0;
+
+    border-top:1px solid rgba(255,255,255,.1);
+
+    color:#94a3b8;
+
+    font-size:.95rem;
+
+}

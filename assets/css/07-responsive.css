@@ -1,0 +1,790 @@
+/*
+==================================================
+Project : XD Chat
+Version : 1.0.0
+File    : 07-responsive.css
+Module  : Responsive Styles
+Status  : Development
+Author  : Umesh + ChatGPT
+Created : 05 July 2026
+==================================================
+*/
+
+
+/* ==========================================
+   01. LARGE DESKTOP (1400px)
+========================================== */
+
+@media (max-width: 1400px) {
+
+}
+
+
+/* ==========================================
+   02. DESKTOP / LAPTOP (1200px)
+========================================== */
+
+@media (max-width: 1200px) {
+
+}
+
+
+/* ==========================================
+   03. TABLET (992px)
+========================================== */
+
+@media (max-width: 992px) {
+
+    /* ==========================================
+       03.01 HEADER
+    ========================================== */
+
+    .xd-header-wrapper{
+
+        height:auto;
+
+        padding:1rem 0;
+
+    }
+
+
+    /* ==========================================
+       03.02 HERO SECTION
+    ========================================== */
+
+    .xd-hero{
+
+        min-height:auto;
+
+        padding-block:5rem;
+
+    }
+
+    .xd-hero-wrapper{
+
+        grid-template-columns:1fr;
+
+        gap:3.5rem;
+
+    }
+
+    .xd-hero-content{
+
+        max-width:100%;
+
+        text-align:center;
+
+    }
+
+    .xd-hero-description{
+
+        max-width:42rem;
+
+        margin-inline:auto;
+
+    }
+
+    .xd-hero-actions{
+
+        justify-content:center;
+
+    }
+
+    .xd-hero-points{
+
+        justify-content:center;
+
+    }
+
+    .xd-dashboard-preview{
+
+        justify-content:center;
+
+    }
+        /* ==========================================
+       03.03 FEATURES SECTION
+    ========================================== */
+
+    .xd-features-grid{
+
+        grid-template-columns:repeat(2, 1fr);
+
+    }
+
+    .xd-section-title{
+
+        font-size:3rem;
+
+    }
+        /* ==========================================
+       03.04 DASHBOARD DEMO SECTION
+    ========================================== */
+
+    .xd-demo-app{
+
+        grid-template-columns:1fr 1fr;
+
+    }
+
+    .xd-demo-visitor{
+
+        display:none;
+
+    }
+
+}
+
+
+/* ==========================================
+   04. MOBILE (768px)
+========================================== */
+
+@media (max-width: 768px) {
+
+    /* ==========================================
+       04.01 HEADER
+    ========================================== */
+
+    .xd-header-wrapper{
+
+        flex-direction:column;
+
+        justify-content:center;
+
+        gap:1rem;
+
+        text-align:center;
+
+    }
+
+    .xd-header-right{
+
+        width:100%;
+
+        justify-content:center;
+
+    }
+
+    .xd-btn-primary{
+
+        width:100%;
+
+        max-width:260px;
+
+    }
+
+
+    /* ==========================================
+       04.02 HERO SECTION
+    ========================================== */
+
+    .xd-hero{
+
+        padding-block:4rem;
+
+    }
+
+    .xd-hero-title{
+
+        font-size:3rem;
+
+        line-height:1.2;
+
+    }
+
+    .xd-hero-description{
+
+        font-size:1rem;
+
+    }
+
+    .xd-hero-actions{
+
+        flex-direction:column;
+
+        gap:1rem;
+
+    }
+
+    .xd-btn-primary,
+    .xd-btn-secondary{
+
+        width:100%;
+
+        margin-left:0;
+
+    }
+
+    .xd-dashboard-card{
+
+        max-width:100%;
+
+    
+    }
+        /* ==========================================
+       04.03 FEATURES SECTION
+    ========================================== */
+
+    .xd-features{
+
+        padding-block:4rem;
+
+    }
+
+    .xd-features-grid{
+
+        grid-template-columns:1fr;
+
+    }
+
+    .xd-section-title{
+
+        font-size:2.4rem;
+
+    }
+        /* ==========================================
+       04.04 DASHBOARD DEMO SECTION
+    ========================================== */
+
+    .xd-dashboard-demo{
+
+        padding-block:4rem;
+
+    }
+
+    .xd-demo-browser-bar{
+
+        flex-direction:column;
+
+        align-items:flex-start;
+
+    }
+
+    .xd-demo-search{
+
+        width:100%;
+
+        min-width:0;
+
+    }
+
+    .xd-demo-app{
+
+        grid-template-columns:1fr;
+
+    }
+
+    .xd-demo-sidebar{
+
+        display:none;
+
+    }
+
+    .xd-demo-list{
+
+        border-right:none;
+
+    }
+        /* ==========================================
+       04.07 TESTIMONIALS SECTION
+    ========================================== */
+
+    .xd-testimonial-grid{
+
+        grid-template-columns:1fr;
+
+    }
+        /* ==========================================
+       04.08 INTEGRATIONS SECTION
+    ========================================== */
+
+    .xd-integrations-grid{
+
+        grid-template-columns:repeat(2, 1fr);
+
+    }
+        /* ==========================================
+       04.09 FOOTER SECTION
+    ========================================== */
+
+    .xd-footer-grid{
+
+        grid-template-columns:1fr;
+
+    }
+
+    .xd-footer-form{
+
+        flex-direction:column;
+
+    }
+
+    .xd-footer-bottom{
+
+        flex-direction:column;
+
+        gap:1rem;
+
+        text-align:center;
+
+    }
+
+}
+
+
+/* ==========================================
+   05. SMALL MOBILE (576px)
+========================================== */
+
+@media (max-width: 576px) {
+
+        /* ==========================================
+       05.00 GLOBAL MOBILE POLISH
+    ========================================== */
+
+    .xd-container{
+
+        padding-inline:1.25rem;
+
+    }
+
+    .xd-section-heading{
+
+        margin-bottom:3rem;
+
+    }
+
+    .xd-section-description{
+
+        line-height:1.8;
+
+    }
+
+    /* ==========================================
+       05.01 HEADER
+    ========================================== */
+
+    .xd-logo{
+
+        flex-direction:column;
+
+        text-align:center;
+
+    }
+
+    .xd-logo-text h2{
+
+        font-size:1.25rem;
+
+    }
+
+    .xd-logo-text small{
+
+        font-size:.80rem;
+
+    }
+
+
+    /* ==========================================
+       05.02 HERO SECTION
+    ========================================== */
+
+    .xd-hero-title{
+
+        font-size:2.35rem;
+
+    }
+
+    .xd-badge{
+
+        font-size:.80rem;
+
+        padding:.45rem .9rem;
+
+    }
+
+    .xd-hero-points{
+
+        flex-direction:column;
+
+        align-items:center;
+
+        gap:.75rem;
+
+    }
+
+    .xd-preview-stats{
+
+        grid-template-columns:1fr;
+
+    }
+        /* ==========================================
+       05.03 FEATURES SECTION
+    ========================================== */
+
+    .xd-feature-card{
+
+        padding:1.5rem;
+
+    }
+
+    .xd-feature-title{
+
+        flex-direction:column;
+
+        align-items:flex-start;
+
+        gap:1rem;
+
+    }
+
+    .xd-section-title{
+
+        font-size:2rem;
+
+    }
+        /* ==========================================
+       05.04 DASHBOARD DEMO SECTION
+    ========================================== */
+
+    .xd-demo-list,
+    .xd-demo-chat{
+
+        padding:1.25rem;
+
+    }
+
+    .xd-demo-user{
+
+        gap:1rem;
+
+    }
+
+    .xd-message-left,
+    .xd-message-right{
+
+        max-width:100%;
+
+    }
+    /* ==========================================
+   05.05 PRICING SECTION
+========================================== */
+
+.xd-pricing{
+
+    padding-block:4rem;
+
+}
+
+.xd-pricing-grid{
+
+    grid-template-columns:1fr;
+
+}
+
+.xd-pricing-popular{
+
+    transform:none;
+
+}
+
+.xd-pricing-card{
+
+    padding:1.5rem;
+
+}
+
+.xd-pricing-toggle{
+
+    flex-direction:column;
+
+    gap:.75rem;
+
+}
+/* ==========================================
+   05.06 CTA SECTION
+========================================== */
+
+.xd-cta{
+
+    padding-block:4rem;
+
+}
+
+.xd-cta-box{
+
+    padding:2rem 1.5rem;
+
+}
+/* ==========================================
+   05.07 FAQ SECTION
+========================================== */
+
+.xd-faq{
+
+    padding-block:4rem;
+
+}
+
+.xd-faq-item{
+
+    padding:1.5rem;
+
+}
+
+.xd-faq-item h3{
+
+    font-size:1.1rem;
+
+}
+/* ==========================================
+   05.08 TESTIMONIALS SECTION
+========================================== */
+
+.xd-testimonials{
+
+    padding-block:4rem;
+
+}
+
+.xd-testimonial-grid{
+
+    grid-template-columns:1fr;
+
+}
+
+.xd-testimonial-card{
+
+    padding:1.5rem;
+
+}
+/* ==========================================
+   05.09 INTEGRATIONS SECTION
+========================================== */
+
+.xd-integrations{
+
+    padding-block:4rem;
+
+}
+
+.xd-integrations-grid{
+
+    grid-template-columns:1fr;
+
+}
+
+.xd-integration-card{
+
+    min-height:90px;
+
+}
+/* ==========================================
+   05.10 FOOTER SECTION
+========================================== */
+
+.xd-footer-grid{
+
+    grid-template-columns:1fr;
+
+    gap:2rem;
+
+}
+
+.xd-footer-form{
+
+    flex-direction:column;
+
+}
+
+.xd-footer-form button{
+
+    width:100%;
+
+}
+
+.xd-footer-bottom{
+
+    flex-direction:column;
+
+    text-align:center;
+
+    gap:1rem;
+
+}
+
+}
+
+
+/* ==========================================
+   06. EXTRA SMALL MOBILE (420px)
+========================================== */
+
+@media (max-width: 420px) {
+
+        /* ==========================================
+       06.00 GLOBAL SMALL MOBILE POLISH
+    ========================================== */
+
+    .xd-section-title{
+
+        font-size:1.8rem;
+
+        line-height:1.25;
+
+    }
+
+    .xd-hero-title{
+
+        font-size:1.8rem;
+
+        line-height:1.25;
+
+    }
+    /* ==========================================
+       06.01 HEADER
+    ========================================== */
+
+    .xd-logo-icon{
+
+        width:2.6rem;
+
+        height:2.6rem;
+
+    }
+
+
+    /* ==========================================
+       06.02 HERO SECTION
+    ========================================== */
+
+    .xd-hero-title{
+
+        font-size:2rem;
+
+    }
+
+    .xd-chat-item{
+
+        flex-direction:column;
+
+        align-items:flex-start;
+
+        gap:.4rem;
+
+    }
+      /* ==========================================
+   06.03 FEATURES SECTION
+========================================== */
+
+.xd-feature-card{
+
+    padding:1.25rem;
+
+}
+
+.xd-section-title{
+
+    font-size:1.8rem;
+
+}
+        /* ==========================================
+       06.04 DASHBOARD DEMO SECTION
+    ========================================== */
+
+    .xd-demo-browser-bar{
+
+        padding:1rem;
+
+    }
+
+    .xd-demo-chat h3{
+
+        font-size:1.1rem;
+
+    }
+    /* ==========================================
+   06.04 DASHBOARD DEMO SECTION
+========================================== */
+
+.xd-demo-list,
+.xd-demo-chat{
+
+    padding:1rem;
+
+}
+
+.xd-demo-search{
+
+    font-size:.80rem;
+
+}
+/* ==========================================
+   06.05 PRICING SECTION
+========================================== */
+
+.xd-pricing-card{
+
+    padding:1.25rem;
+
+}
+
+.xd-price{
+
+    font-size:2rem;
+
+}
+/* ==========================================
+   06.06 CTA SECTION
+========================================== */
+
+.xd-cta-box{
+
+    padding:1.5rem 1rem;
+
+}
+/* ==========================================
+   06.07 FAQ SECTION
+========================================== */
+
+.xd-faq-item{
+
+    padding:1.25rem;
+
+}
+/* ==========================================
+   06.08 TESTIMONIALS SECTION
+========================================== */
+
+.xd-testimonial-card{
+
+    padding:1.25rem;
+
+}
+/* ==========================================
+   06.09 INTEGRATIONS SECTION
+========================================== */
+
+.xd-integration-card{
+
+    min-height:80px;
+
+    font-size:1rem;
+
+}
+/* ==========================================
+   06.10 FOOTER SECTION
+========================================== */
+
+.xd-footer{
+
+    text-align:center;
+
+}
+
+.xd-footer-form input{
+
+    width:100%;
+
+}
+}

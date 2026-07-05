@@ -1,0 +1,154 @@
+/*
+==================================================
+Project : XD Chat
+Version : 1.0.0
+File    : 02-variables.css
+Module  : Design Tokens
+Status  : Production Ready
+Author  : Umesh + ChatGPT
+Created : 04 July 2026
+==================================================
+*/
+
+:root {
+
+    /* ==========================================
+       01. BRAND COLORS
+    ========================================== */
+
+    --xd-color-primary: #2563eb;
+    --xd-color-primary-hover: #1d4ed8;
+
+    --xd-color-success: #22c55e;
+    --xd-color-warning: #f59e0b;
+    --xd-color-danger: #ef4444;
+
+
+    /* ==========================================
+       02. BACKGROUND COLORS
+    ========================================== */
+
+    --xd-bg-main: #f8fafc;
+    --xd-bg-card: #ffffff;
+    --xd-bg-soft: #f1f5f9;
+
+
+    /* ==========================================
+       03. TEXT COLORS
+    ========================================== */
+
+    --xd-text-heading: #0f172a;
+    --xd-text-main: #475569;
+    --xd-text-muted: #94a3b8;
+    --xd-text-white: #ffffff;
+
+
+    /* ==========================================
+       04. BORDER COLORS
+    ========================================== */
+
+    --xd-border-light: #e2e8f0;
+    --xd-border-focus: #2563eb;
+
+
+    /* ==========================================
+       05. TYPOGRAPHY
+    ========================================== */
+
+    --xd-font-family: "Inter", Arial, sans-serif;
+
+    --xd-font-size-xs: 0.75rem;
+    --xd-font-size-sm: 0.875rem;
+    --xd-font-size-md: 1rem;
+    --xd-font-size-lg: 1.125rem;
+    --xd-font-size-xl: 1.375rem;
+    --xd-font-size-2xl: 1.75rem;
+
+
+    /* ==========================================
+       06. FONT WEIGHTS
+    ========================================== */
+
+    --xd-font-regular: 400;
+    --xd-font-medium: 500;
+    --xd-font-semibold: 600;
+    --xd-font-bold: 700;
+
+
+    /* ==========================================
+       07. SPACING
+    ========================================== */
+
+    --xd-space-0: 0;
+    --xd-space-1: 0.25rem;
+    --xd-space-2: 0.5rem;
+    --xd-space-3: 0.75rem;
+    --xd-space-4: 1rem;
+    --xd-space-5: 1.25rem;
+    --xd-space-6: 1.5rem;
+    --xd-space-8: 2rem;
+    --xd-space-10: 2.5rem;
+    --xd-space-12: 3rem;
+    --xd-space-16: 4rem;
+    --xd-space-20: 5rem;
+
+
+    /* ==========================================
+       08. BORDER RADIUS
+    ========================================== */
+
+    --xd-radius-sm: 0.375rem;
+    --xd-radius-md: 0.625rem;
+    --xd-radius-button: 0.875rem;
+    --xd-radius-input: 0.875rem;
+    --xd-radius-card: 1.125rem;
+    --xd-radius-bubble: 1.125rem;
+    --xd-radius-full: 999rem;
+
+
+    /* ==========================================
+       09. SHADOWS
+    ========================================== */
+
+    --xd-shadow-sm: 0 0.125rem 0.5rem rgba(15, 23, 42, 0.08);
+    --xd-shadow-md: 0 0.5rem 1.5rem rgba(15, 23, 42, 0.12);
+    --xd-shadow-lg: 0 1.25rem 2.5rem rgba(15, 23, 42, 0.16);
+    --xd-shadow-widget: 0 1.5rem 4rem rgba(15, 23, 42, 0.22);
+    --xd-shadow-focus: 0 0 0 0.25rem rgba(37, 99, 235, 0.16);
+
+
+    /* ==========================================
+       10. TRANSITIONS
+    ========================================== */
+
+    --xd-transition-fast: 150ms;
+    --xd-transition-normal: 250ms;
+    --xd-transition-slow: 350ms;
+    --xd-ease: cubic-bezier(0.4, 0, 0.2, 1);
+
+
+    /* ==========================================
+       11. Z-INDEX
+    ========================================== */
+
+    --xd-z-base: 1;
+    --xd-z-header: 100;
+    --xd-z-sidebar: 200;
+    --xd-z-dropdown: 500;
+    --xd-z-modal: 900;
+    --xd-z-widget: 9999;
+
+
+    /* ==========================================
+       12. COMPONENT SIZES
+    ========================================== */
+
+    --xd-button-height: 2.875rem;
+    --xd-input-height: 2.875rem;
+    --xd-header-height: 4rem;
+    --xd-sidebar-width: 16rem;
+    --xd-widget-width: 22.5rem;
+    --xd-widget-height: 35rem;
+    --xd-floating-button-size: 4rem;
+
+}

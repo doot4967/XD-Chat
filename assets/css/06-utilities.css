@@ -1,0 +1,145 @@
+/*
+==================================================
+Project : XD Chat
+Version : 1.0.0
+File    : 06-utilities.css
+Module  : Utility Classes
+Status  : Production Ready
+Author  : Umesh + ChatGPT
+Created : 05 July 2026
+==================================================
+*/
+
+
+/* ==================================================
+   01. DISPLAY
+================================================== */
+
+.xd-hidden{
+
+    display:none;
+
+}
+
+.xd-block{
+
+    display:block;
+
+}
+
+.xd-inline-block{
+
+    display:inline-block;
+
+}
+
+
+/* ==================================================
+   02. FLEX
+================================================== */
+
+.xd-flex{
+
+    display:flex;
+
+}
+
+.xd-flex-center{
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+}
+
+.xd-flex-between{
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:space-between;
+
+}
+
+
+/* ==================================================
+   03. TEXT ALIGN
+================================================== */
+
+.xd-text-left{
+
+    text-align:left;
+
+}
+
+.xd-text-center{
+
+    text-align:center;
+
+}
+
+.xd-text-right{
+
+    text-align:right;
+
+}
+
+
+/* ==================================================
+   04. WIDTH
+================================================== */
+
+.xd-w-100{
+
+    width:100%;
+
+}
+
+.xd-h-100{
+
+    height:100%;
+
+}
+
+
+/* ==================================================
+   05. BORDER RADIUS
+================================================== */
+
+.xd-rounded{
+
+    border-radius:var(--xd-radius-card);
+
+}
+
+.xd-rounded-full{
+
+    border-radius:var(--xd-radius-full);
+
+}
+
+
+/* ==================================================
+   06. SHADOW
+================================================== */
+
+.xd-shadow-sm{
+
+    box-shadow:var(--xd-shadow-sm);
+
+}
+
+.xd-shadow-md{
+
+    box-shadow:var(--xd-shadow-md);
+
+}
+
+.xd-shadow-lg{
+
+    box-shadow:var(--xd-shadow-lg);
+
+}

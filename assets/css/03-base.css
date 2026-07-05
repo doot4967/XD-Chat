@@ -1,0 +1,103 @@
+/*
+==================================================
+Project : XD Chat
+Version : 1.0.0
+File    : 03-base.css
+Module  : Base Styles
+Status  : Production Ready
+Author  : Umesh + ChatGPT
+Created : 04 July 2026
+==================================================
+*/
+
+
+/* ==================================================
+   01. HTML
+================================================== */
+
+html {
+    font-size: 100%;
+}
+
+
+/* ==================================================
+   02. BODY
+================================================== */
+
+body {
+    font-family: var(--xd-font-family);
+    font-size: var(--xd-font-size-md);
+    font-weight: var(--xd-font-regular);
+    color: var(--xd-text-main);
+    background-color: var(--xd-bg-main);
+    line-height: 1.6;
+}
+
+
+/* ==================================================
+   03. SELECTION
+================================================== */
+
+::selection {
+    color: var(--xd-text-white);
+    background-color: var(--xd-color-primary);
+}
+
+
+/* ==================================================
+   04. HEADINGS
+================================================== */
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    color: var(--xd-text-heading);
+    font-weight: var(--xd-font-bold);
+    line-height: 1.2;
+}
+
+
+/* ==================================================
+   05. PARAGRAPH
+================================================== */
+
+p {
+    color: var(--xd-text-main);
+    line-height: 1.7;
+}
+
+
+/* ==================================================
+   06. CONTAINER
+================================================== */
+
+.xd-container {
+    width: 100%;
+    max-width: 75rem;
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: var(--xd-space-4);
+    padding-right: var(--xd-space-4);
+}
+
+
+/* ==================================================
+   07. PAGE WRAPPER
+================================================== */
+
+.xd-page {
+    width: 100%;
+    min-height: 100vh;
+}
+
+
+/* ==================================================
+   08. HIDDEN
+================================================== */
+
+.xd-hidden {
+    display: none !important;
+}

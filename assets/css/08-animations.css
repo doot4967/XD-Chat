@@ -1,0 +1,171 @@
+/*
+==================================================
+Project : XD Chat
+Version : 1.0.0
+File    : 08-animations.css
+Module  : Animations
+Status  : Production Ready
+Author  : Umesh + ChatGPT
+Created : 05 July 2026
+==================================================
+*/
+
+
+/* ==================================================
+   01. FADE IN
+================================================== */
+
+@keyframes xdFadeIn {
+
+    from {
+
+        opacity: 0;
+
+    }
+
+    to {
+
+        opacity: 1;
+
+    }
+
+}
+
+
+/* ==================================================
+   02. SLIDE UP
+================================================== */
+
+@keyframes xdSlideUp {
+
+    from {
+
+        opacity: 0;
+
+        transform: translateY(2rem);
+
+    }
+
+    to {
+
+        opacity: 1;
+
+        transform: translateY(0);
+
+    }
+
+}
+
+
+/* ==================================================
+   03. SCALE IN
+================================================== */
+
+@keyframes xdScaleIn {
+
+    from {
+
+        opacity: 0;
+
+        transform: scale(.95);
+
+    }
+
+    to {
+
+        opacity: 1;
+
+        transform: scale(1);
+
+    }
+
+}
+
+
+/* ==================================================
+   04. FADE IN CLASS
+================================================== */
+
+.xd-fade-in {
+
+    animation: xdFadeIn .6s ease forwards;
+
+}
+
+
+/* ==================================================
+   05. SLIDE UP CLASS
+================================================== */
+
+.xd-slide-up {
+
+    animation: xdSlideUp .6s ease forwards;
+
+}
+
+
+/* ==================================================
+   06. SCALE IN CLASS
+================================================== */
+
+.xd-scale-in {
+
+    animation: xdScaleIn .4s ease forwards;
+
+}
+
+
+/* ==================================================
+   07. HOVER LIFT
+================================================== */
+
+.xd-hover-lift {
+
+    transition: transform .3s ease,
+                box-shadow .3s ease;
+
+}
+
+.xd-hover-lift:hover {
+
+    transform: translateY(-6px);
+
+}
+
+
+/* ==================================================
+   08. HOVER SCALE
+================================================== */
+
+.xd-hover-scale {
+
+    transition: transform .3s ease;
+
+}
+
+.xd-hover-scale:hover {
+
+    transform: scale(1.03);
+
+}
+
+
+/* ==================================================
+   09. REDUCE MOTION
+================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+
+    *,
+    *::before,
+    *::after {
+
+        animation: none !important;
+
+        transition: none !important;
+
+        scroll-behavior: auto !important;
+
+    }
+
+}

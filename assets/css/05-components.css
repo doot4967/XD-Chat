@@ -1,0 +1,210 @@
+/*
+==================================================
+Project : XD Chat
+Version : 1.0.0
+File    : 05-components.css
+Module  : Components
+Status  : Production Ready
+Author  : Umesh + ChatGPT
+Created : 04 July 2026
+==================================================
+*/
+
+
+/* ==================================================
+   01. PRIMARY BUTTON
+================================================== */
+
+.xd-btn-primary {
+
+    display: inline-flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    min-height: var(--xd-button-height);
+
+    padding-inline: var(--xd-space-6);
+
+    border-radius: var(--xd-radius-button);
+
+    background: var(--xd-color-primary);
+
+    color: var(--xd-text-white);
+
+    font-size: var(--xd-font-size-sm);
+
+    font-weight: var(--xd-font-semibold);
+
+    line-height: 1;
+
+    white-space: nowrap;
+
+    transition: all var(--xd-transition-fast) var(--xd-ease);
+
+}
+
+
+.xd-btn-primary:hover {
+
+    background: var(--xd-color-primary-hover);
+
+    transform: translateY(-0.125rem);
+
+    box-shadow: var(--xd-shadow-md);
+
+}
+
+
+/* ==================================================
+   02. SECONDARY BUTTON
+================================================== */
+
+.xd-btn-secondary {
+
+    display: inline-flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    min-height: var(--xd-button-height);
+
+    padding-inline: var(--xd-space-6);
+
+    margin-left: var(--xd-space-4);
+
+    border: 1px solid var(--xd-color-primary);
+
+    border-radius: var(--xd-radius-button);
+
+    background: transparent;
+
+    color: var(--xd-color-primary);
+
+    font-size: var(--xd-font-size-sm);
+
+    font-weight: var(--xd-font-semibold);
+
+    line-height: 1;
+
+    white-space: nowrap;
+
+    transition: all var(--xd-transition-fast) var(--xd-ease);
+
+}
+
+
+.xd-btn-secondary:hover {
+
+    background: var(--xd-color-primary);
+
+    color: var(--xd-text-white);
+
+}
+
+
+/* ==================================================
+   03. HERO ACTIONS
+================================================== */
+
+.xd-hero-actions {
+
+    display: flex;
+
+    align-items: center;
+
+    flex-wrap: wrap;
+
+    margin-bottom: var(--xd-space-6);
+
+}
+
+
+/* ==================================================
+   04. HERO POINTS
+================================================== */
+
+.xd-hero-points {
+
+    display: flex;
+
+    flex-wrap: wrap;
+
+    gap: var(--xd-space-5);
+
+}
+
+.xd-hero-points span {
+
+    color: var(--xd-text-muted);
+
+    font-size: var(--xd-font-size-sm);
+
+    font-weight: var(--xd-font-medium);
+
+}
+
+
+/* ==================================================
+   05. FEATURE TITLE
+================================================== */
+
+.xd-feature-title {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: var(--xd-space-4);
+
+    margin-bottom: var(--xd-space-4);
+
+}
+
+
+/* ==================================================
+   06. FEATURE ICON
+================================================== */
+
+.xd-feature-icon {
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    width: 3.5rem;
+
+    height: 3.5rem;
+
+    border-radius: 50%;
+
+    background: rgba(37, 99, 235, 0.10);
+
+    color: var(--xd-color-primary);
+
+    font-size: 1.4rem;
+
+    flex-shrink: 0;
+
+    transition: all var(--xd-transition-fast);
+
+}
+
+
+/* ==================================================
+   07. FEATURE CARD HOVER
+================================================== */
+
+.xd-feature-card:hover .xd-feature-icon {
+
+    transform: scale(1.08);
+
+    background: var(--xd-color-primary);
+
+    color: #ffffff;
+
+}
