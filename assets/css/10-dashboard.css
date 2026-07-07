@@ -1,0 +1,1444 @@
+/*
+==================================================
+Project : XD Chat
+Version : 2.0.0
+File    : 10-dashboard.css
+Module  : Dashboard
+Status  : Development
+Author  : Umesh + ChatGPT
+Created : 05 July 2026
+==================================================
+*/
+
+
+/* ==========================================
+   01. DASHBOARD LAYOUT
+========================================== */
+
+.xd-dashboard{
+
+    display:flex;
+
+    min-height:100vh;
+
+    background:
+    linear-gradient(
+        180deg,
+        #f8fafc 0%,
+        #f1f5f9 45%,
+        #eef4ff 100%
+    );
+
+}
+
+.xd-dashboard-main{
+
+    flex:1;
+
+    padding:2rem;
+
+}
+
+
+/* ==========================================
+   02. SIDEBAR
+========================================== */
+
+.xd-dashboard-sidebar{
+
+    width:280px;
+
+    background:#0f172a;
+
+    color:#ffffff;
+
+    display:flex;
+
+    flex-direction:column;
+
+    justify-content:space-between;
+
+    padding:2rem 1.5rem;
+
+    box-shadow:8px 0 30px rgba(15,23,42,.12);
+
+}
+
+.xd-dashboard-logo{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:1rem;
+
+    margin-bottom:2.5rem;
+
+    font-size:1.6rem;
+
+    font-weight:700;
+
+}
+
+.xd-logo-mark{
+
+    width:58px;
+
+    height:58px;
+
+    border-radius:18px;
+
+    background:linear-gradient(135deg,#2563eb,#3b82f6);
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    font-size:1.4rem;
+
+    color:#ffffff;
+
+    flex-shrink:0;
+
+}
+
+.xd-dashboard-logo small{
+
+    display:block;
+
+    margin-top:.35rem;
+
+    font-size:.85rem;
+
+    color:#94a3b8;
+
+    font-weight:500;
+
+}
+
+.xd-sidebar-label{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:.75rem;
+
+    font-size:.75rem;
+
+    text-transform:uppercase;
+
+    letter-spacing:2px;
+
+    color:#64748b;
+
+    margin-bottom:1rem;
+
+    padding-left:.25rem;
+
+}
+
+.xd-sidebar-label::after{
+
+    content:"";
+
+    flex:1;
+
+    height:1px;
+
+    background:rgba(255,255,255,.10);
+
+}
+
+.xd-dashboard-nav{
+
+    display:flex;
+
+    flex-direction:column;
+
+    gap:.65rem;
+
+}
+
+.xd-dashboard-nav a{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:1rem;
+
+    color:#cbd5e1;
+
+    text-decoration:none;
+
+    padding:1rem;
+
+    border-radius:16px;
+
+    transition:.25s;
+
+    font-weight:500;
+
+}
+
+.xd-dashboard-nav a i{
+
+    width:22px;
+
+    text-align:center;
+
+    font-size:1rem;
+
+}
+
+.xd-dashboard-nav a:hover{
+
+    background:#1e293b;
+
+    color:#ffffff;
+
+    transform:translateX(5px);
+
+}
+
+.xd-dashboard-nav a.active{
+
+    background:#2563eb;
+
+    color:#ffffff;
+
+    box-shadow:0 12px 25px rgba(37,99,235,.35);
+
+}
+
+.xd-sidebar-bottom{
+
+    margin-top:2rem;
+
+    border-top:1px solid rgba(255,255,255,.08);
+
+    padding-top:1.5rem;
+
+}
+
+.xd-sidebar-profile{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:.90rem;
+
+    margin-bottom:1rem;
+
+}
+
+.xd-sidebar-avatar{
+
+    width:52px;
+
+    height:52px;
+
+    border-radius:50%;
+
+    background:#2563eb;
+
+    color:#ffffff;
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    font-size:1.1rem;
+
+    font-weight:700;
+
+}
+
+.xd-sidebar-profile strong{
+
+    display:block;
+
+    color:#ffffff;
+
+}
+
+.xd-sidebar-profile small{
+
+    color:#94a3b8;
+
+}
+
+.xd-sidebar-logout{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:.80rem;
+
+    padding:.90rem 1rem;
+
+    border-radius:14px;
+
+    text-decoration:none;
+
+    color:#f87171;
+
+    transition:.25s;
+
+}
+
+.xd-sidebar-logout:hover{
+
+    background:#1e293b;
+
+}
+
+
+/* ==========================================
+   03. HEADER
+========================================== */
+
+.xd-dashboard-header{
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:center;
+
+    gap:2rem;
+
+    margin-bottom:2rem;
+
+}
+
+.xd-header-left{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:1.25rem;
+
+}
+
+.xd-sidebar-toggle{
+
+    width:52px;
+
+    height:52px;
+
+    border:none;
+
+    border-radius:14px;
+
+    background:#ffffff;
+
+    cursor:pointer;
+
+    font-size:1.15rem;
+
+    box-shadow:0 8px 20px rgba(15,23,42,.08);
+
+    transition:.25s;
+
+}
+
+.xd-sidebar-toggle:hover{
+
+    background:#2563eb;
+
+    color:#ffffff;
+
+}
+
+.xd-header-left h1{
+
+    font-size:2.2rem;
+
+    margin:0;
+
+    color:#0f172a;
+
+}
+
+.xd-header-left p{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:.35rem;
+
+    margin-top:.40rem;
+
+    color:#64748b;
+
+}
+
+.xd-header-right{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:1rem;
+
+}
+
+.xd-header-search{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:.75rem;
+
+    width:320px;
+
+    background:rgba(255,255,255,.92);
+
+    backdrop-filter:blur(10px);
+
+    padding:.90rem 1rem;
+
+    border-radius:14px;
+
+    box-shadow:0 8px 20px rgba(15,23,42,.06);
+
+}
+
+.xd-header-search i{
+
+    color:#64748b;
+
+}
+
+.xd-header-search input{
+
+    width:100%;
+
+    border:none;
+
+    outline:none;
+
+    background:transparent;
+
+    font-size:.95rem;
+
+}
+
+.xd-header-icon{
+
+    position:relative;
+
+    width:52px;
+
+    height:52px;
+
+    border:none;
+
+    border-radius:50%;
+
+    background:#ffffff;
+
+    cursor:pointer;
+
+    font-size:1rem;
+
+    box-shadow:0 8px 20px rgba(15,23,42,.06);
+
+    transition:.25s;
+
+}
+
+.xd-header-icon:hover{
+
+    background:#2563eb;
+
+    color:#ffffff;
+
+}
+
+.xd-header-icon span{
+
+    position:absolute;
+
+    top:6px;
+
+    right:6px;
+
+    width:18px;
+
+    height:18px;
+
+    border-radius:50%;
+
+    background:#2563eb;
+
+    color:#ffffff;
+
+    font-size:.70rem;
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+}
+
+.xd-header-profile{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:.90rem;
+
+    background:rgba(255,255,255,.92);
+
+    backdrop-filter:blur(10px);
+
+    padding:.60rem .90rem;
+
+    border-radius:16px;
+
+    box-shadow:0 8px 20px rgba(15,23,42,.06);
+
+}
+
+.xd-profile-avatar{
+
+    width:48px;
+
+    height:48px;
+
+    border-radius:50%;
+
+    background:#2563eb;
+
+    color:#ffffff;
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    font-weight:700;
+
+    font-size:1.1rem;
+
+}
+
+.xd-header-profile strong{
+
+    display:block;
+
+    color:#0f172a;
+
+}
+
+.xd-header-profile small{
+
+    color:#64748b;
+
+}
+
+
+/* ==========================================
+   04. STAT CARDS
+========================================== */
+
+.xd-dashboard-cards{
+
+    display:grid;
+
+    grid-template-columns:repeat(4,1fr);
+
+    gap:1.5rem;
+
+    margin-bottom:2rem;
+
+}
+
+.xd-dashboard-card{
+
+    background:rgba(255,255,255,.92);
+
+    backdrop-filter:blur(10px);
+
+    border-radius:22px;
+
+    padding:1.5rem;
+
+    box-shadow:0 12px 35px rgba(15,23,42,.08);
+
+    transition:.30s;
+
+}
+
+.xd-dashboard-card:hover{
+
+    transform:translateY(-6px);
+
+    box-shadow:0 20px 45px rgba(15,23,42,.12);
+
+}
+
+.xd-card-icon{
+
+    width:54px;
+
+    height:54px;
+
+    border-radius:16px;
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    color:#ffffff;
+
+    font-size:1.3rem;
+
+    margin-bottom:1rem;
+
+}
+
+.blue{
+
+    background:#2563eb;
+
+}
+
+.green{
+
+    background:#22c55e;
+
+}
+
+.purple{
+
+    background:#9333ea;
+
+}
+
+.orange{
+
+    background:#f97316;
+
+}
+
+.xd-dashboard-card span{
+
+    display:block;
+
+    color:#64748b;
+
+    margin-bottom:.60rem;
+
+    font-size:.95rem;
+
+}
+
+.xd-dashboard-card strong{
+
+    display:block;
+
+    font-size:2.5rem;
+
+    color:#0f172a;
+
+    margin-bottom:.80rem;
+
+}
+
+.xd-dashboard-card small{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:.40rem;
+
+    font-size:.90rem;
+
+}
+
+.positive{
+
+    color:#16a34a;
+
+}
+
+
+/* ==========================================
+   05. CONTENT PANELS
+========================================== */
+
+.xd-dashboard-grid{
+
+    display:grid;
+
+    grid-template-columns:2fr 1fr;
+
+    gap:1.5rem;
+
+}
+
+.xd-dashboard-panel{
+
+    background:rgba(255,255,255,.92);
+
+    backdrop-filter:blur(10px);
+
+    border-radius:22px;
+
+    padding:1.75rem;
+
+    box-shadow:0 12px 35px rgba(15,23,42,.08);
+
+}
+
+.xd-panel-header{
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:center;
+
+    gap:1rem;
+
+    margin-bottom:1.5rem;
+
+}
+
+.xd-panel-header h2{
+
+    margin:0;
+
+    font-size:1.6rem;
+
+    color:#0f172a;
+
+}
+
+.xd-panel-header a{
+
+    margin-left:auto;
+
+    color:#2563eb;
+
+    text-decoration:none;
+
+    font-weight:700;
+
+    white-space:nowrap;
+
+}
+
+
+/* ==========================================
+   06. CHAT LIST
+========================================== */
+
+.xd-chat-list{
+
+    display:flex;
+
+    flex-direction:column;
+
+    gap:1rem;
+
+}
+
+.xd-chat-row{
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:space-between;
+
+    gap:1rem;
+
+    padding:1rem;
+
+    border-radius:16px;
+
+    transition:.25s;
+
+}
+
+.xd-chat-row:hover{
+
+    background:#f8fafc;
+
+}
+
+.xd-chat-avatar{
+
+    width:52px;
+
+    height:52px;
+
+    border-radius:50%;
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    color:#ffffff;
+
+    font-weight:700;
+
+    font-size:1.1rem;
+
+    flex-shrink:0;
+
+}
+
+.xd-chat-info{
+
+    flex:1;
+
+}
+
+.xd-chat-info strong{
+
+    display:block;
+
+    margin-bottom:.35rem;
+
+    color:#0f172a;
+
+}
+
+.xd-chat-info span{
+
+    color:#64748b;
+
+    font-size:.90rem;
+
+}
+
+.xd-chat-meta{
+
+    text-align:right;
+
+}
+
+.xd-chat-meta small{
+
+    display:block;
+
+    color:#94a3b8;
+
+    margin-bottom:.45rem;
+
+}
+
+
+/* ==========================================
+   07. BADGES
+========================================== */
+
+.xd-badge{
+
+    display:inline-block;
+
+    padding:.30rem .80rem;
+
+    border-radius:999px;
+
+    font-size:.80rem;
+
+    font-weight:600;
+
+}
+
+.xd-badge.success{
+
+    background:#dcfce7;
+
+    color:#15803d;
+
+}
+
+.xd-badge.warning{
+
+    background:#ffedd5;
+
+    color:#c2410c;
+
+}
+
+
+/* ==========================================
+   08. VISITOR LIST
+========================================== */
+
+.xd-visitor-list{
+
+    display:flex;
+
+    flex-direction:column;
+
+    gap:1rem;
+
+}
+
+.xd-visitor-row{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:1rem;
+
+    padding:1rem;
+
+    border-radius:16px;
+
+    transition:.25s;
+
+}
+
+.xd-visitor-row:hover{
+
+    background:#f8fafc;
+
+}
+
+.xd-visitor-row span{
+
+    font-size:1.8rem;
+
+    min-width:2.5rem;
+
+}
+
+.xd-visitor-row div{
+
+    flex:1;
+
+}
+
+.xd-visitor-row strong{
+
+    display:block;
+
+    color:#0f172a;
+
+    margin-bottom:.35rem;
+
+}
+
+.xd-visitor-row small{
+
+    color:#64748b;
+
+}
+
+.xd-visitor-row em{
+
+    width:10px;
+
+    height:10px;
+
+    border-radius:50%;
+
+    background:#22c55e;
+
+    display:block;
+
+}
+/* ==========================================
+   09. TABLE
+========================================== */
+
+.xd-table-wrap{
+
+    width:100%;
+
+    overflow-x:auto;
+
+}
+
+.xd-table{
+
+    width:100%;
+
+    border-collapse:separate;
+
+    border-spacing:0 .75rem;
+
+}
+
+.xd-table th{
+
+    text-align:left;
+
+    color:#64748b;
+
+    font-size:.85rem;
+
+    font-weight:700;
+
+    padding:0 1rem .5rem;
+
+    white-space:nowrap;
+
+}
+
+.xd-table td{
+
+    background:#ffffff;
+
+    padding:1rem;
+
+    color:#475569;
+
+    vertical-align:middle;
+
+    white-space:nowrap;
+
+}
+
+.xd-table tbody tr td:first-child{
+
+    border-radius:14px 0 0 14px;
+
+}
+
+.xd-table tbody tr td:last-child{
+
+    border-radius:0 14px 14px 0;
+
+}
+
+.xd-table code{
+
+    display:inline-block;
+
+    background:#f1f5f9;
+
+    color:#2563eb;
+
+    padding:.35rem .60rem;
+
+    border-radius:.50rem;
+
+    font-weight:700;
+
+}
+
+/* ==========================================
+   09. RESPONSIVE
+========================================== */
+
+@media(max-width:992px){
+
+    .xd-dashboard{
+
+        flex-direction:column;
+
+    }
+
+    .xd-dashboard-sidebar{
+
+        width:100%;
+
+    }
+
+    .xd-dashboard-header{
+
+        flex-direction:column;
+
+        align-items:flex-start;
+
+    }
+
+    .xd-header-right{
+
+        width:100%;
+
+        flex-wrap:wrap;
+
+    }
+
+    .xd-header-search{
+
+        width:100%;
+
+    }
+
+    .xd-dashboard-cards{
+
+        grid-template-columns:repeat(2,1fr);
+
+    }
+
+    .xd-dashboard-grid{
+
+        grid-template-columns:1fr;
+
+    }
+
+}
+
+
+@media(max-width:576px){
+
+    .xd-dashboard-main{
+
+        padding:1rem;
+
+    }
+
+    .xd-dashboard-cards{
+
+        grid-template-columns:1fr;
+
+    }
+
+    .xd-dashboard-card{
+
+        padding:1.25rem;
+
+    }
+
+}
+/* ==========================================
+   30. WEBSITE ACTION BUTTONS
+========================================== */
+
+.xd-action-buttons{
+    display:flex;
+    gap:10px;
+    align-items:center;
+}
+
+.xd-btn-edit,
+.xd-btn-delete{
+
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+
+    padding:8px 14px;
+
+    border-radius:8px;
+
+    text-decoration:none;
+
+    font-size:14px;
+    font-weight:600;
+
+    transition:0.3s;
+}
+
+.xd-btn-edit{
+
+    background:#2563eb;
+    color:#ffffff;
+}
+
+.xd-btn-edit:hover{
+
+    background:#1d4ed8;
+}
+
+.xd-btn-delete{
+
+    background:#dc2626;
+    color:#ffffff;
+}
+
+.xd-btn-delete:hover{
+
+    background:#b91c1c;
+}
+/* ==========================================
+   31. ALERT SYSTEM
+========================================== */
+
+.xd-alert{
+    width:100%;
+    padding:14px 18px;
+    margin-bottom:20px;
+    border-radius:10px;
+    font-size:15px;
+    font-weight:600;
+}
+
+.xd-alert.success{
+    background:#dcfce7;
+    color:#166534;
+    border:1px solid #86efac;
+}
+/* ==========================================
+   32. DELETE CONFIRMATION MODAL
+========================================== */
+
+.xd-modal-overlay{
+
+    position:fixed;
+
+    inset:0;
+
+    background:rgba(0,0,0,.55);
+
+    display:none;
+
+    justify-content:center;
+
+    align-items:center;
+
+    z-index:9999;
+}
+
+.xd-modal-overlay.active{
+
+    display:flex;
+}
+
+.xd-modal-box{
+
+    width:420px;
+
+    max-width:90%;
+
+    background:#ffffff;
+
+    border-radius:14px;
+
+    padding:30px;
+
+    text-align:center;
+
+    box-shadow:0 20px 60px rgba(0,0,0,.20);
+}
+
+.xd-modal-icon{
+
+    font-size:48px;
+
+    color:#f59e0b;
+
+    margin-bottom:15px;
+}
+
+.xd-modal-box h3{
+
+    margin-bottom:12px;
+
+    font-size:24px;
+}
+
+.xd-modal-box p{
+
+    color:#666;
+
+    line-height:1.6;
+
+    margin-bottom:25px;
+}
+
+.xd-modal-actions{
+
+    display:flex;
+
+    justify-content:center;
+
+    gap:15px;
+}
+
+.xd-modal-cancel,
+.xd-modal-delete{
+
+    padding:10px 22px;
+
+    border:none;
+
+    border-radius:8px;
+
+    cursor:pointer;
+
+    font-size:15px;
+
+    font-weight:600;
+
+    text-decoration:none;
+}
+
+.xd-modal-cancel{
+
+    background:#e5e7eb;
+
+    color:#111827;
+}
+
+.xd-modal-delete{
+
+    background:#dc2626;
+
+    color:#ffffff;
+}
+
+.xd-modal-delete:hover{
+
+    background:#b91c1c;
+}
+/* ==========================================
+   33. DASHBOARD FORM SYSTEM
+========================================== */
+
+.xd-form{
+    max-width:760px;
+    display:flex;
+    flex-direction:column;
+    gap:22px;
+}
+
+.xd-form-group{
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+}
+
+.xd-form-group label{
+    font-size:15px;
+    font-weight:600;
+    color:#334155;
+}
+
+.xd-form input[type="text"],
+.xd-form input[type="url"],
+.xd-form input[type="email"],
+.xd-form input[type="password"],
+.xd-form select,
+.xd-form textarea{
+    width:100%;
+    padding:13px 15px;
+    border:1px solid #dbe3ef;
+    border-radius:10px;
+    font-size:15px;
+    color:#0f172a;
+    background:#ffffff;
+    outline:none;
+}
+
+.xd-form textarea{
+    resize:vertical;
+    min-height:110px;
+    line-height:1.6;
+}
+
+.xd-form input:focus,
+.xd-form select:focus,
+.xd-form textarea:focus{
+    border-color:#2563eb;
+    box-shadow:0 0 0 3px rgba(37,99,235,.12);
+}
+
+.xd-form input[type="color"]{
+    width:80px;
+    height:45px;
+    padding:4px;
+    border:1px solid #dbe3ef;
+    border-radius:10px;
+    cursor:pointer;
+}
+
+.xd-form-actions{
+    display:flex;
+    gap:12px;
+    align-items:center;
+    margin-top:10px;
+}
+
+.xd-btn-submit,
+.xd-btn-cancel{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+    padding:12px 20px;
+    border-radius:10px;
+    font-size:15px;
+    font-weight:700;
+    text-decoration:none;
+    cursor:pointer;
+}
+
+.xd-btn-submit{
+    border:none;
+    background:#2563eb;
+    color:#ffffff;
+}
+
+.xd-btn-submit:hover{
+    background:#1d4ed8;
+}
+
+.xd-btn-cancel{
+    background:#e5e7eb;
+    color:#111827;
+}
+
+.xd-btn-cancel:hover{
+    background:#d1d5db;
+}
+.xd-badge.danger{
+
+    background:#fee2e2;
+
+    color:#dc2626;
+
+}
+/* ==========================================
+   CREATED DATE FORMAT
+========================================== */
+
+.xd-table td small{
+
+    color:#64748b;
+
+    font-size:12px;
+
+}
+/* ==========================================
+   34. WEBSITE INFO IN TABLE
+========================================== */
+
+.xd-website-info{
+    display:flex;
+    flex-direction:column;
+    gap:4px;
+}
+
+.xd-website-info strong{
+    font-size:15px;
+    font-weight:700;
+    color:#0f172a;
+}
+
+.xd-website-info small{
+    font-size:13px;
+    color:#64748b;
+}

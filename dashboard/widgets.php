@@ -3,11 +3,11 @@
 ==================================================
 Project : XD Chat
 Version : 2.0.0
-File    : websites.php
-Module  : Website Management
+File    : widgets.php
+Module  : Widget Management
 Status  : Development
 Author  : Umesh + ChatGPT
-Created : 05 July 2026
+Created : 06 July 2026
 ==================================================
 */
 
@@ -20,7 +20,7 @@ require_once '../database/connection.php';
 
 require_once '../includes/functions/session.php';
 
-require_once '../includes/functions/website.php';
+require_once '../includes/functions/widget.php';
 
 requireLogin();
 
@@ -29,13 +29,13 @@ requireLogin();
    02. PAGE CONFIGURATION
 ========================================== */
 
-$page_title = "Websites | XD Chat";
+$page_title = "Widgets | XD Chat";
 
-$page_heading = "Websites";
+$page_heading = "Widgets";
 
-$page_description = "Manage websites connected with XD Chat.";
+$page_description = "Manage chat widgets connected with your websites.";
 
-$websites = getWebsites(
+$widgets = getWidgets(
     $pdo,
     $_SESSION["user_id"]
 );
@@ -82,7 +82,7 @@ $websites = getWebsites(
             <?php if (isset($_GET["added"])) { ?>
 
                 <div class="xd-alert success">
-                    Website added successfully.
+                    Widget added successfully.
                 </div>
 
             <?php } ?>
@@ -90,7 +90,7 @@ $websites = getWebsites(
             <?php if (isset($_GET["updated"])) { ?>
 
                 <div class="xd-alert success">
-                    Website updated successfully.
+                    Widget updated successfully.
                 </div>
 
             <?php } ?>
@@ -98,7 +98,7 @@ $websites = getWebsites(
             <?php if (isset($_GET["deleted"])) { ?>
 
                 <div class="xd-alert success">
-                    Website deleted successfully.
+                    Widget deleted successfully.
                 </div>
 
             <?php } ?>
@@ -108,16 +108,16 @@ $websites = getWebsites(
             ========================================== -->
             <div class="xd-panel-header">
 
-                <h2>Connected Websites</h2>
+                <h2>All Widgets</h2>
 
-                <a href="website-add.php">Add New</a>
+                <a href="widget-add.php">Add Widget</a>
 
             </div>
 
             <!-- ==========================================
-                 05. WEBSITE TABLE
+                 05. WIDGET TABLE
             ========================================== -->
-            <?php if (count($websites) > 0) { ?>
+            <?php if (count($widgets) > 0) { ?>
 
                 <div class="xd-table-wrap">
 
@@ -126,9 +126,11 @@ $websites = getWebsites(
                         <thead>
 
                             <tr>
+                                <th>Widget</th>
                                 <th>Website</th>
-                                <th>Domain</th>
                                 <th>Widget Key</th>
+                                <th>Theme</th>
+                                <th>Position</th>
                                 <th>Status</th>
                                 <th>Created</th>
                                 <th>Action</th>
@@ -138,35 +140,83 @@ $websites = getWebsites(
 
                         <tbody>
 
-                            <?php foreach ($websites as $website) { ?>
+                            <?php foreach ($widgets as $widget) { ?>
 
                                 <tr>
 
                                     <td>
                                         <strong>
-                                            <?php echo htmlspecialchars($website["website_name"]); ?>
+                                            <?php echo htmlspecialchars($widget["widget_name"]); ?>
                                         </strong>
                                     </td>
 
-                                    <td>
-                                        <?php echo htmlspecialchars($website["domain"]); ?>
-                                    </td>
+                                  <td>
+    <div class="xd-website-info">
+
+        <strong>
+            <?php echo htmlspecialchars($widget["website_name"]); ?>
+        </strong>
+
+        <small>
+            <?php echo htmlspecialchars($widget["domain"]); ?>
+        </small>
+
+    </div>
+</td>
 
                                     <td>
                                         <code>
-                                            <?php echo htmlspecialchars($website["widget_key"]); ?>
+                                            <?php echo htmlspecialchars($widget["widget_key"]); ?>
                                         </code>
                                     </td>
 
                                     <td>
-                                        <span class="xd-badge success">
-                                            <?php echo htmlspecialchars(ucfirst($website["status"])); ?>
-                                        </span>
+                                        <?php echo htmlspecialchars(ucfirst($widget["theme"])); ?>
                                     </td>
 
                                     <td>
-                                        <?php echo htmlspecialchars($website["created_at"]); ?>
+                                        <?php echo htmlspecialchars(ucwords(str_replace("-", " ", $widget["position"]))); ?>
                                     </td>
+
+                                    <td>
+                                       <?php
+
+$statusClass = ($widget["status"] == "active")
+    ? "success"
+    : "danger";
+
+?>
+
+<span class="xd-badge <?php echo $statusClass; ?>">
+
+    <?php echo ucfirst($widget["status"]); ?>
+
+</span>
+                                    </td>
+
+                                  <td>
+
+    <?php
+
+    $createdDate = strtotime($widget["created_at"]);
+
+    ?>
+
+    <strong>
+
+        <?php echo date("d M Y", $createdDate); ?>
+
+    </strong>
+
+    <br>
+
+    <small>
+
+        <?php echo date("h:i A", $createdDate); ?>
+
+    </small>
+
+</td>
 
                                     <!-- ==========================================
                                          06. ACTION BUTTONS
@@ -175,9 +225,9 @@ $websites = getWebsites(
 
                                         <div class="xd-action-buttons">
 
-                                            <a href="website-edit.php?id=<?php echo (int) $website["id"]; ?>"
+                                            <a href="widget-edit.php?id=<?php echo (int) $widget["id"]; ?>"
                                                class="xd-btn-edit"
-                                               title="Edit Website">
+                                               title="Edit Widget">
 
                                                 <i class="fas fa-edit"></i>
 
@@ -185,10 +235,10 @@ $websites = getWebsites(
 
                                             </a>
 
-                                            <a href="website-delete.php?id=<?php echo (int) $website["id"]; ?>"
+                                            <a href="widget-delete.php?id=<?php echo (int) $widget["id"]; ?>"
                                                class="xd-btn-delete xd-delete-trigger"
-                                               data-name="<?php echo htmlspecialchars($website["website_name"]); ?>"
-                                               title="Delete Website">
+                                               data-name="<?php echo htmlspecialchars($widget["widget_name"]); ?>"
+                                               title="Delete Widget">
 
                                                 <i class="fas fa-trash"></i>
 
@@ -215,7 +265,7 @@ $websites = getWebsites(
                 <!-- ==========================================
                      07. EMPTY STATE
                 ========================================== -->
-                <p>No websites added yet.</p>
+                <p>No widgets added yet.</p>
 
             <?php } ?>
 
@@ -236,11 +286,11 @@ $websites = getWebsites(
             <i class="fas fa-triangle-exclamation"></i>
         </div>
 
-        <h3>Delete Website?</h3>
+        <h3>Delete Widget?</h3>
 
         <p>
             Are you sure you want to delete
-            <strong id="xdDeleteName">this website</strong>?
+            <strong id="xdDeleteName">this widget</strong>?
         </p>
 
         <div class="xd-modal-actions">

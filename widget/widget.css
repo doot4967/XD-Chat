@@ -1,0 +1,274 @@
+/*
+==================================================
+Project : XD Chat
+Version : 2.0.0
+File    : widget.css
+Module  : Public Widget Styles
+==================================================
+*/
+
+/* ==========================================
+   01. CHAT BUBBLE
+========================================== */
+
+.xd-chat-bubble{
+    position:fixed;
+    bottom:24px;
+    width:58px;
+    height:58px;
+    border-radius:50%;
+    border:none;
+    cursor:pointer;
+    z-index:999999;
+    color:#ffffff;
+    font-size:26px;
+    box-shadow:0 16px 40px rgba(0,0,0,.28);
+    transition:.25s ease;
+}
+
+.xd-chat-bubble:hover{
+    transform:translateY(-4px) scale(1.04);
+}
+
+
+/* ==========================================
+   02. CHAT WINDOW
+========================================== */
+
+.xd-chat-window{
+    position:fixed;
+    bottom:95px;
+    width:365px;
+    height:535px;
+    background:#ffffff;
+    border-radius:22px;
+    box-shadow:0 24px 70px rgba(15,23,42,.25);
+    overflow:hidden;
+    z-index:999999;
+    display:none;
+    flex-direction:column;
+    font-family:Arial, sans-serif;
+    transform:scale(.92);
+    opacity:0;
+    transition:.25s ease;
+}
+
+.xd-chat-window.active{
+    display:flex;
+    transform:scale(1);
+    opacity:1;
+}
+
+
+/* ==========================================
+   03. CHAT HEADER
+========================================== */
+
+.xd-chat-header{
+    padding:18px;
+    color:#ffffff;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+}
+
+.xd-chat-brand{
+    display:flex;
+    align-items:center;
+    gap:12px;
+}
+
+.xd-chat-avatar{
+    width:42px;
+    height:42px;
+    border-radius:50%;
+    background:rgba(255,255,255,.22);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:20px;
+}
+
+.xd-chat-title{
+    font-size:16px;
+    font-weight:800;
+    line-height:1.2;
+}
+
+.xd-chat-status{
+    font-size:12px;
+    margin-top:3px;
+    opacity:.9;
+}
+
+.xd-chat-status span{
+    display:inline-block;
+    width:8px;
+    height:8px;
+    background:#22c55e;
+    border-radius:50%;
+    margin-right:5px;
+}
+
+.xd-chat-close{
+    background:rgba(255,255,255,.18);
+    border:none;
+    color:#ffffff;
+    width:32px;
+    height:32px;
+    border-radius:50%;
+    font-size:20px;
+    cursor:pointer;
+}
+
+
+/* ==========================================
+   04. CHAT BODY
+========================================== */
+
+.xd-chat-body{
+    flex:1;
+    padding:18px;
+    background:#f8fafc;
+    display:flex;
+    flex-direction:column;
+    gap:14px;
+    overflow-y:auto;
+}
+.xd-chat-message{
+    max-width:82%;
+    background:#ffffff;
+    padding:14px 15px;
+    border-radius:16px 16px 16px 4px;
+    color:#334155;
+    font-size:14px;
+    line-height:1.5;
+    box-shadow:0 6px 20px rgba(15,23,42,.06);
+}
+
+.xd-chat-time{
+    display:block;
+    margin-top:8px;
+    color:#94a3b8;
+    font-size:11px;
+}
+
+.xd-chat-empty{
+    margin-top:auto;
+    text-align:center;
+    color:#94a3b8;
+    font-size:13px;
+}
+
+
+/* ==========================================
+   05. CHAT FOOTER
+========================================== */
+
+.xd-chat-footer{
+    padding:14px;
+    border-top:1px solid #e5e7eb;
+    display:flex;
+    gap:10px;
+    background:#ffffff;
+}
+
+.xd-chat-input{
+    flex:1;
+    padding:13px 14px;
+    border:1px solid #dbe3ef;
+    border-radius:14px;
+    outline:none;
+    font-size:14px;
+}
+
+.xd-chat-send{
+    border:none;
+    border-radius:14px;
+    color:#ffffff;
+    width:46px;
+    cursor:pointer;
+    font-size:18px;
+    font-weight:700;
+}
+
+
+/* ==========================================
+   06. MOBILE RESPONSIVE
+========================================== */
+
+@media(max-width:480px){
+
+    .xd-chat-window{
+        width:calc(100% - 28px);
+        height:75vh;
+        right:14px !important;
+        left:14px !important;
+        bottom:90px;
+    }
+
+    .xd-chat-bubble{
+        right:18px !important;
+        bottom:18px;
+    }
+}
+/* ==========================================
+   07. USER MESSAGE
+========================================== */
+
+.xd-chat-message.user{
+    margin-left:auto;
+    background:#2563eb;
+    color:#ffffff;
+    border-radius:16px 16px 4px 16px;
+}
+
+.xd-chat-message.user .xd-chat-time{
+    color:rgba(255,255,255,.75);
+}
+/* ==========================================
+   08. TYPING INDICATOR
+========================================== */
+
+.xd-chat-typing{
+    color:#64748b;
+    font-size:13px;
+}
+
+.xd-chat-typing span{
+    animation:xdTyping 1s infinite;
+}
+
+.xd-chat-typing span:nth-child(2){
+    animation-delay:.15s;
+}
+
+.xd-chat-typing span:nth-child(3){
+    animation-delay:.3s;
+}
+
+@keyframes xdTyping{
+    0%, 100%{
+        opacity:.2;
+    }
+
+    50%{
+        opacity:1;
+    }
+}
+/* ==========================================
+   09. CHAT SCROLLBAR
+========================================== */
+
+.xd-chat-body::-webkit-scrollbar{
+    width:6px;
+}
+
+.xd-chat-body::-webkit-scrollbar-thumb{
+    background:#cbd5e1;
+    border-radius:20px;
+}
+
+.xd-chat-body::-webkit-scrollbar-track{
+    background:transparent;
+}

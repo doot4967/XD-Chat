@@ -1,0 +1,58 @@
+/*
+==================================================
+Project : XD Chat
+Version : 2.0.0
+File    : 10-dashboard-layout.css
+Module  : Dashboard Layout
+Status  : Development
+Author  : Umesh + ChatGPT
+Created : 05 July 2026
+==================================================
+*/
+
+
+/* ==================================================
+   01. DASHBOARD WRAPPER
+================================================== */
+
+.xd-dashboard{
+
+    display:flex;
+
+    min-height:100vh;
+
+    background:var(--xd-bg-main);
+
+}
+
+
+/* ==================================================
+   02. MAIN CONTENT
+================================================== */
+
+.xd-dashboard-main{
+
+    flex:1;
+
+    display:flex;
+
+    flex-direction:column;
+
+    min-width:0;
+
+    overflow:hidden;
+
+}
+
+
+/* ==================================================
+   03. CONTENT WRAPPER
+================================================== */
+
+.xd-dashboard-content{
+
+    flex:1;
+
+    padding:var(--xd-space-8);
+
+}
