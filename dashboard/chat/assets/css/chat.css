@@ -451,6 +451,8 @@ Created : 06 July 2026
 
     display:flex;
 
+    align-items:center;
+
     gap:12px;
 
     padding:20px;
@@ -490,21 +492,31 @@ Created : 06 July 2026
 
 .xd-live-chat-composer button{
 
-    width:120px;
+    width:48px;
+
+    height:48px;
+
+    flex:0 0 48px;
 
     border:none;
 
-    border-radius:10px;
+    border-radius:14px;
 
     background:#2563eb;
 
     color:#fff;
 
-    font-size:15px;
+    font-size:18px;
 
     cursor:pointer;
 
     transition:.25s;
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
 
 }
 
@@ -770,6 +782,201 @@ Created : 06 July 2026
     color:#2563eb;
 }
 
+.xd-chat-emoji-wrap{
+    position:relative;
+    display:flex;
+}
+
+.xd-live-chat-composer .xd-chat-emoji-button,
+.xd-live-chat-composer .xd-chat-record-button{
+    width:48px;
+    height:48px;
+    flex:0 0 48px;
+    background:#f1f5f9;
+    color:#334155;
+    font-size:19px;
+    font-weight:800;
+}
+
+.xd-live-chat-composer .xd-chat-attach-button,
+.xd-live-chat-composer .xd-chat-emoji-button,
+.xd-live-chat-composer .xd-chat-record-button{
+    background:#f1f5f9;
+    color:#334155;
+}
+
+.xd-live-chat-composer .xd-chat-attach-button:hover,
+.xd-live-chat-composer .xd-chat-emoji-button:hover,
+.xd-live-chat-composer .xd-chat-record-button:hover{
+    background:#eff6ff;
+    color:#2563eb;
+}
+
+.xd-live-chat-composer .xd-chat-record-button svg{
+    width:20px;
+    height:20px;
+    fill:currentColor;
+}
+
+.xd-live-chat-composer .xd-chat-record-button.recording{
+    background:#fee2e2;
+    color:#dc2626;
+}
+
+.xd-chat-emoji-picker{
+    position:absolute;
+    left:0;
+    bottom:58px;
+    width:320px;
+    max-width:calc(100vw - 48px);
+    padding:10px;
+    border:1px solid #e5e7eb;
+    border-radius:16px;
+    background:#ffffff;
+    box-shadow:0 18px 44px rgba(15,23,42,.18);
+    display:none;
+    z-index:30;
+}
+
+.xd-chat-emoji-picker.active{
+    display:grid;
+    gap:9px;
+}
+
+.xd-chat-emoji-picker input{
+    width:100%;
+    height:38px;
+    border:1px solid #dbe3ef;
+    border-radius:12px;
+    padding:0 11px;
+    outline:none;
+    font-size:13px;
+}
+
+.xd-chat-emoji-tabs{
+    display:flex;
+    gap:6px;
+    overflow-x:auto;
+    padding-bottom:2px;
+}
+
+.xd-chat-emoji-tabs button{
+    width:auto;
+    border:none;
+    border-radius:999px;
+    background:#f1f5f9;
+    color:#64748b;
+    cursor:pointer;
+    font-size:11px;
+    font-weight:800;
+    padding:7px 10px;
+    white-space:nowrap;
+}
+
+.xd-chat-emoji-tabs button.active{
+    background:#2563eb;
+    color:#ffffff;
+}
+
+.xd-chat-emoji-grid{
+    display:grid;
+    grid-template-columns:repeat(8, 1fr);
+    gap:5px;
+    max-height:176px;
+    overflow-y:auto;
+}
+
+.xd-chat-emoji-grid button{
+    width:100%;
+    aspect-ratio:1;
+    border:none;
+    border-radius:10px;
+    background:#ffffff;
+    cursor:pointer;
+    font-size:20px;
+}
+
+.xd-chat-emoji-grid button:hover{
+    background:#eff6ff;
+}
+
+.xd-chat-emoji-empty{
+    grid-column:1 / -1;
+    margin:0;
+    color:#94a3b8;
+    font-size:12px;
+    text-align:center;
+}
+
+.xd-chat-record-panel,
+.xd-chat-record-preview{
+    padding:10px 20px;
+    border-top:1px solid #e5e7eb;
+    background:#ffffff;
+    display:none;
+    align-items:center;
+    gap:10px;
+    flex-shrink:0;
+}
+
+.xd-chat-record-panel.active,
+.xd-chat-record-preview.active{
+    display:flex;
+}
+
+.xd-chat-record-dot{
+    width:10px;
+    height:10px;
+    border-radius:50%;
+    background:#ef4444;
+    box-shadow:0 0 0 0 rgba(239,68,68,.5);
+    animation:xdAdminRecordPulse 1.1s infinite;
+}
+
+.xd-chat-record-panel strong{
+    color:#0f172a;
+    font-size:13px;
+}
+
+.xd-chat-record-panel span{
+    color:#64748b;
+    font-size:12px;
+}
+
+.xd-chat-record-preview audio{
+    flex:1;
+    min-width:0;
+}
+
+.xd-chat-record-preview button{
+    border:none;
+    border-radius:999px;
+    cursor:pointer;
+    font-size:12px;
+    font-weight:800;
+    padding:8px 13px;
+}
+
+#xdChatRecordCancel{
+    background:#f1f5f9;
+    color:#475569;
+}
+
+#xdChatRecordSend{
+    background:#2563eb;
+    color:#ffffff;
+}
+
+@keyframes xdAdminRecordPulse{
+    0%{
+        box-shadow:0 0 0 0 rgba(239,68,68,.5);
+    }
+
+    100%{
+        box-shadow:0 0 0 9px rgba(239,68,68,0);
+    }
+}
+
 .xd-chat-list-badges{
 
     display:flex;
@@ -986,14 +1193,17 @@ Created : 06 July 2026
 }
 
 .xd-chat-file-card a{
+    width:34px;
+    height:34px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
     border-radius:999px;
     background:#eff6ff;
     color:#2563eb;
-    padding:8px 11px;
     text-decoration:none;
-    font-size:12px;
-    font-weight:800;
     white-space:nowrap;
+    flex-shrink:0;
 }
 
 .xd-admin-message.agent .xd-chat-file-icon{
@@ -1008,27 +1218,37 @@ Created : 06 July 2026
 
 .xd-chat-media-card{
     display:grid;
-    gap:10px;
-    min-width:280px;
+    gap:8px;
+    min-width:0;
+    max-width:100%;
 }
 
 .xd-chat-media-card audio,
 .xd-chat-media-card video{
     width:100%;
-    max-width:340px;
+    max-width:320px;
     border-radius:12px;
 }
 
 .xd-chat-media-card a{
+    width:34px;
+    height:34px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
     justify-self:start;
     border-radius:999px;
     background:#eff6ff;
     color:#2563eb;
-    padding:8px 11px;
     text-decoration:none;
-    font-size:12px;
-    font-weight:800;
     white-space:nowrap;
+}
+
+.xd-chat-file-card a svg,
+.xd-chat-media-card a svg{
+    width:16px;
+    height:16px;
+    fill:currentColor;
 }
 
 .xd-admin-message.agent .xd-chat-media-card a{

@@ -47,6 +47,31 @@ let previousIncomingMessageSignature = "";
 
 let previousUnreadCounts = {};
 
+const chatMicIconSvg = `
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M12 14c1.7 0 3-1.3 3-3V6c0-1.7-1.3-3-3-3S9 4.3 9 6v5c0 1.7 1.3 3 3 3z"></path>
+        <path d="M17 11c0 2.8-2.2 5-5 5s-5-2.2-5-5H5c0 3.5 2.6 6.4 6 6.9V21h2v-3.1c3.4-.5 6-3.4 6-6.9h-2z"></path>
+    </svg>
+`;
+
+const chatStopIconSvg = `
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M7 7h10v10H7z"></path>
+    </svg>
+`;
+
+let activeEmojiCategory = "Recent";
+
+let mediaRecorder = null;
+
+let recordingChunks = [];
+
+let recordedVoiceBlob = null;
+
+let recordingStartedAt = 0;
+
+let recordingTimerInterval = null;
+
 
 /* ==========================================
    02. DOCUMENT READY
@@ -67,6 +92,8 @@ document.addEventListener("DOMContentLoaded", function () {
     registerCloseChatEvent();
 
     registerImageLightbox();
+
+    registerSingleMediaPlayback();
 
 });
 
@@ -393,7 +420,21 @@ function loadChat(chatId, loadReason) {
                 previousIncomingMessageSignature !== ""
                 && previousIncomingMessageSignature !== currentIncomingMessageSignature;
 
-            messageBox.innerHTML = html;
+            const shouldPreserveMedia = isChatMediaActive(messageBox);
+
+            if (previousMessageSignature === currentMessageSignature) {
+                updateChatControls(activeChatStatus);
+                isChatMessageNotificationReady = true;
+                isFirstChatLoad = false;
+                updateDashboardPresence();
+                return;
+            }
+
+            if (shouldPreserveMedia && previousMessageSignature !== "") {
+                appendNewChatMessages(messageBox, html);
+            } else {
+                messageBox.innerHTML = html;
+            }
 
             updateVisitorInfoBox(messageBox);
 
@@ -506,6 +547,55 @@ function updateVisitorInfoBox(messageBox) {
 }
 
 
+function isChatMediaActive(messageBox) {
+
+    const mediaItems = messageBox.querySelectorAll("audio, video");
+
+    return Array.from(mediaItems).some(function (media) {
+        return !media.paused || media.currentTime > 0;
+    });
+
+}
+
+
+function appendNewChatMessages(messageBox, html) {
+
+    const template = document.createElement("template");
+
+    template.innerHTML = html.trim();
+
+    template.content.querySelectorAll(".xd-admin-message").forEach(function (message) {
+
+        const messageId = getChatMessageId(message);
+
+        if (messageId && messageBox.querySelector('[data-message-id="' + messageId + '"]')) {
+            return;
+        }
+
+        messageBox.appendChild(message.cloneNode(true));
+
+    });
+
+}
+
+
+function getChatMessageId(messageElement) {
+
+    if (messageElement.dataset.messageId) {
+        return messageElement.dataset.messageId;
+    }
+
+    const messageNode = messageElement.querySelector("[data-message-id]");
+
+    if (!messageNode) {
+        return "";
+    }
+
+    return messageNode.dataset.messageId || "";
+
+}
+
+
 function registerVisitorInfoToggle() {
 
     const detailsButton = document.getElementById("xdChatDetailsToggle");
@@ -578,6 +668,10 @@ function updateChatControls(chatStatus) {
 
     const attachButton = document.getElementById("xdChatAttach");
 
+    const emojiButton = document.getElementById("xdChatEmoji");
+
+    const recordButton = document.getElementById("xdChatRecord");
+
     const closeButton = document.getElementById("xdChatCloseButton");
 
     const isClosed = chatStatus === "closed";
@@ -590,11 +684,41 @@ function updateChatControls(chatStatus) {
 
     attachButton.disabled = !hasActiveChat || isClosed;
 
+    emojiButton.disabled = !hasActiveChat || isClosed;
+
+    recordButton.disabled = !hasActiveChat || isClosed;
+
     closeButton.disabled = !hasActiveChat || isClosed;
 
     input.placeholder = isClosed
         ? "This chat is closed."
         : "Type your reply...";
+
+    if (!hasActiveChat || isClosed) {
+        closeChatComposerPanels();
+    }
+
+}
+
+
+function closeChatComposerPanels() {
+
+    const attachMenu = document.getElementById("xdChatAttachMenu");
+    const emojiPicker = document.getElementById("xdChatEmojiPicker");
+
+    if (attachMenu) {
+        attachMenu.classList.remove("active");
+    }
+
+    if (emojiPicker) {
+        emojiPicker.classList.remove("active");
+    }
+
+    if (mediaRecorder && mediaRecorder.state === "recording") {
+        stopChatVoiceRecording();
+    }
+
+    cancelChatVoiceRecording();
 
 }
 
@@ -780,7 +904,331 @@ function sendAdminTypingPresence() {
 
 
 /* ==========================================
-   09. REGISTER SEND EVENTS
+   09. EMOJI PICKER
+========================================== */
+
+const chatEmojiCategories = {
+    Recent: [],
+    Smileys: ["😀", "😁", "😂", "🤣", "😊", "😍", "😘", "😎", "🙂", "😉", "😢", "😭", "😡", "👍", "🙏", "👏"],
+    People: ["👋", "👌", "✌️", "💪", "🤝", "🙋", "🙌", "👨", "👩", "👧", "👦", "🧑", "👮", "👩‍💻", "👨‍💻", "🧑‍💼"],
+    Animals: ["🐶", "🐱", "🐭", "🐹", "🐰", "🦊", "🐻", "🐼", "🐨", "🐯", "🦁", "🐮", "🐷", "🐸", "🐵", "🐔"],
+    Food: ["🍎", "🍌", "🍇", "🍓", "🍕", "🍔", "🍟", "🌭", "🥪", "🌮", "🍰", "🍫", "☕", "🍵", "🥤", "🍽️"],
+    Travel: ["🚗", "🚕", "🚌", "🚆", "✈️", "🚀", "⛵", "🏠", "🏢", "🏥", "🏫", "🏖️", "⛰️", "🌍", "🗺️", "⏰"],
+    Objects: ["📱", "💻", "⌨️", "🖱️", "📷", "🎧", "🎁", "💡", "📌", "📎", "✏️", "📁", "🔒", "🔑", "🛒", "💳"],
+    Symbols: ["❤️", "💙", "💚", "💛", "⭐", "🔥", "✨", "✅", "❌", "⚠️", "❓", "❗", "💯", "🔔", "📣", "➡️"]
+};
+
+const chatEmojiSearchKeywords = {
+    "😀": "grin happy smile", "😁": "grin happy", "😂": "laugh joy", "🤣": "laugh rolling", "😊": "smile blush", "😍": "love eyes", "😘": "kiss", "😎": "cool", "🙂": "smile", "😉": "wink", "😢": "sad cry", "😭": "cry", "😡": "angry", "👍": "like thumbs up", "🙏": "thanks pray", "👏": "clap",
+    "👋": "hello wave", "👌": "ok", "✌️": "peace", "💪": "strong", "🤝": "handshake", "🙋": "raise hand", "🙌": "celebrate", "👨": "man", "👩": "woman", "👧": "girl", "👦": "boy", "🧑": "person", "👮": "police", "👩‍💻": "developer laptop", "👨‍💻": "developer laptop", "🧑‍💼": "business",
+    "🍎": "apple fruit", "🍌": "banana fruit", "🍇": "grapes fruit", "🍓": "strawberry fruit", "🍕": "pizza", "🍔": "burger", "🍟": "fries", "🌭": "hot dog", "🥪": "sandwich", "🌮": "taco", "🍰": "cake", "🍫": "chocolate", "☕": "coffee", "🍵": "tea", "🥤": "drink", "🍽️": "food plate",
+    "🚗": "car travel", "🚕": "taxi travel", "🚌": "bus travel", "🚆": "train travel", "✈️": "flight plane travel", "🚀": "rocket", "⛵": "boat", "🏠": "home", "🏢": "office", "🏥": "hospital", "🏫": "school", "🏖️": "beach", "⛰️": "mountain", "🌍": "earth world", "🗺️": "map", "⏰": "time clock",
+    "📱": "phone mobile", "💻": "laptop computer", "⌨️": "keyboard", "🖱️": "mouse", "📷": "camera", "🎧": "headphone audio", "🎁": "gift", "💡": "idea light", "📌": "pin", "📎": "clip attachment", "✏️": "pencil", "📁": "folder", "🔒": "lock", "🔑": "key", "🛒": "cart shopping", "💳": "card payment",
+    "❤️": "heart love", "💙": "blue heart", "💚": "green heart", "💛": "yellow heart", "⭐": "star", "🔥": "fire", "✨": "sparkle", "✅": "check done", "❌": "cross wrong", "⚠️": "warning", "❓": "question", "❗": "alert", "💯": "hundred", "🔔": "bell notification", "📣": "announcement", "➡️": "right arrow"
+};
+
+
+function getChatRecentEmojis() {
+
+    try {
+        return JSON.parse(localStorage.getItem("xd_chat_admin_recent_emojis") || "[]");
+    } catch (error) {
+        return [];
+    }
+
+}
+
+
+function saveChatRecentEmoji(emoji) {
+
+    const recentEmojis = getChatRecentEmojis().filter(function (item) {
+        return item !== emoji;
+    });
+
+    recentEmojis.unshift(emoji);
+
+    localStorage.setItem(
+        "xd_chat_admin_recent_emojis",
+        JSON.stringify(recentEmojis.slice(0, 18))
+    );
+
+}
+
+
+function renderChatEmojiPicker(searchText) {
+
+    const emojiTabs = document.getElementById("xdChatEmojiTabs");
+    const emojiGrid = document.getElementById("xdChatEmojiGrid");
+    const query = String(searchText || "").toLowerCase();
+    const categoryNames = Object.keys(chatEmojiCategories);
+
+    chatEmojiCategories.Recent = getChatRecentEmojis();
+
+    emojiTabs.innerHTML = categoryNames.map(function (categoryName) {
+        return `
+            <button type="button"
+                    class="${activeEmojiCategory === categoryName ? "active" : ""}"
+                    data-category="${escapeHTML(categoryName)}">
+                ${escapeHTML(categoryName)}
+            </button>
+        `;
+    }).join("");
+
+    let emojis = chatEmojiCategories[activeEmojiCategory] || [];
+
+    if (query !== "") {
+        emojis = categoryNames.reduce(function (items, categoryName) {
+            return items.concat(chatEmojiCategories[categoryName]);
+        }, []);
+    }
+
+    emojis = emojis.filter(function (emoji, index) {
+        return emojis.indexOf(emoji) === index;
+    });
+
+    if (query !== "") {
+        emojis = emojis.filter(function (emoji) {
+            return getChatEmojiSearchText(emoji).indexOf(query) !== -1;
+        });
+    }
+
+    if (emojis.length === 0) {
+        emojiGrid.innerHTML = `<p class="xd-chat-emoji-empty">No emojis yet.</p>`;
+        return;
+    }
+
+    emojiGrid.innerHTML = emojis.map(function (emoji) {
+        return `
+            <button type="button"
+                    data-emoji="${escapeHTML(emoji)}">
+                ${emoji}
+            </button>
+        `;
+    }).join("");
+
+}
+
+
+function getChatEmojiSearchText(emoji) {
+
+    let categoryText = "";
+
+    Object.keys(chatEmojiCategories).forEach(function (categoryName) {
+        if (chatEmojiCategories[categoryName].indexOf(emoji) !== -1) {
+            categoryText += " " + categoryName.toLowerCase();
+        }
+    });
+
+    return (emoji + " " + categoryText + " " + (chatEmojiSearchKeywords[emoji] || "")).toLowerCase();
+
+}
+
+
+function insertChatEmojiAtCursor(emoji) {
+
+    const input = document.getElementById("xdChatInput");
+    const start = input.selectionStart || 0;
+    const end = input.selectionEnd || 0;
+    const currentValue = input.value;
+
+    input.value = currentValue.slice(0, start) + emoji + currentValue.slice(end);
+    input.focus();
+    input.selectionStart = start + emoji.length;
+    input.selectionEnd = start + emoji.length;
+
+    saveChatRecentEmoji(emoji);
+    renderChatEmojiPicker(document.getElementById("xdChatEmojiSearch").value);
+
+}
+
+
+/* ==========================================
+   10. VOICE RECORDING
+========================================== */
+
+function getChatVoiceMimeType() {
+
+    const supportedTypes = ["audio/webm", "audio/ogg", "audio/wav"];
+
+    return supportedTypes.find(function (type) {
+        return window.MediaRecorder && MediaRecorder.isTypeSupported(type);
+    }) || "";
+
+}
+
+
+function getChatVoiceFileExtension(mimeType) {
+
+    if (mimeType.indexOf("ogg") !== -1) {
+        return "ogg";
+    }
+
+    if (mimeType.indexOf("wav") !== -1) {
+        return "wav";
+    }
+
+    return "webm";
+
+}
+
+
+function startChatVoiceRecording() {
+
+    if (
+        activeChatId <= 0 ||
+        activeChatStatus === "closed" ||
+        !navigator.mediaDevices ||
+        !window.MediaRecorder
+    ) {
+        return;
+    }
+
+    navigator.mediaDevices.getUserMedia({ audio: true })
+        .then(function (stream) {
+
+            const mimeType = getChatVoiceMimeType();
+            const recorderOptions = mimeType ? { mimeType: mimeType } : {};
+            const recordButton = document.getElementById("xdChatRecord");
+
+            recordingChunks = [];
+            recordedVoiceBlob = null;
+            mediaRecorder = new MediaRecorder(stream, recorderOptions);
+
+            mediaRecorder.addEventListener("dataavailable", function (event) {
+                if (event.data && event.data.size > 0) {
+                    recordingChunks.push(event.data);
+                }
+            });
+
+            mediaRecorder.addEventListener("stop", function () {
+                stream.getTracks().forEach(function (track) {
+                    track.stop();
+                });
+
+                recordedVoiceBlob = new Blob(recordingChunks, {
+                    type: mediaRecorder.mimeType || "audio/webm"
+                });
+
+                showChatVoicePreview();
+            });
+
+            mediaRecorder.start();
+            recordingStartedAt = Date.now();
+            document.getElementById("xdChatRecordPanel").classList.add("active");
+            document.getElementById("xdChatRecordPreview").classList.remove("active");
+            recordButton.classList.add("recording");
+            recordButton.innerHTML = chatStopIconSvg;
+            startChatRecordingTimer();
+
+        })
+        .catch(function (error) {
+            console.error(error);
+        });
+
+}
+
+
+function stopChatVoiceRecording() {
+
+    const recordButton = document.getElementById("xdChatRecord");
+
+    if (mediaRecorder && mediaRecorder.state === "recording") {
+        mediaRecorder.stop();
+    }
+
+    stopChatRecordingTimer();
+    document.getElementById("xdChatRecordPanel").classList.remove("active");
+    recordButton.classList.remove("recording");
+    recordButton.innerHTML = chatMicIconSvg;
+
+}
+
+
+function startChatRecordingTimer() {
+
+    stopChatRecordingTimer();
+
+    recordingTimerInterval = setInterval(function () {
+        const seconds = Math.floor((Date.now() - recordingStartedAt) / 1000);
+        document.getElementById("xdChatRecordTime").innerText = formatChatRecordingTime(seconds);
+    }, 250);
+
+}
+
+
+function stopChatRecordingTimer() {
+
+    if (recordingTimerInterval) {
+        clearInterval(recordingTimerInterval);
+        recordingTimerInterval = null;
+    }
+
+    document.getElementById("xdChatRecordTime").innerText = "00:00";
+
+}
+
+
+function formatChatRecordingTime(seconds) {
+
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+
+    return String(minutes).padStart(2, "0")
+        + ":"
+        + String(remainingSeconds).padStart(2, "0");
+
+}
+
+
+function showChatVoicePreview() {
+
+    if (!recordedVoiceBlob || recordedVoiceBlob.size === 0) {
+        return;
+    }
+
+    const previewBox = document.getElementById("xdChatRecordPreview");
+    const previewAudio = previewBox.querySelector("audio");
+
+    previewAudio.src = URL.createObjectURL(recordedVoiceBlob);
+    previewBox.classList.add("active");
+
+}
+
+
+function cancelChatVoiceRecording() {
+
+    const previewBox = document.getElementById("xdChatRecordPreview");
+    const previewAudio = previewBox.querySelector("audio");
+
+    recordedVoiceBlob = null;
+    previewAudio.removeAttribute("src");
+    previewBox.classList.remove("active");
+
+}
+
+
+function sendChatVoiceRecording() {
+
+    if (!recordedVoiceBlob || activeChatId <= 0 || activeChatStatus === "closed") {
+        return;
+    }
+
+    const mimeType = recordedVoiceBlob.type || "audio/webm";
+    const extension = getChatVoiceFileExtension(mimeType);
+    const voiceFile = new File(
+        [recordedVoiceBlob],
+        "voice-message-" + Date.now() + "." + extension,
+        { type: mimeType }
+    );
+
+    sendAgentFile(voiceFile);
+    cancelChatVoiceRecording();
+
+}
+
+
+/* ==========================================
+   11. REGISTER SEND EVENTS
 ========================================== */
 
 function registerSendEvents() {
@@ -796,6 +1244,24 @@ function registerSendEvents() {
     const attachMenu = document.getElementById("xdChatAttachMenu");
 
     const attachOptions = document.querySelectorAll("#xdChatAttachMenu button");
+
+    const emojiButton = document.getElementById("xdChatEmoji");
+
+    const emojiPicker = document.getElementById("xdChatEmojiPicker");
+
+    const emojiSearch = document.getElementById("xdChatEmojiSearch");
+
+    const emojiTabs = document.getElementById("xdChatEmojiTabs");
+
+    const emojiGrid = document.getElementById("xdChatEmojiGrid");
+
+    const recordButton = document.getElementById("xdChatRecord");
+
+    const recordCancel = document.getElementById("xdChatRecordCancel");
+
+    const recordSend = document.getElementById("xdChatRecordSend");
+
+    renderChatEmojiPicker("");
 
     sendButton.addEventListener("click", function () {
 
@@ -840,6 +1306,7 @@ function registerSendEvents() {
         }
 
         attachMenu.classList.toggle("active");
+        emojiPicker.classList.remove("active");
 
     });
 
@@ -859,6 +1326,77 @@ function registerSendEvents() {
 
         });
 
+    });
+
+    emojiButton.addEventListener("click", function () {
+
+        enableNotificationHelper();
+
+        if (activeChatId <= 0 || activeChatStatus === "closed") {
+            return;
+        }
+
+        emojiPicker.classList.toggle("active");
+        attachMenu.classList.remove("active");
+        renderChatEmojiPicker(emojiSearch.value);
+
+    });
+
+    emojiSearch.addEventListener("input", function () {
+        renderChatEmojiPicker(emojiSearch.value);
+    });
+
+    emojiTabs.addEventListener("click", function (event) {
+
+        const tab = event.target.closest("button");
+
+        if (!tab) {
+            return;
+        }
+
+        activeEmojiCategory = tab.dataset.category || "Recent";
+        renderChatEmojiPicker(emojiSearch.value);
+
+    });
+
+    emojiGrid.addEventListener("click", function (event) {
+
+        const emojiButton = event.target.closest("button");
+
+        if (!emojiButton) {
+            return;
+        }
+
+        insertChatEmojiAtCursor(emojiButton.dataset.emoji || "");
+
+    });
+
+    recordButton.addEventListener("click", function () {
+
+        enableNotificationHelper();
+
+        if (activeChatId <= 0 || activeChatStatus === "closed") {
+            return;
+        }
+
+        attachMenu.classList.remove("active");
+        emojiPicker.classList.remove("active");
+
+        if (mediaRecorder && mediaRecorder.state === "recording") {
+            stopChatVoiceRecording();
+            return;
+        }
+
+        startChatVoiceRecording();
+
+    });
+
+    recordCancel.addEventListener("click", function () {
+        cancelChatVoiceRecording();
+    });
+
+    recordSend.addEventListener("click", function () {
+        sendChatVoiceRecording();
     });
 
     fileInput.addEventListener("change", function () {
@@ -1160,6 +1698,27 @@ function openChatImageLightbox(imageUrl) {
 
     lightbox.querySelector("img").src = imageUrl;
     lightbox.classList.add("active");
+
+}
+
+
+function registerSingleMediaPlayback() {
+
+    document.addEventListener("play", function (event) {
+
+        if (!event.target.matches("audio, video")) {
+            return;
+        }
+
+        document.querySelectorAll("audio, video").forEach(function (media) {
+
+            if (media !== event.target && !media.paused) {
+                media.pause();
+            }
+
+        });
+
+    }, true);
 
 }
 

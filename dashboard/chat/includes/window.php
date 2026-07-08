@@ -135,6 +135,7 @@ Created : 06 July 2026
                 <button type="button"
                         id="xdChatAttach"
                         class="xd-chat-attach-button"
+                        aria-label="Attach"
                         disabled>
 
                     +
@@ -145,18 +146,13 @@ Created : 06 July 2026
                      id="xdChatAttachMenu">
 
                     <button type="button"
-                            data-accept=".jpg,.jpeg,.png,.webp">
-                        Image
-                    </button>
-
-                    <button type="button"
-                            data-accept=".mp4,.webm,.mov">
-                        Video
-                    </button>
-
-                    <button type="button"
                             data-accept=".pdf,.doc,.docx,.xls,.xlsx,.txt">
                         Document
+                    </button>
+
+                    <button type="button"
+                            data-accept=".jpg,.jpeg,.png,.webp,.mp4,.webm,.mov">
+                        Photos & Videos
                     </button>
 
                     <button type="button"
@@ -168,19 +164,78 @@ Created : 06 July 2026
 
             </div>
 
+            <div class="xd-chat-emoji-wrap">
+
+                <button type="button"
+                        id="xdChatEmoji"
+                        class="xd-chat-emoji-button"
+                        aria-label="Emoji"
+                        disabled>
+                    😊
+                </button>
+
+                <div class="xd-chat-emoji-picker"
+                     id="xdChatEmojiPicker">
+
+                    <input type="text"
+                           id="xdChatEmojiSearch"
+                           placeholder="Search emoji...">
+
+                    <div class="xd-chat-emoji-tabs"
+                         id="xdChatEmojiTabs"></div>
+
+                    <div class="xd-chat-emoji-grid"
+                         id="xdChatEmojiGrid"></div>
+
+                </div>
+
+            </div>
+
             <input type="text"
                    id="xdChatInput"
                    placeholder="Type your reply..."
                    disabled>
 
             <button type="button"
+                    id="xdChatRecord"
+                    class="xd-chat-record-button"
+                    aria-label="Record voice"
+                    disabled>
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M12 14c1.7 0 3-1.3 3-3V6c0-1.7-1.3-3-3-3S9 4.3 9 6v5c0 1.7 1.3 3 3 3z"></path>
+                    <path d="M17 11c0 2.8-2.2 5-5 5s-5-2.2-5-5H5c0 3.5 2.6 6.4 6 6.9V21h2v-3.1c3.4-.5 6-3.4 6-6.9h-2z"></path>
+                </svg>
+            </button>
+
+            <button type="button"
                     id="xdChatSend"
+                    aria-label="Send message"
                     disabled>
 
-                Send
+                ➤
 
             </button>
 
+        </div>
+
+        <div class="xd-chat-record-panel"
+             id="xdChatRecordPanel">
+            <span class="xd-chat-record-dot"></span>
+            <strong id="xdChatRecordTime">00:00</strong>
+            <span>Recording...</span>
+        </div>
+
+        <div class="xd-chat-record-preview"
+             id="xdChatRecordPreview">
+            <audio controls></audio>
+            <button type="button"
+                    id="xdChatRecordCancel">
+                Cancel
+            </button>
+            <button type="button"
+                    id="xdChatRecordSend">
+                Send
+            </button>
         </div>
 
     </section>

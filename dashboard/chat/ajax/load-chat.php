@@ -177,7 +177,8 @@ foreach ($messages as $message) {
 
     ?>
 
-    <div class="xd-admin-message <?php echo $messageClass; ?>">
+    <div class="xd-admin-message <?php echo $messageClass; ?>"
+         data-message-id="<?php echo (int) $message["id"]; ?>">
 
         <div class="xd-admin-message-bubble">
 
@@ -223,8 +224,13 @@ foreach ($messages as $message) {
 
                     </div>
 
-                    <a href="<?php echo htmlspecialchars($downloadUrl); ?>">
-                        Download
+                    <a href="<?php echo htmlspecialchars($downloadUrl); ?>"
+                       title="Download"
+                       aria-label="Download">
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M12 3v10.2l3.6-3.6L17 11l-5 5-5-5 1.4-1.4 3.6 3.6V3h2z"></path>
+                            <path d="M5 19h14v2H5z"></path>
+                        </svg>
                     </a>
 
                 </div>
@@ -235,6 +241,7 @@ foreach ($messages as $message) {
             ) {
 
                 $downloadUrl = "chat/ajax/download-file.php?message_id=" . (int) $message["id"];
+                $mediaDownloadUrl = $downloadUrl . "&download=1";
 
                 ?>
 
@@ -266,8 +273,13 @@ foreach ($messages as $message) {
 
                     </div>
 
-                    <a href="<?php echo htmlspecialchars($mediaDownloadUrl); ?>">
-                        Download
+                    <a href="<?php echo htmlspecialchars($mediaDownloadUrl); ?>"
+                       title="Download"
+                       aria-label="Download">
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M12 3v10.2l3.6-3.6L17 11l-5 5-5-5 1.4-1.4 3.6 3.6V3h2z"></path>
+                            <path d="M5 19h14v2H5z"></path>
+                        </svg>
                     </a>
 
                 </div>

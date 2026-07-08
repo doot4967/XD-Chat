@@ -68,13 +68,14 @@ function getChatUploadRules(): array
         "audio" => [
             "message_type" => "audio",
             "max_size" => XD_CHAT_AUDIO_MAX_SIZE,
-            "extensions" => ["mp3", "wav", "ogg"],
+            "extensions" => ["mp3", "wav", "ogg", "webm"],
             "mimes" => [
                 "audio/mpeg",
                 "audio/mp3",
                 "audio/wav",
                 "audio/x-wav",
                 "audio/ogg",
+                "audio/webm",
                 "application/ogg"
             ]
         ],
@@ -280,6 +281,15 @@ function saveChatUploadedFile(array $file): array
     }
 
     $mime = getChatUploadedFileMime($temporaryPath);
+
+    if (
+        substr($originalName, 0, 14) === "voice-message-" &&
+        $extension === "webm" &&
+        $mime === "video/webm"
+    ) {
+        $mime = "audio/webm";
+    }
+
     $categoryData = getChatUploadCategory($extension, $mime);
 
     if (!$categoryData) {
@@ -350,8 +360,12 @@ function sendChatFileDownload(array $message): void
         exit("File not found.");
     }
 
+    $fileSize = filesize($absolutePath);
+    $start = 0;
+    $end = $fileSize - 1;
+
     header("Content-Type: " . $mime);
-    header("Content-Length: " . filesize($absolutePath));
+    header("Accept-Ranges: bytes");
     header(
         "Content-Disposition: "
         . ($forceDownload || $messageType === "file" ? "attachment" : "inline")
@@ -359,7 +373,66 @@ function sendChatFileDownload(array $message): void
     );
     header("X-Content-Type-Options: nosniff");
 
-    readfile($absolutePath);
+    if (
+        !$forceDownload &&
+        isset($_SERVER["HTTP_RANGE"]) &&
+        preg_match('/bytes=(\d*)-(\d*)/', $_SERVER["HTTP_RANGE"], $matches)
+    ) {
+
+        if ($matches[1] !== "") {
+            $start = (int) $matches[1];
+        }
+
+        if ($matches[2] !== "") {
+            $end = (int) $matches[2];
+        }
+
+        if ($start > $end || $start >= $fileSize) {
+            header("Content-Range: bytes */" . $fileSize);
+            http_response_code(416);
+            exit;
+        }
+
+        $end = min($end, $fileSize - 1);
+
+        http_response_code(206);
+        header("Content-Range: bytes " . $start . "-" . $end . "/" . $fileSize);
+
+    }
+
+    $length = $end - $start + 1;
+
+    header("Content-Length: " . $length);
+
+    $handle = fopen($absolutePath, "rb");
+
+    if (!$handle) {
+        http_response_code(500);
+        exit("Unable to read file.");
+    }
+
+    fseek($handle, $start);
+
+    while (!feof($handle) && $length > 0) {
+
+        $chunkSize = min(8192, $length);
+        $buffer = fread($handle, $chunkSize);
+
+        if ($buffer === false || $buffer === "") {
+            break;
+        }
+
+        echo $buffer;
+
+        $length -= strlen($buffer);
+
+        if (connection_aborted()) {
+            break;
+        }
+
+    }
+
+    fclose($handle);
 
     exit;
 

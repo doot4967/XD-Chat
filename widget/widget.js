@@ -199,6 +199,23 @@ Created : 06 July 2026
     function createWidget(widget) {
 
         const widgetColor = widget.color || "#2563eb";
+        const micIconSvg = `
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M12 14c1.7 0 3-1.3 3-3V6c0-1.7-1.3-3-3-3S9 4.3 9 6v5c0 1.7 1.3 3 3 3z"></path>
+                <path d="M17 11c0 2.8-2.2 5-5 5s-5-2.2-5-5H5c0 3.5 2.6 6.4 6 6.9V21h2v-3.1c3.4-.5 6-3.4 6-6.9h-2z"></path>
+            </svg>
+        `;
+        const stopIconSvg = `
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M7 7h10v10H7z"></path>
+            </svg>
+        `;
+        const downloadIconSvg = `
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M12 3v10.2l3.6-3.6L17 11l-5 5-5-5 1.4-1.4 3.6 3.6V3h2z"></path>
+                <path d="M5 19h14v2H5z"></path>
+            </svg>
+        `;
 
         const welcomeMessage = formatMessage(
             widget.welcome_message || "Hi there!\nHow can we help you today?"
@@ -283,6 +300,11 @@ Created : 06 July 2026
 
             </div>
 
+            <button class="xd-chat-new-message"
+                    type="button">
+                ↓ New Message <span>0</span>
+            </button>
+
             <form class="xd-chat-preform">
 
                 <strong>Before we start</strong>
@@ -321,18 +343,13 @@ Created : 06 July 2026
                     <div class="xd-chat-attach-menu">
 
                         <button type="button"
-                                data-accept=".jpg,.jpeg,.png,.webp">
-                            Image
-                        </button>
-
-                        <button type="button"
-                                data-accept=".mp4,.webm,.mov">
-                            Video
-                        </button>
-
-                        <button type="button"
                                 data-accept=".pdf,.doc,.docx,.xls,.xlsx,.txt">
                             Document
+                        </button>
+
+                        <button type="button"
+                                data-accept=".jpg,.jpeg,.png,.webp,.mp4,.webm,.mov">
+                            Photos & Videos
                         </button>
 
                         <button type="button"
@@ -344,9 +361,37 @@ Created : 06 July 2026
 
                 </div>
 
+                <div class="xd-chat-emoji-wrap">
+
+                    <button class="xd-chat-emoji-toggle"
+                            type="button"
+                            title="Emoji">
+                        😊
+                    </button>
+
+                    <div class="xd-chat-emoji-picker">
+
+                        <input type="text"
+                               class="xd-chat-emoji-search"
+                               placeholder="Search emoji...">
+
+                        <div class="xd-chat-emoji-tabs"></div>
+
+                        <div class="xd-chat-emoji-grid"></div>
+
+                    </div>
+
+                </div>
+
                 <input type="text"
                        class="xd-chat-input"
                        placeholder="Type your message...">
+
+                <button class="xd-chat-record"
+                        type="button"
+                        title="Record voice">
+                    ${micIconSvg}
+                </button>
 
                 <button class="xd-chat-send"
                         type="button"
@@ -354,6 +399,25 @@ Created : 06 July 2026
                     ➤
                 </button>
 
+            </div>
+
+            <div class="xd-chat-record-panel">
+                <span class="xd-chat-record-dot"></span>
+                <strong class="xd-chat-record-time">00:00</strong>
+                <span class="xd-chat-record-label">Recording...</span>
+            </div>
+
+            <div class="xd-chat-record-preview">
+                <audio controls></audio>
+                <button type="button"
+                        class="xd-chat-record-cancel">
+                    Cancel
+                </button>
+                <button type="button"
+                        class="xd-chat-record-send"
+                        style="background:${widgetColor}">
+                    Send
+                </button>
             </div>
         `;
 
@@ -375,6 +439,8 @@ Created : 06 July 2026
 
         const closeButton = chatWindow.querySelector(".xd-chat-close");
         const chatBody = chatWindow.querySelector(".xd-chat-body");
+        const newMessageButton = chatWindow.querySelector(".xd-chat-new-message");
+        const newMessageCount = chatWindow.querySelector(".xd-chat-new-message span");
         const preChatForm = chatWindow.querySelector(".xd-chat-preform");
         const nameInput = chatWindow.querySelector(".xd-chat-name");
         const emailInput = chatWindow.querySelector(".xd-chat-email");
@@ -384,7 +450,19 @@ Created : 06 July 2026
         const attachButton = chatWindow.querySelector(".xd-chat-attach");
         const attachMenu = chatWindow.querySelector(".xd-chat-attach-menu");
         const attachOptions = chatWindow.querySelectorAll(".xd-chat-attach-menu button");
+        const emojiButton = chatWindow.querySelector(".xd-chat-emoji-toggle");
+        const emojiPicker = chatWindow.querySelector(".xd-chat-emoji-picker");
+        const emojiSearch = chatWindow.querySelector(".xd-chat-emoji-search");
+        const emojiTabs = chatWindow.querySelector(".xd-chat-emoji-tabs");
+        const emojiGrid = chatWindow.querySelector(".xd-chat-emoji-grid");
         const chatInput = chatWindow.querySelector(".xd-chat-input");
+        const recordButton = chatWindow.querySelector(".xd-chat-record");
+        const recordPanel = chatWindow.querySelector(".xd-chat-record-panel");
+        const recordPreview = chatWindow.querySelector(".xd-chat-record-preview");
+        const recordTimer = chatWindow.querySelector(".xd-chat-record-time");
+        const recordAudio = chatWindow.querySelector(".xd-chat-record-preview audio");
+        const recordCancel = chatWindow.querySelector(".xd-chat-record-cancel");
+        const recordSend = chatWindow.querySelector(".xd-chat-record-send");
         const sendButton = chatWindow.querySelector(".xd-chat-send");
         const statusText = chatWindow.querySelector(".xd-chat-status");
         const welcomeBubble = chatWindow.querySelector(".xd-welcome-message");
@@ -394,6 +472,14 @@ Created : 06 July 2026
         const typingThrottleDelay = 1500;
         let isMessageNotificationReady = false;
         let unreadAdminMessageCount = 0;
+        let unreadOpenChatMessageCount = 0;
+        let allowAutomaticScroll = true;
+        let activeEmojiCategory = "Recent";
+        let mediaRecorder = null;
+        let recordingChunks = [];
+        let recordedVoiceBlob = null;
+        let recordingStartedAt = 0;
+        let recordingTimerInterval = null;
 
         if (welcomeBubble) {
 
@@ -602,9 +688,319 @@ Created : 06 July 2026
         }
 
 
+        /* ==========================================
+           02. EMOJI PICKER
+        ========================================== */
+
+        const emojiCategories = {
+            Recent: [],
+            Smileys: ["😀", "😁", "😂", "🤣", "😊", "😍", "😘", "😎", "🙂", "😉", "😢", "😭", "😡", "👍", "🙏", "👏"],
+            People: ["👋", "👌", "✌️", "💪", "🤝", "🙋", "🙌", "👨", "👩", "👧", "👦", "🧑", "👮", "👩‍💻", "👨‍💻", "🧑‍💼"],
+            Animals: ["🐶", "🐱", "🐭", "🐹", "🐰", "🦊", "🐻", "🐼", "🐨", "🐯", "🦁", "🐮", "🐷", "🐸", "🐵", "🐔"],
+            Food: ["🍎", "🍌", "🍇", "🍓", "🍕", "🍔", "🍟", "🌭", "🥪", "🌮", "🍰", "🍫", "☕", "🍵", "🥤", "🍽️"],
+            Travel: ["🚗", "🚕", "🚌", "🚆", "✈️", "🚀", "⛵", "🏠", "🏢", "🏥", "🏫", "🏖️", "⛰️", "🌍", "🗺️", "⏰"],
+            Objects: ["📱", "💻", "⌨️", "🖱️", "📷", "🎧", "🎁", "💡", "📌", "📎", "✏️", "📁", "🔒", "🔑", "🛒", "💳"],
+            Symbols: ["❤️", "💙", "💚", "💛", "⭐", "🔥", "✨", "✅", "❌", "⚠️", "❓", "❗", "💯", "🔔", "📣", "➡️"]
+        };
+
+        const emojiSearchKeywords = {
+            "😀": "grin happy smile", "😁": "grin happy", "😂": "laugh joy", "🤣": "laugh rolling", "😊": "smile blush", "😍": "love eyes", "😘": "kiss", "😎": "cool", "🙂": "smile", "😉": "wink", "😢": "sad cry", "😭": "cry", "😡": "angry", "👍": "like thumbs up", "🙏": "thanks pray", "👏": "clap",
+            "👋": "hello wave", "👌": "ok", "✌️": "peace", "💪": "strong", "🤝": "handshake", "🙋": "raise hand", "🙌": "celebrate", "👨": "man", "👩": "woman", "👧": "girl", "👦": "boy", "🧑": "person", "👮": "police", "👩‍💻": "developer laptop", "👨‍💻": "developer laptop", "🧑‍💼": "business",
+            "🍎": "apple fruit", "🍌": "banana fruit", "🍇": "grapes fruit", "🍓": "strawberry fruit", "🍕": "pizza", "🍔": "burger", "🍟": "fries", "🌭": "hot dog", "🥪": "sandwich", "🌮": "taco", "🍰": "cake", "🍫": "chocolate", "☕": "coffee", "🍵": "tea", "🥤": "drink", "🍽️": "food plate",
+            "🚗": "car travel", "🚕": "taxi travel", "🚌": "bus travel", "🚆": "train travel", "✈️": "flight plane travel", "🚀": "rocket", "⛵": "boat", "🏠": "home", "🏢": "office", "🏥": "hospital", "🏫": "school", "🏖️": "beach", "⛰️": "mountain", "🌍": "earth world", "🗺️": "map", "⏰": "time clock",
+            "📱": "phone mobile", "💻": "laptop computer", "⌨️": "keyboard", "🖱️": "mouse", "📷": "camera", "🎧": "headphone audio", "🎁": "gift", "💡": "idea light", "📌": "pin", "📎": "clip attachment", "✏️": "pencil", "📁": "folder", "🔒": "lock", "🔑": "key", "🛒": "cart shopping", "💳": "card payment",
+            "❤️": "heart love", "💙": "blue heart", "💚": "green heart", "💛": "yellow heart", "⭐": "star", "🔥": "fire", "✨": "sparkle", "✅": "check done", "❌": "cross wrong", "⚠️": "warning", "❓": "question", "❗": "alert", "💯": "hundred", "🔔": "bell notification", "📣": "announcement", "➡️": "right arrow"
+        };
+
+
+        function getRecentEmojis() {
+
+            try {
+                return JSON.parse(localStorage.getItem("xd_chat_recent_emojis") || "[]");
+            } catch (error) {
+                return [];
+            }
+
+        }
+
+
+        function saveRecentEmoji(emoji) {
+
+            const recentEmojis = getRecentEmojis().filter(function (item) {
+                return item !== emoji;
+            });
+
+            recentEmojis.unshift(emoji);
+
+            localStorage.setItem(
+                "xd_chat_recent_emojis",
+                JSON.stringify(recentEmojis.slice(0, 18))
+            );
+
+        }
+
+
+        function renderEmojiPicker(searchText) {
+
+            const query = String(searchText || "").toLowerCase();
+            const categoryNames = Object.keys(emojiCategories);
+
+            emojiCategories.Recent = getRecentEmojis();
+
+            emojiTabs.innerHTML = categoryNames.map(function (categoryName) {
+                return `
+                    <button type="button"
+                            class="${activeEmojiCategory === categoryName ? "active" : ""}"
+                            data-category="${escapeHTML(categoryName)}">
+                        ${escapeHTML(categoryName)}
+                    </button>
+                `;
+            }).join("");
+
+            let emojis = emojiCategories[activeEmojiCategory] || [];
+
+            if (query !== "") {
+                emojis = categoryNames.reduce(function (items, categoryName) {
+                    return items.concat(emojiCategories[categoryName]);
+                }, []);
+            }
+
+            emojis = emojis.filter(function (emoji, index) {
+                return emojis.indexOf(emoji) === index;
+            });
+
+            if (query !== "") {
+                emojis = emojis.filter(function (emoji) {
+                    return getEmojiSearchText(emoji).indexOf(query) !== -1;
+                });
+            }
+
+            if (emojis.length === 0) {
+                emojiGrid.innerHTML = `<p class="xd-chat-emoji-empty">No emojis yet.</p>`;
+                return;
+            }
+
+            emojiGrid.innerHTML = emojis.map(function (emoji) {
+                return `
+                    <button type="button"
+                            data-emoji="${escapeHTML(emoji)}">
+                        ${emoji}
+                    </button>
+                `;
+            }).join("");
+
+        }
+
+
+        function getEmojiSearchText(emoji) {
+
+            let categoryText = "";
+
+            Object.keys(emojiCategories).forEach(function (categoryName) {
+                if (emojiCategories[categoryName].indexOf(emoji) !== -1) {
+                    categoryText += " " + categoryName.toLowerCase();
+                }
+            });
+
+            return (emoji + " " + categoryText + " " + (emojiSearchKeywords[emoji] || "")).toLowerCase();
+
+        }
+
+
+        function insertEmojiAtCursor(emoji) {
+
+            const start = chatInput.selectionStart || 0;
+            const end = chatInput.selectionEnd || 0;
+            const currentValue = chatInput.value;
+
+            chatInput.value = currentValue.slice(0, start) + emoji + currentValue.slice(end);
+            chatInput.focus();
+            chatInput.selectionStart = start + emoji.length;
+            chatInput.selectionEnd = start + emoji.length;
+
+            saveRecentEmoji(emoji);
+            renderEmojiPicker(emojiSearch.value);
+
+        }
+
+
+        /* ==========================================
+           03. VOICE RECORDING
+        ========================================== */
+
+        function getVoiceMimeType() {
+
+            const supportedTypes = ["audio/webm", "audio/ogg", "audio/wav"];
+
+            return supportedTypes.find(function (type) {
+                return window.MediaRecorder && MediaRecorder.isTypeSupported(type);
+            }) || "";
+
+        }
+
+
+        function getVoiceFileExtension(mimeType) {
+
+            if (mimeType.indexOf("ogg") !== -1) {
+                return "ogg";
+            }
+
+            if (mimeType.indexOf("wav") !== -1) {
+                return "wav";
+            }
+
+            return "webm";
+
+        }
+
+
+        function startVoiceRecording() {
+
+            if (!visitorProfile || !navigator.mediaDevices || !window.MediaRecorder) {
+                formError.textContent = "Voice recording is not supported in this browser.";
+                return;
+            }
+
+            navigator.mediaDevices.getUserMedia({ audio: true })
+                .then(function (stream) {
+
+                    const mimeType = getVoiceMimeType();
+                    const recorderOptions = mimeType ? { mimeType: mimeType } : {};
+
+                    recordingChunks = [];
+                    recordedVoiceBlob = null;
+                    mediaRecorder = new MediaRecorder(stream, recorderOptions);
+
+                    mediaRecorder.addEventListener("dataavailable", function (event) {
+                        if (event.data && event.data.size > 0) {
+                            recordingChunks.push(event.data);
+                        }
+                    });
+
+                    mediaRecorder.addEventListener("stop", function () {
+                        stream.getTracks().forEach(function (track) {
+                            track.stop();
+                        });
+
+                        recordedVoiceBlob = new Blob(recordingChunks, {
+                            type: mediaRecorder.mimeType || "audio/webm"
+                        });
+
+                        showVoicePreview();
+                    });
+
+                    mediaRecorder.start();
+                    recordingStartedAt = Date.now();
+                    recordPanel.classList.add("active");
+                    recordPreview.classList.remove("active");
+                    recordButton.classList.add("recording");
+                    recordButton.innerHTML = stopIconSvg;
+                    startRecordingTimer();
+
+                })
+                .catch(function () {
+                    formError.textContent = "Microphone permission is required.";
+                });
+
+        }
+
+
+        function stopVoiceRecording() {
+
+            if (mediaRecorder && mediaRecorder.state === "recording") {
+                mediaRecorder.stop();
+            }
+
+            stopRecordingTimer();
+            recordPanel.classList.remove("active");
+            recordButton.classList.remove("recording");
+            recordButton.innerHTML = micIconSvg;
+
+        }
+
+
+        function startRecordingTimer() {
+
+            stopRecordingTimer();
+
+            recordingTimerInterval = setInterval(function () {
+                const seconds = Math.floor((Date.now() - recordingStartedAt) / 1000);
+                recordTimer.textContent = formatRecordingTime(seconds);
+            }, 250);
+
+        }
+
+
+        function stopRecordingTimer() {
+
+            if (recordingTimerInterval) {
+                clearInterval(recordingTimerInterval);
+                recordingTimerInterval = null;
+            }
+
+            recordTimer.textContent = "00:00";
+
+        }
+
+
+        function formatRecordingTime(seconds) {
+
+            const minutes = Math.floor(seconds / 60);
+            const remainingSeconds = seconds % 60;
+
+            return String(minutes).padStart(2, "0")
+                + ":"
+                + String(remainingSeconds).padStart(2, "0");
+
+        }
+
+
+        function showVoicePreview() {
+
+            if (!recordedVoiceBlob || recordedVoiceBlob.size === 0) {
+                return;
+            }
+
+            recordAudio.src = URL.createObjectURL(recordedVoiceBlob);
+            recordPreview.classList.add("active");
+
+        }
+
+
+        function cancelVoiceRecording() {
+
+            recordedVoiceBlob = null;
+            recordAudio.removeAttribute("src");
+            recordPreview.classList.remove("active");
+
+        }
+
+
+        function sendVoiceRecording() {
+
+            if (!recordedVoiceBlob) {
+                return;
+            }
+
+            const mimeType = recordedVoiceBlob.type || "audio/webm";
+            const extension = getVoiceFileExtension(mimeType);
+            const voiceFile = new File(
+                [recordedVoiceBlob],
+                "voice-message-" + Date.now() + "." + extension,
+                { type: mimeType }
+            );
+
+            sendFileToDatabase(voiceFile);
+            cancelVoiceRecording();
+
+        }
+
+
         function loadMessagesFromDatabase() {
 
             const formData = new FormData();
+            const wasAtBottom = isChatBodyAtBottom();
+            const previousScrollTop = chatBody.scrollTop;
 
             formData.append("action", "load_messages");
             formData.append("widget_key", widgetKey);
@@ -634,6 +1030,9 @@ Created : 06 July 2026
 
                         let hasNewAdminMessage = false;
                         let latestAdminMessage = "";
+                        let newAdminMessageCount = 0;
+
+                        allowAutomaticScroll = wasAtBottom || !isMessageNotificationReady;
 
                         data.messages.forEach(function (item) {
 
@@ -652,6 +1051,7 @@ Created : 06 July 2026
                                 if (isMessageNotificationReady) {
                                     hasNewAdminMessage = true;
                                     latestAdminMessage = item.message;
+                                    newAdminMessageCount += 1;
                                 }
                             }
 
@@ -662,8 +1062,18 @@ Created : 06 July 2026
 
                             if (!chatWindow.classList.contains("active")) {
                                 showUnreadNotification(latestAdminMessage);
+                            } else if (!wasAtBottom) {
+                                showOpenChatNewMessageBadge(newAdminMessageCount);
                             }
                         }
+
+                        if (wasAtBottom || !isMessageNotificationReady) {
+                            scrollChatToBottom(true);
+                        } else {
+                            chatBody.scrollTop = previousScrollTop;
+                        }
+
+                        allowAutomaticScroll = true;
 
                     }
 
@@ -672,8 +1082,6 @@ Created : 06 July 2026
                     }
 
                     isMessageNotificationReady = true;
-
-                    scrollChatToBottom();
 
                 })
 
@@ -773,6 +1181,7 @@ Created : 06 July 2026
                 return;
             }
 
+            const wasAtBottom = isChatBodyAtBottom();
             const typing = document.createElement("div");
 
             typing.className = "xd-chat-message xd-chat-typing xd-admin-typing";
@@ -781,7 +1190,9 @@ Created : 06 July 2026
 
             chatBody.appendChild(typing);
 
-            scrollChatToBottom();
+            if (wasAtBottom) {
+                scrollChatToBottom(true);
+            }
 
         }
 
@@ -910,7 +1321,7 @@ Created : 06 July 2026
 
             chatBody.appendChild(userMessage);
 
-            scrollChatToBottom();
+            scrollChatToBottom(!messageId);
 
             return userMessage;
 
@@ -958,8 +1369,10 @@ Created : 06 July 2026
                             <strong>${escapeHTML(item.file_name || "Attachment")}</strong>
                             <small>${escapeHTML(formatFileSize(parseInt(item.file_size || 0, 10)))}</small>
                         </div>
-                        <a href="${escapeHTML(downloadUrl)}">
-                            Download
+                        <a href="${escapeHTML(downloadUrl)}"
+                           title="Download"
+                           aria-label="Download">
+                            ${downloadIconSvg}
                         </a>
                     </div>
                     <span class="xd-chat-time">
@@ -1017,8 +1430,10 @@ Created : 06 July 2026
                         <strong>${safeName}</strong>
                         <small>${safeSize}</small>
                     </div>
-                    <a href="${escapeHTML(downloadUrl)}">
-                        Download
+                    <a href="${escapeHTML(downloadUrl)}"
+                       title="Download"
+                       aria-label="Download">
+                        ${downloadIconSvg}
                     </a>
                 </div>
                 <span class="xd-chat-time">
@@ -1171,7 +1586,9 @@ Created : 06 July 2026
 
             chatBody.appendChild(typing);
 
-            scrollChatToBottom();
+            if (wasAtBottom) {
+                scrollChatToBottom(true);
+            }
 
         }
 
@@ -1187,20 +1604,74 @@ Created : 06 July 2026
         }
 
 
-        function scrollChatToBottom() {
+        function isChatBodyAtBottom() {
+
+            const bottomOffset =
+                chatBody.scrollHeight - chatBody.scrollTop - chatBody.clientHeight;
+
+            return bottomOffset <= 70;
+
+        }
+
+
+        function scrollChatToBottom(force) {
+
+            if (!force && !allowAutomaticScroll) {
+                return;
+            }
 
             chatBody.scrollTop = chatBody.scrollHeight;
 
         }
 
 
+        function showOpenChatNewMessageBadge(count) {
+
+            unreadOpenChatMessageCount += count;
+
+            newMessageCount.textContent = formatUnreadCount(unreadOpenChatMessageCount);
+            newMessageButton.classList.add("active");
+
+        }
+
+
+        function clearOpenChatNewMessageBadge() {
+
+            unreadOpenChatMessageCount = 0;
+            newMessageCount.textContent = "0";
+            newMessageButton.classList.remove("active");
+
+        }
+
+
+        function pauseOtherChatMedia(activeMedia) {
+
+            chatWindow.querySelectorAll("audio, video").forEach(function (media) {
+
+                if (media !== activeMedia && !media.paused) {
+                    media.pause();
+                }
+
+            });
+
+        }
+
+
         sendButton.addEventListener("click", sendMessage);
+
+        renderEmojiPicker("");
 
         attachButton.addEventListener("click", function () {
 
             enableNotificationHelper();
 
+            if (!visitorProfile) {
+                formError.textContent = "Please enter your name to start chat.";
+                return;
+            }
+
             attachMenu.classList.toggle("active");
+            emojiPicker.classList.remove("active");
 
         });
 
@@ -1232,6 +1703,79 @@ Created : 06 July 2026
 
         });
 
+        emojiButton.addEventListener("click", function () {
+
+            enableNotificationHelper();
+
+            if (!visitorProfile) {
+                formError.textContent = "Please enter your name to start chat.";
+                return;
+            }
+
+            emojiPicker.classList.toggle("active");
+            attachMenu.classList.remove("active");
+            renderEmojiPicker(emojiSearch.value);
+
+        });
+
+        emojiSearch.addEventListener("input", function () {
+            renderEmojiPicker(emojiSearch.value);
+        });
+
+        emojiTabs.addEventListener("click", function (event) {
+
+            const tab = event.target.closest("button");
+
+            if (!tab) {
+                return;
+            }
+
+            activeEmojiCategory = tab.dataset.category || "Recent";
+            renderEmojiPicker(emojiSearch.value);
+
+        });
+
+        emojiGrid.addEventListener("click", function (event) {
+
+            const emojiButton = event.target.closest("button");
+
+            if (!emojiButton) {
+                return;
+            }
+
+            insertEmojiAtCursor(emojiButton.dataset.emoji || "");
+
+        });
+
+        recordButton.addEventListener("click", function () {
+
+            enableNotificationHelper();
+
+            if (!visitorProfile) {
+                formError.textContent = "Please enter your name to start chat.";
+                return;
+            }
+
+            attachMenu.classList.remove("active");
+            emojiPicker.classList.remove("active");
+
+            if (mediaRecorder && mediaRecorder.state === "recording") {
+                stopVoiceRecording();
+                return;
+            }
+
+            startVoiceRecording();
+
+        });
+
+        recordCancel.addEventListener("click", function () {
+            cancelVoiceRecording();
+        });
+
+        recordSend.addEventListener("click", function () {
+            sendVoiceRecording();
+        });
+
         lightbox.addEventListener("click", function (event) {
 
             if (event.target === lightbox) {
@@ -1241,6 +1785,30 @@ Created : 06 July 2026
         });
 
         lightboxClose.addEventListener("click", closeImageLightbox);
+
+        newMessageButton.addEventListener("click", function () {
+
+            enableNotificationHelper();
+            scrollChatToBottom(true);
+            clearOpenChatNewMessageBadge();
+
+        });
+
+        chatBody.addEventListener("scroll", function () {
+
+            if (isChatBodyAtBottom()) {
+                clearOpenChatNewMessageBadge();
+            }
+
+        });
+
+        chatWindow.addEventListener("play", function (event) {
+
+            if (event.target.matches("audio, video")) {
+                pauseOtherChatMedia(event.target);
+            }
+
+        }, true);
 
         chatInput.addEventListener("keydown", function (event) {
 
