@@ -602,6 +602,12 @@ function updateChatControls(chatStatus) {
 function closeActiveChat() {
 
     if (activeChatId <= 0 || activeChatStatus === "closed") {
+        const attachMenu = document.getElementById("xdChatAttachMenu");
+
+        if (attachMenu) {
+            attachMenu.classList.remove("active");
+        }
+
         return;
     }
 
@@ -787,6 +793,10 @@ function registerSendEvents() {
 
     const fileInput = document.getElementById("xdChatFileInput");
 
+    const attachMenu = document.getElementById("xdChatAttachMenu");
+
+    const attachOptions = document.querySelectorAll("#xdChatAttachMenu button");
+
     sendButton.addEventListener("click", function () {
 
         enableNotificationHelper();
@@ -829,7 +839,25 @@ function registerSendEvents() {
             return;
         }
 
-        fileInput.click();
+        attachMenu.classList.toggle("active");
+
+    });
+
+    attachOptions.forEach(function (option) {
+
+        option.addEventListener("click", function () {
+
+            enableNotificationHelper();
+
+            if (activeChatId <= 0 || activeChatStatus === "closed") {
+                return;
+            }
+
+            fileInput.setAttribute("accept", this.dataset.accept || "");
+            attachMenu.classList.remove("active");
+            fileInput.click();
+
+        });
 
     });
 

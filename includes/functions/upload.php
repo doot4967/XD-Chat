@@ -18,6 +18,8 @@ Created : 08 July 2026
 
 define("XD_CHAT_IMAGE_MAX_SIZE", 5 * 1024 * 1024);
 define("XD_CHAT_DOCUMENT_MAX_SIZE", 10 * 1024 * 1024);
+define("XD_CHAT_AUDIO_MAX_SIZE", 10 * 1024 * 1024);
+define("XD_CHAT_VIDEO_MAX_SIZE", 15 * 1024 * 1024);
 
 
 function getChatUploadBasePath(): string
@@ -49,16 +51,41 @@ function getChatUploadRules(): array
         "documents" => [
             "message_type" => "file",
             "max_size" => XD_CHAT_DOCUMENT_MAX_SIZE,
-            "extensions" => ["pdf", "doc", "docx", "xls", "xlsx"],
+            "extensions" => ["pdf", "doc", "docx", "xls", "xlsx", "txt"],
             "mimes" => [
                 "application/pdf",
                 "application/msword",
                 "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
                 "application/vnd.ms-excel",
                 "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                "text/plain",
                 "application/zip",
                 "application/x-zip-compressed",
                 "application/x-ole-storage",
+                "application/octet-stream"
+            ]
+        ],
+        "audio" => [
+            "message_type" => "audio",
+            "max_size" => XD_CHAT_AUDIO_MAX_SIZE,
+            "extensions" => ["mp3", "wav", "ogg"],
+            "mimes" => [
+                "audio/mpeg",
+                "audio/mp3",
+                "audio/wav",
+                "audio/x-wav",
+                "audio/ogg",
+                "application/ogg"
+            ]
+        ],
+        "videos" => [
+            "message_type" => "video",
+            "max_size" => XD_CHAT_VIDEO_MAX_SIZE,
+            "extensions" => ["mp4", "webm", "mov"],
+            "mimes" => [
+                "video/mp4",
+                "video/webm",
+                "video/quicktime",
                 "application/octet-stream"
             ]
         ]
@@ -314,6 +341,8 @@ function sendChatFileDownload(array $message): void
     $filePath = $message["file_path"] ?? "";
     $fileName = $message["file_name"] ?? "download";
     $mime = $message["file_mime"] ?? "application/octet-stream";
+    $messageType = $message["message_type"] ?? "file";
+    $forceDownload = isset($_GET["download"]) && $_GET["download"] === "1";
     $absolutePath = getChatFileAbsolutePath($filePath);
 
     if ($filePath === "" || !is_file($absolutePath)) {
@@ -323,7 +352,11 @@ function sendChatFileDownload(array $message): void
 
     header("Content-Type: " . $mime);
     header("Content-Length: " . filesize($absolutePath));
-    header("Content-Disposition: attachment; filename=\"" . basename($fileName) . "\"");
+    header(
+        "Content-Disposition: "
+        . ($forceDownload || $messageType === "file" ? "attachment" : "inline")
+        . "; filename=\"" . basename($fileName) . "\""
+    );
     header("X-Content-Type-Options: nosniff");
 
     readfile($absolutePath);

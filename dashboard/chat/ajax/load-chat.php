@@ -184,6 +184,7 @@ foreach ($messages as $message) {
             <?php if ($message["message_type"] === "image") {
 
                 $downloadUrl = "chat/ajax/download-file.php?message_id=" . (int) $message["id"];
+                $mediaDownloadUrl = $downloadUrl . "&download=1";
 
                 ?>
 
@@ -223,6 +224,49 @@ foreach ($messages as $message) {
                     </div>
 
                     <a href="<?php echo htmlspecialchars($downloadUrl); ?>">
+                        Download
+                    </a>
+
+                </div>
+
+            <?php } elseif (
+                $message["message_type"] === "audio" ||
+                $message["message_type"] === "video"
+            ) {
+
+                $downloadUrl = "chat/ajax/download-file.php?message_id=" . (int) $message["id"];
+
+                ?>
+
+                <div class="xd-chat-media-card">
+
+                    <?php if ($message["message_type"] === "video") { ?>
+
+                        <video controls
+                               src="<?php echo htmlspecialchars($downloadUrl); ?>">
+                        </video>
+
+                    <?php } else { ?>
+
+                        <audio controls
+                               src="<?php echo htmlspecialchars($downloadUrl); ?>">
+                        </audio>
+
+                    <?php } ?>
+
+                    <div class="xd-chat-file-meta">
+
+                        <strong>
+                            <?php echo htmlspecialchars($message["file_name"]); ?>
+                        </strong>
+
+                        <small>
+                            <?php echo htmlspecialchars(formatChatFileSize((int) $message["file_size"])); ?>
+                        </small>
+
+                    </div>
+
+                    <a href="<?php echo htmlspecialchars($mediaDownloadUrl); ?>">
                         Download
                     </a>
 

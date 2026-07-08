@@ -308,14 +308,41 @@ Created : 06 July 2026
 
                 <input type="file"
                        class="xd-chat-file-input"
-                       accept=".jpg,.jpeg,.png,.webp,.pdf,.doc,.docx,.xls,.xlsx"
                        hidden>
 
-                <button class="xd-chat-attach"
-                        type="button"
-                        title="Attach file">
-                    +
-                </button>
+                <div class="xd-chat-attach-wrap">
+
+                    <button class="xd-chat-attach"
+                            type="button"
+                            title="Attach file">
+                        +
+                    </button>
+
+                    <div class="xd-chat-attach-menu">
+
+                        <button type="button"
+                                data-accept=".jpg,.jpeg,.png,.webp">
+                            Image
+                        </button>
+
+                        <button type="button"
+                                data-accept=".mp4,.webm,.mov">
+                            Video
+                        </button>
+
+                        <button type="button"
+                                data-accept=".pdf,.doc,.docx,.xls,.xlsx,.txt">
+                            Document
+                        </button>
+
+                        <button type="button"
+                                data-accept=".mp3,.wav,.ogg">
+                            Audio
+                        </button>
+
+                    </div>
+
+                </div>
 
                 <input type="text"
                        class="xd-chat-input"
@@ -355,6 +382,8 @@ Created : 06 July 2026
         const chatFooter = chatWindow.querySelector(".xd-chat-footer");
         const fileInput = chatWindow.querySelector(".xd-chat-file-input");
         const attachButton = chatWindow.querySelector(".xd-chat-attach");
+        const attachMenu = chatWindow.querySelector(".xd-chat-attach-menu");
+        const attachOptions = chatWindow.querySelectorAll(".xd-chat-attach-menu button");
         const chatInput = chatWindow.querySelector(".xd-chat-input");
         const sendButton = chatWindow.querySelector(".xd-chat-send");
         const statusText = chatWindow.querySelector(".xd-chat-status");
@@ -838,6 +867,16 @@ Created : 06 July 2026
                 return;
             }
 
+            if (item.message_type === "audio") {
+                addMediaMessage(item, messageId, isVisitorMessage, "audio");
+                return;
+            }
+
+            if (item.message_type === "video") {
+                addMediaMessage(item, messageId, isVisitorMessage, "video");
+                return;
+            }
+
             if (isVisitorMessage) {
                 addUserMessage(item.message, messageId);
                 return;
@@ -937,12 +976,59 @@ Created : 06 July 2026
         }
 
 
-        function getFileDownloadUrl(messageId) {
+        function getFileDownloadUrl(messageId, forceDownload) {
 
-            return baseUrl
+            let url = baseUrl
                 + "download-file.php?message_id=" + encodeURIComponent(messageId)
                 + "&widget_key=" + encodeURIComponent(widgetKey)
                 + "&visitor_id=" + encodeURIComponent(visitorId);
+
+            if (forceDownload) {
+                url += "&download=1";
+            }
+
+            return url;
+
+        }
+
+
+        function addMediaMessage(item, messageId, isVisitorMessage, mediaType) {
+
+            const mediaMessage = document.createElement("div");
+            const mediaUrl = getFileDownloadUrl(messageId, false);
+            const downloadUrl = getFileDownloadUrl(messageId, true);
+            const safeName = escapeHTML(item.file_name || "Attachment");
+            const safeSize = escapeHTML(formatFileSize(parseInt(item.file_size || 0, 10)));
+            const mediaTag = mediaType === "video"
+                ? `<video controls src="${escapeHTML(mediaUrl)}"></video>`
+                : `<audio controls src="${escapeHTML(mediaUrl)}"></audio>`;
+
+            mediaMessage.className = isVisitorMessage
+                ? "xd-chat-message user xd-chat-file-message xd-chat-media-message xd-chat-database-message"
+                : "xd-chat-message xd-chat-file-message xd-chat-media-message xd-chat-database-message";
+
+            mediaMessage.setAttribute("data-message", item.message || item.file_name || "");
+            mediaMessage.setAttribute("data-message-id", messageId);
+
+            mediaMessage.innerHTML = `
+                <div class="xd-chat-media-card">
+                    ${mediaTag}
+                    <div class="xd-chat-file-meta">
+                        <strong>${safeName}</strong>
+                        <small>${safeSize}</small>
+                    </div>
+                    <a href="${escapeHTML(downloadUrl)}">
+                        Download
+                    </a>
+                </div>
+                <span class="xd-chat-time">
+                    Just now
+                </span>
+            `;
+
+            chatBody.appendChild(mediaMessage);
+
+            scrollChatToBottom();
 
         }
 
@@ -1114,7 +1200,21 @@ Created : 06 July 2026
 
             enableNotificationHelper();
 
-            fileInput.click();
+            attachMenu.classList.toggle("active");
+
+        });
+
+        attachOptions.forEach(function (option) {
+
+            option.addEventListener("click", function () {
+
+                enableNotificationHelper();
+
+                fileInput.setAttribute("accept", this.dataset.accept || "");
+                attachMenu.classList.remove("active");
+                fileInput.click();
+
+            });
 
         });
 

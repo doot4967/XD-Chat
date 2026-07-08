@@ -45,7 +45,8 @@ $query = "
         messages.file_name,
         messages.file_path,
         messages.file_mime,
-        messages.file_size
+        messages.file_size,
+        messages.message_type
     FROM messages
     INNER JOIN chats
         ON messages.chat_id = chats.id
@@ -58,7 +59,7 @@ $query = "
     AND widgets.widget_key = ?
     AND widgets.status = 'active'
     AND websites.status = 'active'
-    AND messages.message_type IN ('image', 'file')
+    AND messages.message_type IN ('image', 'file', 'audio', 'video')
     LIMIT 1
 ";
 

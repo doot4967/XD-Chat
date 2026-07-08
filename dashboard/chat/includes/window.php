@@ -128,17 +128,45 @@ Created : 06 July 2026
 
             <input type="file"
                    id="xdChatFileInput"
-                   accept=".jpg,.jpeg,.png,.webp,.pdf,.doc,.docx,.xls,.xlsx"
                    hidden>
 
-            <button type="button"
-                    id="xdChatAttach"
-                    class="xd-chat-attach-button"
-                    disabled>
+            <div class="xd-chat-attach-wrap">
 
-                +
+                <button type="button"
+                        id="xdChatAttach"
+                        class="xd-chat-attach-button"
+                        disabled>
 
-            </button>
+                    +
+
+                </button>
+
+                <div class="xd-chat-attach-menu"
+                     id="xdChatAttachMenu">
+
+                    <button type="button"
+                            data-accept=".jpg,.jpeg,.png,.webp">
+                        Image
+                    </button>
+
+                    <button type="button"
+                            data-accept=".mp4,.webm,.mov">
+                        Video
+                    </button>
+
+                    <button type="button"
+                            data-accept=".pdf,.doc,.docx,.xls,.xlsx,.txt">
+                        Document
+                    </button>
+
+                    <button type="button"
+                            data-accept=".mp3,.wav,.ogg">
+                        Audio
+                    </button>
+
+                </div>
+
+            </div>
 
             <input type="text"
                    id="xdChatInput"
