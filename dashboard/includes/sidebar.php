@@ -36,6 +36,11 @@
                 Websites
             </a>
 
+            <a href="widgets.php">
+                <i class="fa-solid fa-puzzle-piece"></i>
+                Widgets
+            </a>
+
             <a href="visitors.php">
                 <i class="fa-solid fa-users"></i>
                 Visitors

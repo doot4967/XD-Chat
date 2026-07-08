@@ -71,45 +71,116 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
     <title>Login | XD Chat</title>
 
+    <link rel="stylesheet"
+          href="../assets/css/09-auth.css">
+
 </head>
 
-<body>
+<body class="xd-auth-page">
 
-    <h1>Login</h1>
+    <!-- ==========================================
+         03. AUTH WRAPPER
+    ========================================== -->
 
-    <?php if (!empty($message)) { ?>
+    <main class="xd-auth-wrapper">
 
-        <p>
-            <?php echo $message; ?>
-        </p>
+        <section class="xd-auth-card">
 
-    <?php } ?>
+            <!-- ==========================================
+                 04. BRAND PANEL
+            ========================================== -->
 
-    <form method="POST">
+            <div class="xd-auth-brand">
 
-        <input
-            type="email"
-            name="email"
-            placeholder="Email Address"
-            required
-        >
+                <div class="xd-auth-logo">
+                    XD
+                </div>
 
-        <br><br>
+                <span>Live Chat Platform</span>
 
-        <input
-            type="password"
-            name="password"
-            placeholder="Password"
-            required
-        >
+                <h1>Welcome back to XD Chat</h1>
 
-        <br><br>
+                <p>
+                    Manage conversations, websites, and widgets from one clean dashboard.
+                </p>
 
-        <button type="submit">
-            Login
-        </button>
+            </div>
 
-    </form>
+
+            <!-- ==========================================
+                 05. LOGIN FORM
+            ========================================== -->
+
+            <div class="xd-auth-content">
+
+                <div class="xd-auth-heading">
+
+                    <h2>Login</h2>
+
+                    <p>Enter your account details to continue.</p>
+
+                </div>
+
+                <?php if (!empty($message)) { ?>
+
+                    <div class="xd-auth-alert">
+                        <?php echo htmlspecialchars($message); ?>
+                    </div>
+
+                <?php } ?>
+
+                <form method="POST" class="xd-auth-form">
+
+                    <div class="xd-auth-field">
+
+                        <label>Email Address</label>
+
+                        <input
+                            type="email"
+                            name="email"
+                            placeholder="you@example.com"
+                            required
+                        >
+
+                    </div>
+
+                    <div class="xd-auth-field">
+
+                        <div class="xd-auth-label-row">
+
+                            <label>Password</label>
+
+                            <a href="forgot-password.php">
+                                Forgot password?
+                            </a>
+
+                        </div>
+
+                        <input
+                            type="password"
+                            name="password"
+                            placeholder="Enter your password"
+                            required
+                        >
+
+                    </div>
+
+                    <button type="submit" class="xd-auth-submit">
+                        Login
+                    </button>
+
+                </form>
+
+                <p class="xd-auth-footer-text">
+                    New to XD Chat?
+                    <a href="register.php">Create account</a>
+                </p>
+
+            </div>
+
+        </section>
+
+    </main>
 
 </body>
 

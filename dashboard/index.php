@@ -18,6 +18,10 @@ Created : 05 July 2026
 
 require_once '../includes/functions/session.php';
 
+require_once '../database/connection.php';
+
+require_once '../includes/functions/analytics.php';
+
 requireLogin();
 
 
@@ -30,6 +34,11 @@ $page_title = "Dashboard | XD Chat";
 $page_heading = "Dashboard";
 
 $page_description = "Welcome back, " . $_SESSION["user_name"] . " 👋";
+
+$dashboardStats = getDashboardStats(
+    $pdo,
+    $_SESSION["user_id"]
+);
 
 ?>
 
@@ -85,7 +94,7 @@ $page_description = "Welcome back, " . $_SESSION["user_name"] . " 👋";
 
                 <span>Total Websites</span>
 
-                <strong>24</strong>
+                <strong><?php echo $dashboardStats["websites"]; ?></strong>
 
                 <small class="positive">
 
@@ -107,7 +116,7 @@ $page_description = "Welcome back, " . $_SESSION["user_name"] . " 👋";
 
                 <span>Live Chats</span>
 
-                <strong>8</strong>
+                <strong><?php echo $dashboardStats["chats"]; ?></strong>
 
                 <small class="positive">
 
@@ -127,9 +136,9 @@ $page_description = "Welcome back, " . $_SESSION["user_name"] . " 👋";
                     <i class="fa-solid fa-users"></i>
                 </div>
 
-                <span>Visitors Today</span>
+                <span>Total Widgets</span>
 
-                <strong>156</strong>
+                <strong><?php echo $dashboardStats["widgets"]; ?></strong>
 
                 <small class="positive">
 
@@ -151,7 +160,7 @@ $page_description = "Welcome back, " . $_SESSION["user_name"] . " 👋";
 
                 <span>Messages</span>
 
-                <strong>324</strong>
+                <strong><?php echo $dashboardStats["messages"]; ?></strong>
 
                 <small class="positive">
 

@@ -54,9 +54,13 @@ document.addEventListener("DOMContentLoaded", function () {
 
     const deleteConfirm = document.getElementById("xdDeleteConfirm");
 
+    const deleteForm = document.getElementById("xdDeleteForm");
+
+    const deleteId = document.getElementById("xdDeleteId");
+
     const cancelButton = document.querySelector(".xd-modal-cancel");
 
-    if (!modal) {
+    if (!modal || !deleteForm || !deleteId) {
 
         return;
 
@@ -70,11 +74,19 @@ document.addEventListener("DOMContentLoaded", function () {
 
             deleteName.textContent = button.dataset.name;
 
-            deleteConfirm.href = button.href;
+            deleteId.value = button.dataset.id;
 
             modal.classList.add("active");
 
         });
+
+    });
+
+    deleteConfirm.addEventListener("click", function (event) {
+
+        event.preventDefault();
+
+        deleteForm.submit();
 
     });
 

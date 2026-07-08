@@ -26,10 +26,10 @@ requireLogin();
 
 
 /* ==========================================
-   02. VALIDATE WIDGET ID
+   02. VALIDATE REQUEST
 ========================================== */
 
-if (!isset($_GET["id"])) {
+if ($_SERVER["REQUEST_METHOD"] !== "POST") {
 
     header("Location: widgets.php");
 
@@ -37,11 +37,44 @@ if (!isset($_GET["id"])) {
 
 }
 
-$widget_id = (int) $_GET["id"];
+$csrf_token = isset($_POST["csrf_token"])
+    ? $_POST["csrf_token"]
+    : "";
+
+if (!verifyCsrfToken($csrf_token)) {
+
+    header("Location: widgets.php");
+
+    exit;
+
+}
 
 
 /* ==========================================
-   03. DELETE WIDGET
+   03. VALIDATE WIDGET ID
+========================================== */
+
+if (!isset($_POST["id"])) {
+
+    header("Location: widgets.php");
+
+    exit;
+
+}
+
+$widget_id = (int) $_POST["id"];
+
+if ($widget_id <= 0) {
+
+    header("Location: widgets.php");
+
+    exit;
+
+}
+
+
+/* ==========================================
+   04. DELETE WIDGET
 ========================================== */
 
 deleteWidget(
@@ -52,7 +85,7 @@ deleteWidget(
 
 
 /* ==========================================
-   04. REDIRECT WITH SUCCESS MESSAGE
+   05. REDIRECT WITH SUCCESS MESSAGE
 ========================================== */
 
 header("Location: widgets.php?deleted=1");

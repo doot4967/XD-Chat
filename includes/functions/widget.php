@@ -176,7 +176,72 @@ function getWidget(PDO $pdo, int $widget_id, int $user_id)
 
 
 /* ==========================================
-   05. UPDATE WIDGET
+   05. GET WEBSITES WITHOUT WIDGET
+========================================== */
+
+function getWebsitesWithoutWidget(PDO $pdo, int $user_id): array
+{
+
+    $query = "
+        SELECT
+            websites.id,
+            websites.website_name,
+            websites.domain
+        FROM websites
+        LEFT JOIN widgets
+            ON websites.id = widgets.website_id
+            AND widgets.user_id = websites.user_id
+        WHERE websites.user_id = ?
+        AND widgets.id IS NULL
+        ORDER BY websites.id DESC
+    ";
+
+    $statement = $pdo->prepare($query);
+
+    $statement->execute([
+        $user_id
+    ]);
+
+    return $statement->fetchAll(PDO::FETCH_ASSOC);
+
+}
+
+
+/* ==========================================
+   06. CHECK WEBSITE WIDGET EXISTS
+========================================== */
+
+function widgetExistsForWebsite(
+    PDO $pdo,
+    int $user_id,
+    int $website_id,
+    int $ignore_widget_id = 0
+) {
+
+    $query = "
+        SELECT id
+        FROM widgets
+        WHERE user_id = ?
+        AND website_id = ?
+        AND id != ?
+        LIMIT 1
+    ";
+
+    $statement = $pdo->prepare($query);
+
+    $statement->execute([
+        $user_id,
+        $website_id,
+        $ignore_widget_id
+    ]);
+
+    return $statement->rowCount() > 0;
+
+}
+
+
+/* ==========================================
+   07. UPDATE WIDGET
 ========================================== */
 
 function updateWidget(
@@ -230,7 +295,7 @@ function updateWidget(
 
 
 /* ==========================================
-   06. DELETE WIDGET
+   08. DELETE WIDGET
 ========================================== */
 
 function deleteWidget(PDO $pdo, int $widget_id, int $user_id)

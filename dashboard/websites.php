@@ -128,7 +128,7 @@ $websites = getWebsites(
                             <tr>
                                 <th>Website</th>
                                 <th>Domain</th>
-                                <th>Widget Key</th>
+                                <th>Website Key</th>
                                 <th>Status</th>
                                 <th>Created</th>
                                 <th>Action</th>
@@ -185,8 +185,9 @@ $websites = getWebsites(
 
                                             </a>
 
-                                            <a href="website-delete.php?id=<?php echo (int) $website["id"]; ?>"
+                                            <a href="#"
                                                class="xd-btn-delete xd-delete-trigger"
+                                               data-id="<?php echo (int) $website["id"]; ?>"
                                                data-name="<?php echo htmlspecialchars($website["website_name"]); ?>"
                                                title="Delete Website">
 
@@ -258,6 +259,21 @@ $websites = getWebsites(
     </div>
 
 </div>
+
+<form method="POST"
+      action="website-delete.php"
+      id="xdDeleteForm"
+      style="display:none;">
+
+    <input type="hidden"
+           name="id"
+           id="xdDeleteId">
+
+    <input type="hidden"
+           name="csrf_token"
+           value="<?php echo htmlspecialchars(getCsrfToken()); ?>">
+
+</form>
 
 <!-- ==========================================
      09. DASHBOARD JAVASCRIPT

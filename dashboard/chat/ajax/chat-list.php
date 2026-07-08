@@ -24,63 +24,116 @@ requireLogin();
 
 
 /* ==========================================
-   02. GET CHAT LIST
+   02. GET FILTER
+========================================== */
+
+$status = isset($_GET["status"])
+    ? trim($_GET["status"])
+    : "open";
+
+$allowedStatuses = [
+    "open",
+    "closed"
+];
+
+if (!in_array($status, $allowedStatuses, true)) {
+
+    $status = "open";
+
+}
+
+
+/* ==========================================
+   03. GET CHAT LIST
 ========================================== */
 
 $query = "
     SELECT
-        chats.id,
-        chats.visitor_id,
-        chats.visitor_name,
-        chats.status,
-        chats.created_at,
-        websites.website_name,
+        chat_data.id,
+        chat_data.visitor_id,
+        chat_data.visitor_name,
+        chat_data.status,
+        chat_data.last_seen_message_id,
+        chat_data.created_at,
+        chat_data.website_name,
+        chat_data.last_message,
+        chat_data.last_message_time,
+        chat_data.unread_count
+    FROM (
+        SELECT
+            chats.id,
+            chats.visitor_id,
+            chats.visitor_name,
+            chats.status,
+            chats.last_seen_message_id,
+            chats.created_at,
+            websites.website_name,
 
-        (
-            SELECT messages.message
-            FROM messages
-            WHERE messages.chat_id = chats.id
-            ORDER BY messages.id DESC
-            LIMIT 1
-        ) AS last_message,
+            (
+                SELECT messages.message
+                FROM messages
+                WHERE messages.chat_id = chats.id
+                ORDER BY messages.id DESC
+                LIMIT 1
+            ) AS last_message,
 
-        (
-            SELECT messages.created_at
-            FROM messages
-            WHERE messages.chat_id = chats.id
-            ORDER BY messages.id DESC
-            LIMIT 1
-        ) AS last_message_time
+            (
+                SELECT messages.created_at
+                FROM messages
+                WHERE messages.chat_id = chats.id
+                ORDER BY messages.id DESC
+                LIMIT 1
+            ) AS last_message_time,
 
-    FROM chats
-    INNER JOIN websites
-        ON chats.website_id = websites.id
+            (
+                SELECT COUNT(*)
+                FROM messages
+                WHERE messages.chat_id = chats.id
+                AND messages.sender = 'visitor'
+                AND messages.id > chats.last_seen_message_id
+            ) AS unread_count
 
-    ORDER BY chats.id DESC
+        FROM chats
+        INNER JOIN websites
+            ON chats.website_id = websites.id
+        WHERE websites.user_id = ?
+        AND chats.status = ?
+    ) AS chat_data
+    ORDER BY
+        CASE
+            WHEN chat_data.status = 'open'
+            AND chat_data.unread_count > 0
+            THEN 0
+            ELSE 1
+        END ASC,
+        COALESCE(chat_data.last_message_time, chat_data.created_at) DESC
 ";
 
 $statement = $pdo->prepare($query);
 
-$statement->execute();
+$statement->execute([
+    $_SESSION["user_id"],
+    $status
+]);
 
 $chats = $statement->fetchAll(PDO::FETCH_ASSOC);
 
 
 /* ==========================================
-   03. EMPTY STATE
+   04. EMPTY STATE
 ========================================== */
 
 if (count($chats) === 0) { ?>
 
     <div class="xd-chat-empty-state">
-        No conversations yet.
+        No <?php echo htmlspecialchars($status); ?> conversations yet.
     </div>
 
 <?php exit; }
 
 
 /* ==========================================
-   04. RENDER CHAT LIST
+   05. RENDER CHAT LIST
 ========================================== */
 
 foreach ($chats as $chat) {
@@ -97,12 +150,15 @@ foreach ($chats as $chat) {
         ? $chat["last_message_time"]
         : $chat["created_at"];
 
+    $unreadCount = (int) $chat["unread_count"];
+
     ?>
 
     <button class="xd-chat-list-item"
             type="button"
             data-chat-id="<?php echo (int) $chat["id"]; ?>"
-            data-visitor-name="<?php echo htmlspecialchars($visitorName); ?>">
+            data-visitor-name="<?php echo htmlspecialchars($visitorName); ?>"
+            data-chat-status="<?php echo htmlspecialchars($chat["status"]); ?>">
 
         <div class="xd-chat-list-avatar">
             <?php echo strtoupper(substr($visitorName, 0, 1)); ?>
@@ -129,6 +185,22 @@ foreach ($chats as $chat) {
             <span>
                 <?php echo htmlspecialchars($chat["website_name"]); ?>
             </span>
+
+            <div class="xd-chat-list-badges">
+
+                <em class="xd-chat-status-badge <?php echo htmlspecialchars($chat["status"]); ?>">
+                    <?php echo ucfirst(htmlspecialchars($chat["status"])); ?>
+                </em>
+
+                <?php if ($unreadCount > 0) { ?>
+
+                    <em class="xd-chat-unread-badge">
+                        <?php echo $unreadCount; ?>
+                    </em>
+
+                <?php } ?>
+
+            </div>
 
         </div>
 

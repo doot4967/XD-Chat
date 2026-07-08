@@ -60,54 +60,121 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
     <title>Create Account | XD Chat</title>
 
+    <link rel="stylesheet"
+          href="../assets/css/09-auth.css">
+
 </head>
 
-<body>
+<body class="xd-auth-page">
 
-    <h1>Create Account</h1>
+    <!-- ==========================================
+         03. AUTH WRAPPER
+    ========================================== -->
 
-    <?php if (!empty($message)) { ?>
+    <main class="xd-auth-wrapper">
 
-        <p>
-            <?php echo $message; ?>
-        </p>
+        <section class="xd-auth-card">
 
-    <?php } ?>
+            <!-- ==========================================
+                 04. BRAND PANEL
+            ========================================== -->
 
-    <form method="POST">
+            <div class="xd-auth-brand">
 
-        <input
-            type="text"
-            name="full_name"
-            placeholder="Full Name"
-            required
-        >
+                <div class="xd-auth-logo">
+                    XD
+                </div>
 
-        <br><br>
+                <span>Start your live chat workspace</span>
 
-        <input
-            type="email"
-            name="email"
-            placeholder="Email Address"
-            required
-        >
+                <h1>Create your XD Chat account</h1>
 
-        <br><br>
+                <p>
+                    Add websites, install widgets, and start replying to visitors from your dashboard.
+                </p>
 
-        <input
-            type="password"
-            name="password"
-            placeholder="Password"
-            required
-        >
+            </div>
 
-        <br><br>
 
-        <button type="submit">
-            Create Account
-        </button>
+            <!-- ==========================================
+                 05. REGISTER FORM
+            ========================================== -->
 
-    </form>
+            <div class="xd-auth-content">
+
+                <div class="xd-auth-heading">
+
+                    <h2>Create Account</h2>
+
+                    <p>Enter your details to create your workspace.</p>
+
+                </div>
+
+                <?php if (!empty($message)) { ?>
+
+                    <div class="xd-auth-alert <?php if ($message === "Account created successfully.") { echo "success"; } ?>">
+                        <?php echo htmlspecialchars($message); ?>
+                    </div>
+
+                <?php } ?>
+
+                <form method="POST" class="xd-auth-form">
+
+                    <div class="xd-auth-field">
+
+                        <label>Full Name</label>
+
+                        <input
+                            type="text"
+                            name="full_name"
+                            placeholder="Your full name"
+                            required
+                        >
+
+                    </div>
+
+                    <div class="xd-auth-field">
+
+                        <label>Email Address</label>
+
+                        <input
+                            type="email"
+                            name="email"
+                            placeholder="you@example.com"
+                            required
+                        >
+
+                    </div>
+
+                    <div class="xd-auth-field">
+
+                        <label>Password</label>
+
+                        <input
+                            type="password"
+                            name="password"
+                            placeholder="Create a secure password"
+                            required
+                        >
+
+                    </div>
+
+                    <button type="submit" class="xd-auth-submit">
+                        Create Account
+                    </button>
+
+                </form>
+
+                <p class="xd-auth-footer-text">
+                    Already have an account?
+                    <a href="login.php">Login</a>
+                </p>
+
+            </div>
+
+        </section>
+
+    </main>
 
 </body>
 

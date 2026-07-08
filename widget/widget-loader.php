@@ -27,7 +27,77 @@ header("Content-Type: application/json");
 
 
 /* ==========================================
-   03. VALIDATE WIDGET KEY
+   03. SECURITY HELPERS
+========================================== */
+
+function normalizeWidgetHost(string $domain): string
+{
+
+    $domain = trim(strtolower($domain));
+
+    if ($domain === "") {
+
+        return "";
+
+    }
+
+    if (!preg_match("/^https?:\/\//", $domain)) {
+
+        $domain = "https://" . $domain;
+
+    }
+
+    $host = parse_url($domain, PHP_URL_HOST);
+
+    return $host ? preg_replace("/^www\./", "", $host) : "";
+
+}
+
+
+function getRequestWidgetHost(): string
+{
+
+    $source = $_SERVER["HTTP_ORIGIN"]
+        ?? $_SERVER["HTTP_REFERER"]
+        ?? $_SERVER["HTTP_HOST"]
+        ?? "";
+
+    return normalizeWidgetHost($source);
+
+}
+
+
+function isLocalWidgetHost(string $host): bool
+{
+
+    return in_array($host, [
+        "localhost",
+        "127.0.0.1",
+        "::1"
+    ], true);
+
+}
+
+
+function isWidgetDomainAllowed(string $websiteDomain): bool
+{
+
+    $requestHost = getRequestWidgetHost();
+
+    if (isLocalWidgetHost($requestHost)) {
+
+        return true;
+
+    }
+
+    return $requestHost !== ""
+        && $requestHost === normalizeWidgetHost($websiteDomain);
+
+}
+
+
+/* ==========================================
+   04. VALIDATE WIDGET KEY
 ========================================== */
 
 if (!isset($_GET["key"]) || empty($_GET["key"])) {
@@ -45,7 +115,7 @@ $widget_key = trim($_GET["key"]);
 
 
 /* ==========================================
-   04. GET WIDGET DATA
+   05. GET WIDGET DATA
 ========================================== */
 
 $query = "
@@ -62,13 +132,13 @@ $query = "
         widgets.welcome_message,
         widgets.offline_message,
         widgets.status,
-        websites.website_name,
-        websites.domain
+        websites.domain,
+        websites.status AS website_status
     FROM widgets
     INNER JOIN websites
         ON widgets.website_id = websites.id
    
-        WHERE widgets.widget_key = ?
+    WHERE widgets.widget_key = ?
     LIMIT 1
 ";
 
@@ -82,7 +152,7 @@ $widget = $statement->fetch(PDO::FETCH_ASSOC);
 
 
 /* ==========================================
-   05. CHECK WIDGET FOUND
+   06. CHECK WIDGET FOUND
 ========================================== */
 
 if (!$widget) {
@@ -98,14 +168,17 @@ if (!$widget) {
 
 
 /* ==========================================
-   06. CHECK WIDGET STATUS
+   07. CHECK WIDGET AND WEBSITE STATUS
 ========================================== */
 
-if ($widget["status"] !== "active") {
+if (
+    $widget["status"] !== "active" ||
+    $widget["website_status"] !== "active"
+) {
 
     echo json_encode([
         "success" => false,
-        "message" => "Widget is inactive."
+        "message" => "Widget is not available."
     ]);
 
     exit;
@@ -114,23 +187,35 @@ if ($widget["status"] !== "active") {
 
 
 /* ==========================================
-   07. RETURN WIDGET CONFIG
+   08. CHECK ALLOWED DOMAIN
+========================================== */
+
+if (!isWidgetDomainAllowed($widget["domain"])) {
+
+    echo json_encode([
+        "success" => false,
+        "message" => "Widget domain is not allowed."
+    ]);
+
+    exit;
+
+}
+
+
+/* ==========================================
+   09. RETURN WIDGET CONFIG
 ========================================== */
 
 echo json_encode([
     "success" => true,
     "widget" => [
-        "id" => (int) $widget["id"],
         "name" => $widget["widget_name"],
-        "key" => $widget["widget_key"],
         "theme" => $widget["theme"],
         "position" => $widget["position"],
         "color" => $widget["widget_color"],
         "icon" => $widget["widget_icon"],
         "welcome_message" => $widget["welcome_message"],
-        "offline_message" => $widget["offline_message"],
-        "website_name" => $widget["website_name"],
-        "domain" => $widget["domain"]
+        "offline_message" => $widget["offline_message"]
     ]
 ]);
 

@@ -83,3 +83,56 @@ function requireLogin(): void
     }
 
 }
+
+
+/* ==========================================
+   06. GENERATE CSRF TOKEN
+========================================== */
+
+function generateCsrfToken(): string
+{
+
+    $_SESSION["csrf_token"] = bin2hex(random_bytes(32));
+
+    return $_SESSION["csrf_token"];
+
+}
+
+
+/* ==========================================
+   07. GET CSRF TOKEN
+========================================== */
+
+function getCsrfToken(): string
+{
+
+    if (empty($_SESSION["csrf_token"])) {
+
+        return generateCsrfToken();
+
+    }
+
+    return $_SESSION["csrf_token"];
+
+}
+
+
+/* ==========================================
+   08. VERIFY CSRF TOKEN
+========================================== */
+
+function verifyCsrfToken(string $token): bool
+{
+
+    if (empty($_SESSION["csrf_token"])) {
+
+        return false;
+
+    }
+
+    return hash_equals(
+        $_SESSION["csrf_token"],
+        $token
+    );
+
+}

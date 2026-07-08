@@ -118,33 +118,30 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
             <?php if (!empty($message)) { ?>
 
-                <p><?php echo $message; ?></p>
+                <div class="xd-alert error">
+                    <?php echo htmlspecialchars($message); ?>
+                </div>
 
             <?php } ?>
 
-            <form method="POST">
+            <form method="POST" class="xd-form">
 
-                <p>
+                <div class="xd-form-group">
 
                     <label>Website Name</label>
-
-                    <br><br>
 
                     <input
                         type="text"
                         name="website_name"
+                        placeholder="My Business Website"
                         required
                     >
 
-                </p>
+                </div>
 
-                <br>
-
-                <p>
+                <div class="xd-form-group">
 
                     <label>Website URL</label>
-
-                    <br><br>
 
                     <input
                         type="url"
@@ -153,15 +150,11 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                         required
                     >
 
-                </p>
+                </div>
 
-                <br>
-
-                <p>
+                <div class="xd-form-group">
 
                     <label>Status</label>
-
-                    <br><br>
 
                     <select name="status">
 
@@ -175,17 +168,19 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
                     </select>
 
-                </p>
+                </div>
 
-                <br><br>
+                <div class="xd-form-actions">
 
-                <button type="submit">
-                    Save Website
-                </button>
+                    <a href="websites.php" class="xd-btn-cancel">
+                        Cancel
+                    </a>
 
-                <a href="websites.php">
-                    Cancel
-                </a>
+                    <button type="submit" class="xd-btn-submit">
+                        Save Website
+                    </button>
+
+                </div>
 
             </form>
 

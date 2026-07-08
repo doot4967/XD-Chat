@@ -26,10 +26,10 @@ requireLogin();
 
 
 /* ==========================================
-   02. VALIDATE WEBSITE ID
+   02. VALIDATE REQUEST
 ========================================== */
 
-if (!isset($_GET["id"])) {
+if ($_SERVER["REQUEST_METHOD"] !== "POST") {
 
     header("Location: websites.php");
 
@@ -37,11 +37,44 @@ if (!isset($_GET["id"])) {
 
 }
 
-$website_id = (int) $_GET["id"];
+$csrf_token = isset($_POST["csrf_token"])
+    ? $_POST["csrf_token"]
+    : "";
+
+if (!verifyCsrfToken($csrf_token)) {
+
+    header("Location: websites.php");
+
+    exit;
+
+}
 
 
 /* ==========================================
-   03. DELETE WEBSITE
+   03. VALIDATE WEBSITE ID
+========================================== */
+
+if (!isset($_POST["id"])) {
+
+    header("Location: websites.php");
+
+    exit;
+
+}
+
+$website_id = (int) $_POST["id"];
+
+if ($website_id <= 0) {
+
+    header("Location: websites.php");
+
+    exit;
+
+}
+
+
+/* ==========================================
+   04. DELETE WEBSITE
 ========================================== */
 
 deleteWebsite(
@@ -56,7 +89,7 @@ deleteWebsite(
 
 
 /* ==========================================
-   04. REDIRECT WITH SUCCESS MESSAGE
+   05. REDIRECT WITH SUCCESS MESSAGE
 ========================================== */
 
 header("Location: websites.php?deleted=1");

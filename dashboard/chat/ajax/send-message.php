@@ -20,6 +20,8 @@ require_once '../../../database/connection.php';
 
 require_once '../../../includes/functions/session.php';
 
+require_once '../../../includes/functions/upload.php';
+
 requireLogin();
 
 header("Content-Type: application/json");
@@ -37,16 +39,19 @@ $message = isset($_POST["message"])
     ? trim($_POST["message"])
     : "";
 
+$has_file = isset($_FILES["chat_file"])
+    && (int) $_FILES["chat_file"]["error"] !== UPLOAD_ERR_NO_FILE;
+
 
 /* ==========================================
    03. VALIDATION
 ========================================== */
 
-if ($chat_id <= 0 || $message === "") {
+if ($chat_id <= 0 || ($message === "" && !$has_file)) {
 
     echo json_encode([
         "success" => false,
-        "message" => "Chat ID and message are required."
+        "message" => "Chat ID and message or file are required."
     ]);
 
     exit;
@@ -55,20 +60,26 @@ if ($chat_id <= 0 || $message === "") {
 
 
 /* ==========================================
-   04. CHECK CHAT EXISTS
+   04. CHECK CHAT OWNERSHIP
 ========================================== */
 
 $query = "
-    SELECT id
+    SELECT
+        chats.id,
+        chats.status
     FROM chats
-    WHERE id = ?
+    INNER JOIN websites
+        ON chats.website_id = websites.id
+    WHERE chats.id = ?
+    AND websites.user_id = ?
     LIMIT 1
 ";
 
 $statement = $pdo->prepare($query);
 
 $statement->execute([
-    $chat_id
+    $chat_id,
+    $_SESSION["user_id"]
 ]);
 
 $chat = $statement->fetch(PDO::FETCH_ASSOC);
@@ -77,7 +88,19 @@ if (!$chat) {
 
     echo json_encode([
         "success" => false,
-        "message" => "Chat not found."
+        "message" => "Chat not found or access denied."
+    ]);
+
+    exit;
+
+}
+
+
+if ($chat["status"] === "closed") {
+
+    echo json_encode([
+        "success" => false,
+        "message" => "This chat is closed."
     ]);
 
     exit;
@@ -86,15 +109,51 @@ if (!$chat) {
 
 
 /* ==========================================
-   05. INSERT AGENT MESSAGE
+   05. PREPARE MESSAGE DATA
+========================================== */
+
+$message_type = "text";
+$file_data = null;
+
+if ($has_file) {
+
+    $file_data = saveChatUploadedFile($_FILES["chat_file"]);
+
+    if (empty($file_data["success"])) {
+
+        echo json_encode([
+            "success" => false,
+            "message" => $file_data["message"] ?? "File upload failed."
+        ]);
+
+        exit;
+
+    }
+
+    $message_type = $file_data["message_type"];
+
+    if ($message === "") {
+        $message = $file_data["file_name"];
+    }
+
+}
+
+
+/* ==========================================
+   06. INSERT AGENT MESSAGE
 ========================================== */
 
 $query = "
     INSERT INTO messages (
         chat_id,
         sender,
-        message
-    ) VALUES (?, ?, ?)
+        message,
+        message_type,
+        file_name,
+        file_path,
+        file_mime,
+        file_size
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
 ";
 
 $statement = $pdo->prepare($query);
@@ -102,12 +161,17 @@ $statement = $pdo->prepare($query);
 $statement->execute([
     $chat_id,
     "agent",
-    $message
+    $message,
+    $message_type,
+    $file_data["file_name"] ?? null,
+    $file_data["file_path"] ?? null,
+    $file_data["file_mime"] ?? null,
+    $file_data["file_size"] ?? null
 ]);
 
 
 /* ==========================================
-   06. SUCCESS RESPONSE
+   07. SUCCESS RESPONSE
 ========================================== */
 
 echo json_encode([

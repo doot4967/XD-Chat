@@ -98,7 +98,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     if ($updated) {
 
         header("Location: websites.php?updated=1");
-exit;
 
         exit;
 
@@ -154,51 +153,43 @@ exit;
 
             <?php if (!empty($message)) { ?>
 
-                <p><?php echo $message; ?></p>
+                <div class="xd-alert error">
+                    <?php echo htmlspecialchars($message); ?>
+                </div>
 
             <?php } ?>
 
-            <form method="POST">
+            <form method="POST" class="xd-form">
 
-                <p>
+                <div class="xd-form-group">
 
                     <label>Website Name</label>
-
-                    <br><br>
 
                     <input
                         type="text"
                         name="website_name"
-                        value="<?php echo $website["website_name"]; ?>"
+                        value="<?php echo htmlspecialchars($website["website_name"]); ?>"
                         required
                     >
 
-                </p>
+                </div>
 
-                <br>
-
-                <p>
+                <div class="xd-form-group">
 
                     <label>Website URL</label>
-
-                    <br><br>
 
                     <input
                         type="url"
                         name="domain"
-                        value="<?php echo $website["domain"]; ?>"
+                        value="<?php echo htmlspecialchars($website["domain"]); ?>"
                         required
                     >
 
-                </p>
+                </div>
 
-                <br>
-
-                <p>
+                <div class="xd-form-group">
 
                     <label>Status</label>
-
-                    <br><br>
 
                     <select name="status">
 
@@ -214,17 +205,19 @@ exit;
 
                     </select>
 
-                </p>
+                </div>
 
-                <br><br>
+                <div class="xd-form-actions">
 
-                <button type="submit">
-                    Update Website
-                </button>
+                    <a href="websites.php" class="xd-btn-cancel">
+                        Cancel
+                    </a>
 
-                <a href="websites.php">
-                    Cancel
-                </a>
+                    <button type="submit" class="xd-btn-submit">
+                        Update Website
+                    </button>
+
+                </div>
 
             </form>
 

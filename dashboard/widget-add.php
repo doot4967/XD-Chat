@@ -39,7 +39,7 @@ $page_description = "Create a new chat widget for your website.";
 
 $error = "";
 
-$websites = getWebsites(
+$websites = getWebsitesWithoutWidget(
     $pdo,
     $_SESSION["user_id"]
 );
@@ -80,6 +80,16 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     ) {
 
         $error = "Please fill all required fields.";
+
+    } elseif (
+        widgetExistsForWebsite(
+            $pdo,
+            $_SESSION["user_id"],
+            $website_id
+        )
+    ) {
+
+        $error = "This website already has a widget.";
 
     } else {
 
@@ -166,12 +176,12 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
 
             <!-- ==========================================
-                 06. EMPTY WEBSITE CHECK
+                 06. AVAILABLE WEBSITE CHECK
             ========================================== -->
             <?php if (count($websites) === 0) { ?>
 
                 <div class="xd-alert warning">
-                    Please add a website first before creating a widget.
+                    Please add a website first or delete an existing widget before creating a new one.
                 </div>
 
                 <a href="website-add.php" class="xd-btn-edit">

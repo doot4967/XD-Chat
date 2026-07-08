@@ -235,8 +235,9 @@ $statusClass = ($widget["status"] == "active")
 
                                             </a>
 
-                                            <a href="widget-delete.php?id=<?php echo (int) $widget["id"]; ?>"
+                                            <a href="#"
                                                class="xd-btn-delete xd-delete-trigger"
+                                               data-id="<?php echo (int) $widget["id"]; ?>"
                                                data-name="<?php echo htmlspecialchars($widget["widget_name"]); ?>"
                                                title="Delete Widget">
 
@@ -308,6 +309,21 @@ $statusClass = ($widget["status"] == "active")
     </div>
 
 </div>
+
+<form method="POST"
+      action="widget-delete.php"
+      id="xdDeleteForm"
+      style="display:none;">
+
+    <input type="hidden"
+           name="id"
+           id="xdDeleteId">
+
+    <input type="hidden"
+           name="csrf_token"
+           value="<?php echo htmlspecialchars(getCsrfToken()); ?>">
+
+</form>
 
 <!-- ==========================================
      09. DASHBOARD JAVASCRIPT

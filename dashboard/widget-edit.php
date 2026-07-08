@@ -110,6 +110,17 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
         $error = "Please fill all required fields.";
 
+    } elseif (
+        widgetExistsForWebsite(
+            $pdo,
+            $_SESSION["user_id"],
+            $website_id,
+            $widget_id
+        )
+    ) {
+
+        $error = "This website already has a widget.";
+
     } else {
 
         updateWidget(

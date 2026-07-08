@@ -30,6 +30,89 @@ Module  : Public Widget Styles
     transform:translateY(-4px) scale(1.04);
 }
 
+.xd-chat-bubble-pulse{
+    animation:xdBubblePulse .85s ease 1;
+}
+
+.xd-chat-unread-badge{
+    position:fixed;
+    bottom:68px;
+    min-width:22px;
+    height:22px;
+    padding:0 6px;
+    border-radius:999px;
+    background:#ef4444;
+    color:#ffffff;
+    border:2px solid #ffffff;
+    box-shadow:0 8px 18px rgba(15,23,42,.18);
+    font-family:Arial, sans-serif;
+    font-size:11px;
+    font-weight:800;
+    line-height:18px;
+    text-align:center;
+    z-index:1000001;
+    display:none;
+}
+
+.xd-chat-unread-badge.active{
+    display:block;
+}
+
+.xd-chat-bubble-preview{
+    position:fixed;
+    bottom:92px;
+    max-width:230px;
+    padding:11px 13px;
+    border:none;
+    border-radius:16px 16px 16px 6px;
+    background:#ffffff;
+    color:#0f172a;
+    box-shadow:0 16px 40px rgba(15,23,42,.18);
+    font-family:Arial, sans-serif;
+    font-size:13px;
+    font-weight:700;
+    line-height:1.35;
+    text-align:left;
+    cursor:pointer;
+    z-index:1000000;
+    display:none;
+}
+
+.xd-chat-bubble-preview.active{
+    display:block;
+    animation:xdPreviewIn .2s ease;
+}
+
+@keyframes xdBubblePulse{
+    0%{
+        transform:scale(1);
+    }
+
+    35%{
+        transform:scale(1.1);
+    }
+
+    70%{
+        transform:scale(.96);
+    }
+
+    100%{
+        transform:scale(1);
+    }
+}
+
+@keyframes xdPreviewIn{
+    from{
+        opacity:0;
+        transform:translateY(8px);
+    }
+
+    to{
+        opacity:1;
+        transform:translateY(0);
+    }
+}
+
 
 /* ==========================================
    02. CHAT WINDOW
@@ -39,7 +122,8 @@ Module  : Public Widget Styles
     position:fixed;
     bottom:95px;
     width:365px;
-    height:535px;
+    height:min(535px, calc(100vh - 120px));
+    max-height:calc(100vh - 120px);
     background:#ffffff;
     border-radius:22px;
     box-shadow:0 24px 70px rgba(15,23,42,.25);
@@ -70,6 +154,7 @@ Module  : Public Widget Styles
     display:flex;
     align-items:center;
     justify-content:space-between;
+    flex-shrink:0;
 }
 
 .xd-chat-brand{
@@ -110,6 +195,10 @@ Module  : Public Widget Styles
     margin-right:5px;
 }
 
+.xd-chat-status span.offline{
+    background:#94a3b8;
+}
+
 .xd-chat-close{
     background:rgba(255,255,255,.18);
     border:none;
@@ -128,6 +217,7 @@ Module  : Public Widget Styles
 
 .xd-chat-body{
     flex:1;
+    min-height:0;
     padding:18px;
     background:#f8fafc;
     display:flex;
@@ -171,6 +261,18 @@ Module  : Public Widget Styles
     display:flex;
     gap:10px;
     background:#ffffff;
+    flex-shrink:0;
+}
+
+.xd-chat-attach{
+    border:none;
+    border-radius:14px;
+    background:#eef4ff;
+    color:#2563eb;
+    width:42px;
+    cursor:pointer;
+    font-size:22px;
+    font-weight:800;
 }
 
 .xd-chat-input{
@@ -192,16 +294,177 @@ Module  : Public Widget Styles
     font-weight:700;
 }
 
+.xd-chat-image-preview{
+    display:block;
+    padding:0;
+    border:none;
+    border-radius:14px;
+    background:transparent;
+    cursor:pointer;
+    overflow:hidden;
+}
+
+.xd-chat-image-preview img{
+    display:block;
+    width:100%;
+    max-width:260px;
+    max-height:220px;
+    object-fit:cover;
+}
+
+.xd-chat-file-card{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    min-width:230px;
+}
+
+.xd-chat-file-icon{
+    width:42px;
+    height:42px;
+    border-radius:12px;
+    background:#dbeafe;
+    color:#1d4ed8;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:10px;
+    font-weight:900;
+    flex-shrink:0;
+}
+
+.xd-chat-file-meta{
+    flex:1;
+    min-width:0;
+}
+
+.xd-chat-file-meta strong{
+    display:block;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+    font-size:13px;
+}
+
+.xd-chat-file-meta small{
+    display:block;
+    margin-top:4px;
+    opacity:.7;
+    font-size:11px;
+}
+
+.xd-chat-file-card a{
+    border-radius:999px;
+    background:#eff6ff;
+    color:#2563eb;
+    padding:7px 9px;
+    text-decoration:none;
+    font-size:11px;
+    font-weight:800;
+}
+
+.xd-chat-message.user .xd-chat-file-icon{
+    background:rgba(255,255,255,.2);
+    color:#ffffff;
+}
+
+.xd-chat-message.user .xd-chat-file-card a{
+    background:#ffffff;
+    color:#2563eb;
+}
+
+.xd-chat-lightbox{
+    position:fixed;
+    inset:0;
+    z-index:1000002;
+    background:rgba(15,23,42,.78);
+    display:none;
+    align-items:center;
+    justify-content:center;
+    padding:24px;
+}
+
+.xd-chat-lightbox.active{
+    display:flex;
+}
+
+.xd-chat-lightbox img{
+    max-width:96vw;
+    max-height:88vh;
+    border-radius:16px;
+    box-shadow:0 24px 70px rgba(0,0,0,.32);
+}
+
+.xd-chat-lightbox-close{
+    position:absolute;
+    top:18px;
+    right:22px;
+    width:38px;
+    height:38px;
+    border:none;
+    border-radius:50%;
+    background:#ffffff;
+    color:#0f172a;
+    cursor:pointer;
+    font-size:24px;
+}
+
 
 /* ==========================================
-   06. MOBILE RESPONSIVE
+   06. PRE CHAT FORM
+========================================== */
+
+.xd-chat-preform{
+    padding:16px;
+    border-top:1px solid #e5e7eb;
+    background:#ffffff;
+    display:grid;
+    gap:10px;
+    flex-shrink:0;
+}
+
+.xd-chat-preform strong{
+    color:#0f172a;
+    font-size:14px;
+}
+
+.xd-chat-preform input{
+    width:100%;
+    padding:12px 13px;
+    border:1px solid #dbe3ef;
+    border-radius:12px;
+    outline:none;
+    font-size:14px;
+}
+
+.xd-chat-preform button{
+    border:none;
+    border-radius:12px;
+    color:#ffffff;
+    cursor:pointer;
+    font-size:14px;
+    font-weight:700;
+    padding:12px 14px;
+}
+
+.xd-chat-form-error{
+    min-height:16px;
+    margin:0;
+    color:#dc2626;
+    font-size:12px;
+}
+
+
+/* ==========================================
+   07. MOBILE RESPONSIVE
 ========================================== */
 
 @media(max-width:480px){
 
     .xd-chat-window{
         width:calc(100% - 28px);
-        height:75vh;
+        height:calc(100dvh - 110px);
+        max-height:calc(100dvh - 110px);
         right:14px !important;
         left:14px !important;
         bottom:90px;
@@ -211,9 +474,22 @@ Module  : Public Widget Styles
         right:18px !important;
         bottom:18px;
     }
+
+    .xd-chat-unread-badge{
+        right:12px !important;
+        left:auto !important;
+        bottom:62px;
+    }
+
+    .xd-chat-bubble-preview{
+        right:18px !important;
+        left:auto !important;
+        bottom:88px;
+        max-width:calc(100% - 36px);
+    }
 }
 /* ==========================================
-   07. USER MESSAGE
+   08. USER MESSAGE
 ========================================== */
 
 .xd-chat-message.user{
@@ -227,7 +503,7 @@ Module  : Public Widget Styles
     color:rgba(255,255,255,.75);
 }
 /* ==========================================
-   08. TYPING INDICATOR
+   09. TYPING INDICATOR
 ========================================== */
 
 .xd-chat-typing{
@@ -257,7 +533,7 @@ Module  : Public Widget Styles
     }
 }
 /* ==========================================
-   09. CHAT SCROLLBAR
+   10. CHAT SCROLLBAR
 ========================================== */
 
 .xd-chat-body::-webkit-scrollbar{
@@ -271,4 +547,56 @@ Module  : Public Widget Styles
 
 .xd-chat-body::-webkit-scrollbar-track{
     background:transparent;
+}
+
+/* ==========================================
+   11. DARK THEME
+========================================== */
+
+.xd-chat-window.xd-chat-theme-dark{
+    background:#0f172a;
+}
+
+.xd-chat-theme-dark .xd-chat-body{
+    background:#111827;
+}
+
+.xd-chat-theme-dark .xd-chat-footer{
+    background:#0f172a;
+    border-top-color:#1f2937;
+}
+
+.xd-chat-theme-dark .xd-chat-message{
+    background:#1f2937;
+    color:#e5e7eb;
+}
+
+.xd-chat-theme-dark .xd-chat-message.user{
+    background:#2563eb;
+    color:#ffffff;
+}
+
+.xd-chat-theme-dark .xd-chat-input{
+    background:#111827;
+    border-color:#374151;
+    color:#f8fafc;
+}
+
+.xd-chat-theme-dark .xd-chat-input::placeholder{
+    color:#9ca3af;
+}
+
+.xd-chat-theme-dark .xd-chat-preform{
+    background:#0f172a;
+    border-top-color:#1f2937;
+}
+
+.xd-chat-theme-dark .xd-chat-preform strong{
+    color:#f8fafc;
+}
+
+.xd-chat-theme-dark .xd-chat-preform input{
+    background:#111827;
+    border-color:#374151;
+    color:#f8fafc;
 }
