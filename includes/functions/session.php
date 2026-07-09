@@ -118,7 +118,116 @@ function isSessionExpired(): bool
 
 
 /* ==========================================
-   06. REFRESH SESSION ACTIVITY
+   06. CHECK AJAX REQUEST
+========================================== */
+
+function isAjaxRequest(): bool
+{
+
+    $requested_with = $_SERVER["HTTP_X_REQUESTED_WITH"] ?? "";
+
+    $accept_header = $_SERVER["HTTP_ACCEPT"] ?? "";
+
+    $request_uri = $_SERVER["REQUEST_URI"] ?? "";
+
+    return strtolower($requested_with) === "xmlhttprequest"
+        || stripos($accept_header, "application/json") !== false
+        || stripos($request_uri, "/ajax/") !== false;
+
+}
+
+
+/* ==========================================
+   07. HANDLE INACTIVE SESSION
+========================================== */
+
+function handleInactiveSession(): void
+{
+
+    logoutUser();
+
+    if (isAjaxRequest()) {
+
+        http_response_code(401);
+
+        header("Content-Type: application/json");
+
+        echo json_encode([
+            "success" => false,
+            "message" => "Your account is inactive. Please contact support.",
+            "redirect" => "../auth/login.php?inactive=1"
+        ]);
+
+        exit;
+
+    }
+
+    header("Location: ../auth/login.php?inactive=1");
+
+    exit;
+
+}
+
+
+/* ==========================================
+   08. VERIFY ACTIVE SESSION USER
+========================================== */
+
+function verifyActiveSessionUser(): void
+{
+
+    if (!isLoggedIn()) {
+
+        return;
+
+    }
+
+    $connection_path = dirname(__DIR__, 2)
+        . DIRECTORY_SEPARATOR
+        . "database"
+        . DIRECTORY_SEPARATOR
+        . "connection.php";
+
+    try {
+
+        require $connection_path;
+
+        if (!isset($pdo) || !$pdo instanceof PDO) {
+
+            handleInactiveSession();
+
+        }
+
+        $statement = $pdo->prepare(
+            "SELECT status
+             FROM users
+             WHERE id = ?
+             LIMIT 1"
+        );
+
+        $statement->execute([
+            $_SESSION["user_id"]
+        ]);
+
+        $status = $statement->fetchColumn();
+
+        if ($status !== "active") {
+
+            handleInactiveSession();
+
+        }
+
+    } catch (Throwable $exception) {
+
+        handleInactiveSession();
+
+    }
+
+}
+
+
+/* ==========================================
+   09. REFRESH SESSION ACTIVITY
 ========================================== */
 
 function refreshSessionActivity(): void
@@ -130,7 +239,7 @@ function refreshSessionActivity(): void
 
 
 /* ==========================================
-   07. LOGOUT USER
+   10. LOGOUT USER
 ========================================== */
 
 function logoutUser(): void
@@ -159,7 +268,7 @@ function logoutUser(): void
 
 
 /* ==========================================
-   08. REQUIRE LOGIN
+   11. REQUIRE LOGIN
 ========================================== */
 
 function requireLogin(): void
@@ -172,6 +281,8 @@ function requireLogin(): void
         exit;
 
     }
+
+    verifyActiveSessionUser();
 
     if (isSessionExpired()) {
 
@@ -189,7 +300,7 @@ function requireLogin(): void
 
 
 /* ==========================================
-   09. REQUIRE ROLE
+   12. REQUIRE ROLE
 ========================================== */
 
 function requireRole(array $roles): void
@@ -211,7 +322,7 @@ function requireRole(array $roles): void
 
 
 /* ==========================================
-   10. GENERATE CSRF TOKEN
+   13. GENERATE CSRF TOKEN
 ========================================== */
 
 function generateCsrfToken(): string
@@ -225,7 +336,7 @@ function generateCsrfToken(): string
 
 
 /* ==========================================
-   11. GET CSRF TOKEN
+   14. GET CSRF TOKEN
 ========================================== */
 
 function getCsrfToken(): string
@@ -243,7 +354,7 @@ function getCsrfToken(): string
 
 
 /* ==========================================
-   12. VERIFY CSRF TOKEN
+   15. VERIFY CSRF TOKEN
 ========================================== */
 
 function verifyCsrfToken(string $token): bool
