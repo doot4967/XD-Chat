@@ -866,6 +866,40 @@ Created : 10 July 2026
     white-space:nowrap;
 }
 
+.xd-sa-website-filter{
+    grid-template-columns:minmax(240px,1fr) 150px 220px auto;
+}
+
+.xd-sa-websites-table{
+    min-width:980px;
+}
+
+.xd-sa-table-subtext{
+    display:block;
+    margin-top:3px;
+    color:#64748b;
+    font-size:10px;
+}
+
+.xd-sa-url-text{
+    display:block;
+    max-width:260px;
+    overflow:hidden;
+    color:#475569;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+}
+
+.xd-sa-detail-wide{
+    grid-column:span 2;
+}
+
+.xd-sa-detail-wide strong{
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+}
+
 
 /* ==========================================
    07. RESPONSIVE
@@ -885,6 +919,10 @@ Created : 10 July 2026
     }
 
     .xd-sa-audit-filter{
+        grid-template-columns:1fr 1fr;
+    }
+
+    .xd-sa-website-filter{
         grid-template-columns:1fr 1fr;
     }
 
@@ -936,6 +974,10 @@ Created : 10 July 2026
     }
 
     .xd-sa-audit-filter{
+        grid-template-columns:1fr;
+    }
+
+    .xd-sa-website-filter{
         grid-template-columns:1fr;
     }
 }
@@ -992,5 +1034,9 @@ Created : 10 July 2026
 
     .xd-sa-detail-grid{
         grid-template-columns:1fr;
+    }
+
+    .xd-sa-detail-wide{
+        grid-column:auto;
     }
 }

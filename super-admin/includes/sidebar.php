@@ -28,7 +28,7 @@ $superAdminMenus = [
         "key" => "websites",
         "label" => "Websites",
         "icon" => "fa-solid fa-globe",
-        "href" => "#"
+        "href" => "websites.php"
     ],
     [
         "key" => "widgets",
