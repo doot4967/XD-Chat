@@ -113,7 +113,7 @@ function authenticateUser($pdo, $email, $password)
 
         return [
             "status" => false,
-            "message" => "Your account is inactive."
+            "message" => "Your account is inactive. Please contact support."
         ];
 
     }

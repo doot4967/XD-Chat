@@ -540,6 +540,24 @@ Created : 10 July 2026
     text-decoration:none;
 }
 
+.xd-sa-alert{
+    margin-bottom:13px;
+    padding:10px 12px;
+    border-radius:10px;
+    font-size:12px;
+    font-weight:800;
+}
+
+.xd-sa-alert.success{
+    background:#dcfce7;
+    color:#15803d;
+}
+
+.xd-sa-alert.error{
+    background:#fee2e2;
+    color:#dc2626;
+}
+
 .xd-sa-filter-bar{
     display:grid;
     grid-template-columns:minmax(220px,1fr) 150px 150px auto;
@@ -688,6 +706,49 @@ Created : 10 July 2026
     font-size:11px;
     font-weight:800;
     text-decoration:none;
+}
+
+.xd-sa-status-form{
+    display:inline-flex;
+    margin-left:6px;
+}
+
+.xd-sa-status-action{
+    min-height:28px;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    padding:6px 9px;
+    border:0;
+    border-radius:8px;
+    font-size:11px;
+    font-weight:800;
+    cursor:pointer;
+}
+
+.xd-sa-status-action.success{
+    background:#dcfce7;
+    color:#15803d;
+}
+
+.xd-sa-status-action.danger{
+    background:#fee2e2;
+    color:#dc2626;
+}
+
+.xd-sa-current-account{
+    min-height:28px;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    margin-left:6px;
+    padding:6px 9px;
+    border-radius:8px;
+    background:#f1f5f9;
+    color:#64748b;
+    font-size:11px;
+    font-weight:800;
+    white-space:nowrap;
 }
 
 .xd-sa-empty-state{

@@ -26,7 +26,115 @@ requireRole([
 
 
 /* ==========================================
-   02. FILTER CONFIGURATION
+   02. STATUS UPDATE HANDLER
+========================================== */
+
+$allowedTargetStatuses = [
+    "active",
+    "inactive"
+];
+
+$requestMethod = $_SERVER["REQUEST_METHOD"] ?? "GET";
+
+if ($requestMethod === "POST") {
+
+    $action = $_POST["action"] ?? "";
+
+    $csrfToken = $_POST["csrf_token"] ?? "";
+
+    $targetUserId = (int) ($_POST["user_id"] ?? 0);
+
+    $targetStatus = $_POST["target_status"] ?? "";
+
+    $statusMessageType = "error";
+
+    $statusMessage = "Invalid request. Please try again.";
+
+    if (
+        $action === "update_status"
+        && verifyCsrfToken($csrfToken)
+        && $targetUserId > 0
+        && in_array($targetStatus, $allowedTargetStatuses, true)
+    ) {
+
+        if (
+            $targetUserId === (int) ($_SESSION["user_id"] ?? 0)
+            && $targetStatus === "inactive"
+        ) {
+
+            $statusMessage = "You cannot deactivate your own Super Admin account.";
+
+        } else {
+
+            try {
+
+                $checkStatement = $pdo->prepare(
+                    "SELECT id, status
+                     FROM users
+                     WHERE id = :user_id
+                     LIMIT 1"
+                );
+
+                $checkStatement->bindValue(":user_id", $targetUserId, PDO::PARAM_INT);
+
+                $checkStatement->execute();
+
+                $targetUser = $checkStatement->fetch(PDO::FETCH_ASSOC);
+
+                if (!$targetUser) {
+
+                    $statusMessage = "User not found.";
+
+                } else {
+
+                    $updateStatement = $pdo->prepare(
+                        "UPDATE users
+                         SET status = :status
+                         WHERE id = :user_id"
+                    );
+
+                    $updateStatement->bindValue(":status", $targetStatus);
+
+                    $updateStatement->bindValue(":user_id", $targetUserId, PDO::PARAM_INT);
+
+                    $updateStatement->execute();
+
+                    $statusMessageType = "success";
+
+                    $statusMessage = $targetStatus === "active"
+                        ? "User activated successfully."
+                        : "User deactivated successfully.";
+
+                }
+
+            } catch (Throwable $exception) {
+
+                $statusMessage = "Unable to update user status right now.";
+
+            }
+
+        }
+
+    }
+
+    $redirectParams = $_GET;
+
+    $redirectParams["status_message"] = $statusMessage;
+
+    $redirectParams["status_type"] = $statusMessageType;
+
+    header(
+        "Location: users.php"
+        . (!empty($redirectParams) ? "?" . http_build_query($redirectParams) : "")
+    );
+
+    exit;
+
+}
+
+
+/* ==========================================
+   03. FILTER CONFIGURATION
 ========================================== */
 
 $allowedRoles = [
@@ -74,7 +182,7 @@ $offset = ($currentPage - 1) * $perPage;
 
 
 /* ==========================================
-   03. QUERY HELPERS
+   04. QUERY HELPERS
 ========================================== */
 
 function buildSuperAdminUserFilters(string $search, string $roleFilter, string $statusFilter, array &$params): string
@@ -136,6 +244,11 @@ function getSuperAdminUsersPageUrl(array $overrides = []): string
 
     $query = array_merge($_GET, $overrides);
 
+    unset(
+        $query["status_message"],
+        $query["status_type"]
+    );
+
     foreach ($query as $key => $value) {
 
         if ($value === "" || $value === null || $value === "all") {
@@ -152,7 +265,7 @@ function getSuperAdminUsersPageUrl(array $overrides = []): string
 
 
 /* ==========================================
-   04. LOAD USERS
+   05. LOAD USERS
 ========================================== */
 
 $queryParams = [];
@@ -256,7 +369,7 @@ try {
 
 
 /* ==========================================
-   05. LOAD USER DETAILS
+   06. LOAD USER DETAILS
 ========================================== */
 
 $viewUserId = isset($_GET["view_user_id"]) ? (int) $_GET["view_user_id"] : 0;
@@ -324,7 +437,7 @@ if ($viewUserId > 0) {
 
 
 /* ==========================================
-   06. PAGE CONFIGURATION
+   07. PAGE CONFIGURATION
 ========================================== */
 
 $page_title = "Users Management | XD Chat";
@@ -334,6 +447,19 @@ $page_heading = "Users Management";
 $page_description = "View platform users, roles, and account activity.";
 
 $active_menu = "users";
+
+$statusMessage = $_GET["status_message"] ?? "";
+
+$statusMessageType = $_GET["status_type"] ?? "";
+
+if (!in_array($statusMessageType, [
+    "success",
+    "error"
+], true)) {
+
+    $statusMessageType = "error";
+
+}
 
 require_once 'includes/header.php';
 ?>
@@ -348,6 +474,14 @@ require_once 'includes/header.php';
         </div>
 
     </div>
+
+    <?php if ($statusMessage !== "") { ?>
+
+        <div class="xd-sa-alert <?php echo htmlspecialchars($statusMessageType); ?>">
+            <?php echo htmlspecialchars($statusMessage); ?>
+        </div>
+
+    <?php } ?>
 
     <form class="xd-sa-filter-bar"
           method="GET"
@@ -438,6 +572,44 @@ require_once 'includes/header.php';
                                    ])); ?>">
                                     View Details
                                 </a>
+
+                                <?php if ((int) $user["id"] === (int) ($_SESSION["user_id"] ?? 0)) { ?>
+
+                                    <span class="xd-sa-current-account">
+                                        Current account
+                                    </span>
+
+                                <?php } else { ?>
+
+                                    <form class="xd-sa-status-form"
+                                          method="POST"
+                                          action="<?php echo htmlspecialchars(getSuperAdminUsersPageUrl()); ?>"
+                                          onsubmit="return confirm('<?php echo $user["status"] === "active" ? "Deactivate this user?" : "Activate this user?"; ?>');">
+
+                                        <input type="hidden"
+                                               name="csrf_token"
+                                               value="<?php echo htmlspecialchars(getCsrfToken()); ?>">
+
+                                        <input type="hidden"
+                                               name="action"
+                                               value="update_status">
+
+                                        <input type="hidden"
+                                               name="user_id"
+                                               value="<?php echo htmlspecialchars((string) $user["id"]); ?>">
+
+                                        <input type="hidden"
+                                               name="target_status"
+                                               value="<?php echo $user["status"] === "active" ? "inactive" : "active"; ?>">
+
+                                        <button type="submit"
+                                                class="xd-sa-status-action <?php echo $user["status"] === "active" ? "danger" : "success"; ?>">
+                                            <?php echo $user["status"] === "active" ? "Deactivate" : "Activate"; ?>
+                                        </button>
+
+                                    </form>
+
+                                <?php } ?>
                             </td>
                         </tr>
 
