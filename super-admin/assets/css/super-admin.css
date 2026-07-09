@@ -922,6 +922,152 @@ Created : 10 July 2026
     white-space:nowrap;
 }
 
+.xd-sa-chat-filter{
+    grid-template-columns:minmax(220px,1fr) 120px 210px 210px 145px auto;
+}
+
+.xd-sa-chats-table{
+    min-width:1140px;
+}
+
+.xd-sa-chat-status{
+    min-height:24px;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    padding:5px 9px;
+    border-radius:999px;
+    font-size:10px;
+    font-weight:900;
+    text-transform:capitalize;
+    white-space:nowrap;
+}
+
+.xd-sa-chat-status.open{
+    background:#dcfce7;
+    color:#15803d;
+}
+
+.xd-sa-chat-status.closed{
+    background:#fee2e2;
+    color:#dc2626;
+}
+
+.xd-sa-chat-preview{
+    display:block;
+    max-width:280px;
+    margin-top:4px;
+    overflow:hidden;
+    color:#64748b;
+    font-size:10px;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+}
+
+.xd-sa-chat-timeline{
+    display:grid;
+    gap:10px;
+    margin-top:14px;
+    padding-top:14px;
+    border-top:1px solid #edf2f7;
+}
+
+.xd-sa-timeline-message{
+    width:100%;
+    max-width:760px;
+    padding:12px;
+    border:1px solid #e2e8f0;
+    border-radius:14px;
+    background:#f8fafc;
+}
+
+.xd-sa-timeline-message.agent{
+    margin-left:auto;
+    border-color:#bfdbfe;
+    background:#eff6ff;
+}
+
+.xd-sa-timeline-message.visitor{
+    margin-right:auto;
+}
+
+.xd-sa-timeline-message.bot,
+.xd-sa-timeline-message.system{
+    margin-right:auto;
+    border-color:#fef08a;
+    background:#fefce8;
+}
+
+.xd-sa-timeline-message.deleted{
+    border-color:#e2e8f0;
+    background:#f8fafc;
+}
+
+.xd-sa-timeline-meta{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    margin-bottom:7px;
+    font-size:10px;
+}
+
+.xd-sa-timeline-meta strong{
+    color:#0f172a;
+    font-weight:900;
+}
+
+.xd-sa-timeline-meta span{
+    color:#64748b;
+    white-space:nowrap;
+}
+
+.xd-sa-timeline-message p{
+    margin:0;
+    color:#334155;
+    font-size:12px;
+    line-height:1.5;
+    overflow-wrap:anywhere;
+    white-space:pre-wrap;
+}
+
+.xd-sa-timeline-quote{
+    margin-bottom:8px;
+    padding:8px 9px;
+    border-left:3px solid #2563eb;
+    border-radius:8px;
+    background:rgba(37,99,235,.08);
+}
+
+.xd-sa-timeline-quote strong,
+.xd-sa-timeline-quote span{
+    display:block;
+    overflow:hidden;
+    text-overflow:ellipsis;
+}
+
+.xd-sa-timeline-quote strong{
+    color:#1d4ed8;
+    font-size:10px;
+    font-weight:900;
+}
+
+.xd-sa-timeline-quote span{
+    margin-top:2px;
+    color:#475569;
+    font-size:11px;
+    white-space:nowrap;
+}
+
+.xd-sa-timeline-file{
+    font-weight:800;
+}
+
+.xd-sa-timeline-deleted{
+    color:#64748b !important;
+    font-style:italic;
+}
+
 
 /* ==========================================
    07. RESPONSIVE
@@ -949,6 +1095,10 @@ Created : 10 July 2026
     }
 
     .xd-sa-widget-filter{
+        grid-template-columns:1fr 1fr;
+    }
+
+    .xd-sa-chat-filter{
         grid-template-columns:1fr 1fr;
     }
 
@@ -1010,6 +1160,10 @@ Created : 10 July 2026
     .xd-sa-widget-filter{
         grid-template-columns:1fr;
     }
+
+    .xd-sa-chat-filter{
+        grid-template-columns:1fr;
+    }
 }
 
 @media(max-width:620px){
@@ -1068,5 +1222,15 @@ Created : 10 July 2026
 
     .xd-sa-detail-wide{
         grid-column:auto;
+    }
+
+    .xd-sa-timeline-message,
+    .xd-sa-timeline-message.agent,
+    .xd-sa-timeline-message.visitor,
+    .xd-sa-timeline-message.bot,
+    .xd-sa-timeline-message.system{
+        max-width:100%;
+        margin-left:0;
+        margin-right:0;
     }
 }

@@ -40,7 +40,7 @@ $superAdminMenus = [
         "key" => "chats",
         "label" => "Chats",
         "icon" => "fa-regular fa-comments",
-        "href" => "#"
+        "href" => "chats.php"
     ],
     [
         "key" => "analytics",
