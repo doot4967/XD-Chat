@@ -20,6 +20,8 @@ require_once '../includes/functions/session.php';
 
 require_once '../database/connection.php';
 
+require_once '../includes/functions/audit.php';
+
 requireRole([
     "super_admin"
 ]);
@@ -69,7 +71,7 @@ if ($requestMethod === "POST") {
             try {
 
                 $checkStatement = $pdo->prepare(
-                    "SELECT id, status
+                    "SELECT id, full_name, email, status
                      FROM users
                      WHERE id = :user_id
                      LIMIT 1"
@@ -104,6 +106,27 @@ if ($requestMethod === "POST") {
                     $statusMessage = $targetStatus === "active"
                         ? "User activated successfully."
                         : "User deactivated successfully.";
+
+                    $auditAction = $targetStatus === "active"
+                        ? "user_activated"
+                        : "user_deactivated";
+
+                    $targetName = $targetUser["full_name"] . " (" . $targetUser["email"] . ")";
+
+                    createAuditLog($pdo, [
+                        "actor_user_id" => (int) ($_SESSION["user_id"] ?? 0),
+                        "actor_name" => $_SESSION["user_name"] ?? "Super Admin",
+                        "action" => $auditAction,
+                        "target_type" => "user",
+                        "target_id" => (int) $targetUser["id"],
+                        "target_name" => $targetName,
+                        "description" => ($_SESSION["user_name"] ?? "Super Admin")
+                            . " "
+                            . ($targetStatus === "active" ? "activated" : "deactivated")
+                            . " user "
+                            . $targetName
+                            . "."
+                    ]);
 
                 }
 

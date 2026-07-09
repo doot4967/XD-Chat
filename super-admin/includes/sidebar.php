@@ -52,7 +52,7 @@ $superAdminMenus = [
         "key" => "audit",
         "label" => "Audit Logs",
         "icon" => "fa-solid fa-shield-halved",
-        "href" => "#"
+        "href" => "audit-logs.php"
     ],
     [
         "key" => "settings",

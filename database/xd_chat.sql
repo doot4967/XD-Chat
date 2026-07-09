@@ -323,3 +323,55 @@ CREATE TABLE message_deletions (
     ON DELETE CASCADE
 
 );
+
+
+/* ==================================================
+   08. AUDIT LOGS
+================================================== */
+
+CREATE TABLE audit_logs (
+
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+
+    actor_user_id INT NULL,
+
+    actor_name VARCHAR(150) NOT NULL,
+
+    action VARCHAR(100) NOT NULL,
+
+    target_type VARCHAR(50) NOT NULL,
+
+    target_id BIGINT NOT NULL,
+
+    target_name VARCHAR(150) DEFAULT NULL,
+
+    description TEXT,
+
+    ip_address VARCHAR(45) DEFAULT NULL,
+
+    user_agent TEXT,
+
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    INDEX idx_audit_logs_actor_created (
+        actor_user_id,
+        created_at
+    ),
+
+    INDEX idx_audit_logs_action_created (
+        action,
+        created_at
+    ),
+
+    INDEX idx_audit_logs_target (
+        target_type,
+        target_id
+    ),
+
+    INDEX idx_audit_logs_created_at (created_at),
+
+    FOREIGN KEY (actor_user_id)
+    REFERENCES users(id)
+    ON DELETE SET NULL
+
+);
