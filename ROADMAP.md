@@ -17,6 +17,29 @@ The main live chat flow is complete enough for real-user testing:
 - Widget security foundation is in place.
 - Chat module supports files, voice, emoji, reply, copy, delete-for-me, search, filters, unread, presence, typing, and notifications.
 
+## Stability Checkpoint
+
+Current completed feature set:
+
+- Live chat.
+- Widget.
+- Typing.
+- Presence.
+- Notifications.
+- File upload.
+- Voice.
+- Emoji.
+- Reply.
+- Copy.
+- Delete for Me.
+- Search/filter.
+
+Checkpoint rule:
+
+- No new chat features during freeze.
+- Only verified bug fixes.
+- Every bug fix should preserve current send/receive, polling, upload, typing, presence, notification, unread, smart-scroll, reply/copy/delete, and search/filter behavior.
+
 ## Phase 1: Stabilization
 
 Goal: test the current completed chat system in real conditions.
@@ -28,6 +51,9 @@ Goal: test the current completed chat system in real conditions.
 - Test large file rejection.
 - Test audio/video playback.
 - Test delete/reply/copy edge cases.
+- Test search/filter combinations.
+- Test notification behavior after browser interaction.
+- Test delete-for-me from both widget and dashboard.
 - Fix only bugs found during testing.
 
 ## Phase 2: Production Readiness
@@ -71,6 +97,7 @@ These are intentionally on hold until real-user testing:
 - Quick Replies.
 - Message text search.
 - Desktop browser notifications.
+- Delete for Everyone.
 - Contact capture improvements.
 - Chat tags/labels.
 - Notes for internal admin use.
@@ -123,14 +150,15 @@ Goal: make XD Chat ready as a SaaS product.
 
 ## Priority Order
 
-1. Real-user testing and bug fixes.
-2. Production readiness checklist.
-3. Super Admin Panel.
-4. Chat enhancements based on real feedback.
-5. Multi-agent support.
-6. AI and automation.
-7. Integrations.
-8. Subscription/SaaS packaging.
+1. Stability checkpoint documentation.
+2. Real-user testing and bug fixes.
+3. Production readiness checklist.
+4. Super Admin Panel.
+5. Chat enhancements based on real feedback.
+6. Multi-agent support.
+7. AI and automation.
+8. Integrations.
+9. Subscription/SaaS packaging.
 
 ## Hold List
 
@@ -138,6 +166,8 @@ These should not be started until chat feature freeze is lifted:
 
 - Quick Replies.
 - Message text search.
+- Delete for Everyone.
+- Desktop notifications.
 - AI auto reply.
 - WhatsApp integration.
 - Multi-agent routing.

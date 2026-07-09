@@ -8,6 +8,35 @@
 
 This changelog records the completed state before chat module feature freeze.
 
+## Stability & Documentation Phase
+
+### Documentation
+
+- Added current project status checkpoint.
+- Added explicit completed feature list:
+  - Live chat
+  - Widget
+  - Typing
+  - Presence
+  - Notifications
+  - File upload
+  - Voice
+  - Emoji
+  - Reply
+  - Copy
+  - Delete for Me
+  - Search/filter
+- Added known limitations section.
+- Added next planned features section.
+- Updated roadmap priority around stabilization and real-user testing.
+- Reconfirmed feature freeze note for chat module.
+
+### Stability Note
+
+- No PHP, JavaScript, CSS, or database logic was changed in this documentation phase.
+- Chat module remains feature-frozen.
+- Only verified bug fixes should be made until real-user testing is complete.
+
 ### Added
 
 - User authentication pages and dashboard structure.

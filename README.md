@@ -12,6 +12,18 @@ New chat features should stay on hold until the current widget and dashboard cha
 
 XD Chat is being built as a secure, fast, modern, SaaS-ready live chat platform. The current focus is a production-quality chat module with user isolation, embeddable widget, visitor conversations, file sharing, message actions, presence, typing indicators, notifications, and dashboard controls.
 
+## Current Project Status
+
+The chat module has reached a stability checkpoint. Core live chat, widget, dashboard chat controls, visitor experience, media sharing, message actions, and search/filter features are complete for internal and real-user testing.
+
+Current status:
+
+- Chat module: feature-frozen for real-user testing.
+- Widget module: functional with security checks and visitor chat flow.
+- Dashboard chat module: functional with conversation controls and message actions.
+- Upload/media module: functional with secure upload/download flow.
+- Documentation phase: active checkpoint documentation is being maintained.
+
 ## Completed Modules
 
 - Authentication pages: login, register, forgot/reset password flow files are available.
@@ -63,23 +75,27 @@ XD-Chat/
 
 ## Current Chat Features
 
-- Live dashboard chat with polling.
-- Widget visitor chat with polling.
+- Live chat: dashboard and visitor widget conversation flow.
+- Widget: embeddable website chat widget with website/widget key validation.
+- Typing: visitor and admin typing indicators.
+- Presence: visitor/admin online and offline status.
+- Notifications: incoming message sound foundation.
+- File upload: image, document, audio, and video sharing.
+- Voice: click-to-record voice messages using audio message flow.
+- Emoji: custom lightweight emoji picker.
+- Reply: reply preview before send and quoted reply inside message bubbles.
+- Copy: copy text, filename, or secure file link with copied feedback.
+- Delete for Me: current-side message hiding using `message_deletions`.
+- Search/filter: dashboard sidebar search with open, closed, and unread filters.
 - `last_message_id` based incremental message loading.
-- Smart scroll behavior.
+- Smart scroll behavior for dashboard and widget.
 - New message badge/preview behavior.
 - Open/closed chat controls.
 - Unread badge and unread sorting.
 - Visitor info panel with name, email, page URL, referrer, device, and browser.
-- Online/offline presence.
-- Typing indicators.
-- Notification sound on incoming messages.
-- Text, emoji, image, document, audio, video, and voice messages.
 - Secure download for uploaded files.
 - Image preview/lightbox.
 - Audio/video playback protection so only one media item plays at a time.
-- Reply, copy, and delete-for-me message actions.
-- Dashboard chat search and filters.
 
 ## Database Changes Summary
 
@@ -153,6 +169,31 @@ Recent chat-related database changes applied during development:
 - Multi-agent assignment and routing is pending.
 - Analytics depth is pending.
 - Production deployment checklist is pending.
+
+## Known Limitations
+
+- Chat is currently polling-based; WebSocket support is planned for future scale.
+- Message text search is not active yet; current search covers visitor name, email, and website name.
+- Desktop browser notifications are not fully implemented yet.
+- Quick Replies are intentionally on hold until real business usage is observed.
+- Delete for Everyone is reserved for future behavior; current active behavior is Delete for Me.
+- Super Admin Panel is planned but not complete.
+- Multi-agent assignment/routing is not implemented yet.
+- Production deployment hardening still needs final review.
+- Real-user testing has not been completed yet.
+
+## Next Planned Features
+
+- Real-user testing and bug-only stabilization.
+- Production readiness checklist.
+- Super Admin Panel.
+- Message text search after freeze is lifted.
+- Quick Replies after real workflow is clear.
+- Desktop notifications.
+- Multi-agent support.
+- AI auto reply/chatbot.
+- WhatsApp integration.
+- Subscription and billing system.
 
 ## Development Rule
 
