@@ -36,6 +36,14 @@ Created : 06 July 2026
         <!-- ==========================================
              03. CHAT FILTERS
         ========================================== -->
+        <div class="xd-chat-search-box">
+
+            <input type="search"
+                   id="xdChatSearch"
+                   placeholder="Search visitors, email, website...">
+
+        </div>
+
         <div class="xd-chat-filter-tabs">
 
             <button class="xd-chat-filter active"
@@ -48,6 +56,12 @@ Created : 06 July 2026
                     type="button"
                     data-status="closed">
                 Closed
+            </button>
+
+            <button class="xd-chat-filter"
+                    type="button"
+                    data-status="unread">
+                Unread
             </button>
 
         </div>
@@ -123,6 +137,22 @@ Created : 06 July 2026
 
         </div>
 
+
+        <div class="xd-chat-reply-preview"
+             id="xdChatReplyPreview">
+
+            <div>
+                <strong id="xdChatReplySender"></strong>
+                <span id="xdChatReplyText"></span>
+            </div>
+
+            <button type="button"
+                    id="xdChatReplyCancel"
+                    aria-label="Cancel reply">
+                &times;
+            </button>
+
+        </div>
 
         <div class="xd-live-chat-composer">
 

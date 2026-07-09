@@ -130,23 +130,41 @@ $visitorBrowser = !empty($chat["visitor_browser"])
 
 $query = "
     SELECT
-        id,
-        sender,
-        message,
-        message_type,
-        file_name,
-        file_mime,
-        file_size,
-        created_at
+        messages.id,
+        messages.sender,
+        messages.message,
+        messages.message_type,
+        messages.file_name,
+        messages.file_mime,
+        messages.file_size,
+        messages.is_deleted,
+        messages.created_at,
+        reply_messages.id AS reply_id,
+        reply_messages.sender AS reply_sender,
+        reply_messages.message AS reply_message,
+        reply_messages.message_type AS reply_message_type,
+        reply_messages.file_name AS reply_file_name,
+        reply_messages.is_deleted AS reply_is_deleted
     FROM messages
-    WHERE chat_id = ?
-    ORDER BY id ASC
+    LEFT JOIN messages AS reply_messages
+        ON messages.reply_to_message_id = reply_messages.id
+        AND reply_messages.chat_id = messages.chat_id
+    WHERE messages.chat_id = ?
+    AND NOT EXISTS (
+        SELECT 1
+        FROM message_deletions
+        WHERE message_deletions.message_id = messages.id
+        AND message_deletions.deleted_for_type = 'agent'
+        AND message_deletions.deleted_for_id = ?
+    )
+    ORDER BY messages.id ASC
 ";
 
 $statement = $pdo->prepare($query);
 
 $statement->execute([
-    $chat_id
+    $chat_id,
+    (string) $_SESSION["user_id"]
 ]);
 
 $messages = $statement->fetchAll(PDO::FETCH_ASSOC);
@@ -175,14 +193,84 @@ foreach ($messages as $message) {
         ? "agent"
         : "visitor";
 
+    $isDeleted = (int) ($message["is_deleted"] ?? 0) === 1;
+
+    $copyText = $message["message_type"] === "text"
+        ? $message["message"]
+        : ($message["file_name"] ?: $message["message"]);
+
     ?>
 
-    <div class="xd-admin-message <?php echo $messageClass; ?>"
-         data-message-id="<?php echo (int) $message["id"]; ?>">
+    <div class="xd-admin-message <?php echo $messageClass; ?> <?php echo $isDeleted ? "deleted" : ""; ?>"
+         data-message-id="<?php echo (int) $message["id"]; ?>"
+         data-message-sender="<?php echo htmlspecialchars($message["sender"]); ?>"
+         data-message-text="<?php echo htmlspecialchars($isDeleted ? "Deleted message" : $copyText); ?>"
+         data-is-deleted="<?php echo $isDeleted ? "1" : "0"; ?>">
 
         <div class="xd-admin-message-bubble">
 
-            <?php if ($message["message_type"] === "image") {
+            <?php if (!$isDeleted) { ?>
+
+            <div class="xd-message-action-wrap">
+
+                <button class="xd-message-menu-trigger"
+                        type="button"
+                        aria-label="Message actions">
+                    &#8942;
+                </button>
+
+                <div class="xd-message-actions"
+                     role="menu"
+                     aria-hidden="true">
+                <button type="button"
+                        data-action="reply">
+                    ↩ Reply
+                </button>
+                <button type="button"
+                        data-action="copy">
+                    📋 Copy
+                </button>
+                <button type="button"
+                        data-action="delete">
+                    Delete
+                </button>
+                </div>
+
+            </div>
+
+            <?php } ?>
+
+            <?php if (!$isDeleted && !empty($message["reply_id"])) {
+
+                $replySender = $message["reply_sender"] === "agent"
+                    ? "Admin"
+                    : "Visitor";
+
+                $replyText = !empty($message["reply_is_deleted"])
+                    ? "Deleted message"
+                    : (
+                        $message["reply_message_type"] === "text"
+                            ? $message["reply_message"]
+                            : ($message["reply_file_name"] ?: ucfirst($message["reply_message_type"]))
+                    );
+
+                ?>
+
+                <div class="xd-message-quote"
+                     data-reply-id="<?php echo (int) $message["reply_id"]; ?>">
+                    <strong><?php echo htmlspecialchars($replySender); ?></strong>
+                    <span><?php echo htmlspecialchars(substr($replyText, 0, 80)); ?></span>
+                </div>
+
+            <?php } ?>
+
+            <?php if ($isDeleted) { ?>
+
+                <p class="xd-message-deleted-text">
+                    &#128465; This message was deleted.
+                </p>
+
+            <?php } elseif ($message["message_type"] === "image") {
 
                 $downloadUrl = "chat/ajax/download-file.php?message_id=" . (int) $message["id"];
                 $mediaDownloadUrl = $downloadUrl . "&download=1";
@@ -292,7 +380,7 @@ foreach ($messages as $message) {
 
             <?php } ?>
 
-            <span>
+            <span class="xd-message-time">
                 <?php echo date("h:i A", strtotime($message["created_at"])); ?>
             </span>
 

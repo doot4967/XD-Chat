@@ -481,13 +481,15 @@ function saveMessage(
     string $sender,
     string $message,
     string $messageType = "text",
-    ?array $fileData = null
+    ?array $fileData = null,
+    ?int $replyToMessageId = null
 ): int
 {
 
     $query = "
         INSERT INTO messages (
             chat_id,
+            reply_to_message_id,
             sender,
             message,
             message_type,
@@ -495,12 +497,13 @@ function saveMessage(
             file_path,
             file_mime,
             file_size
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     ";
 
     $statement = $pdo->prepare($query);
     $statement->execute([
         $chatId,
+        $replyToMessageId,
         $sender,
         $message,
         $messageType,
@@ -511,6 +514,78 @@ function saveMessage(
     ]);
 
     return (int) $pdo->lastInsertId();
+
+}
+
+
+function getValidReplyMessageId(PDO $pdo, int $chatId): ?int
+{
+
+    $replyToMessageId = (int) ($_POST["reply_to_message_id"] ?? 0);
+
+    if ($replyToMessageId <= 0) {
+        return null;
+    }
+
+    $query = "
+        SELECT id
+        FROM messages
+        WHERE id = ?
+        AND chat_id = ?
+        AND is_deleted = 0
+        LIMIT 1
+    ";
+
+    $statement = $pdo->prepare($query);
+    $statement->execute([
+        $replyToMessageId,
+        $chatId
+    ]);
+
+    return $statement->fetchColumn()
+        ? $replyToMessageId
+        : null;
+
+}
+
+
+function getDeletedMessageIds(PDO $pdo, int $chatId): array
+{
+
+    $query = "
+        SELECT id
+        FROM messages
+        WHERE chat_id = ?
+        AND is_deleted = 1
+    ";
+
+    $statement = $pdo->prepare($query);
+    $statement->execute([$chatId]);
+
+    return array_map("intval", $statement->fetchAll(PDO::FETCH_COLUMN));
+
+}
+
+
+function getHiddenMessageIds(PDO $pdo, int $chatId, string $visitorId): array
+{
+
+    $query = "
+        SELECT message_id
+        FROM message_deletions
+        WHERE chat_id = ?
+        AND deleted_for_type = ?
+        AND deleted_for_id = ?
+    ";
+
+    $statement = $pdo->prepare($query);
+    $statement->execute([
+        $chatId,
+        "visitor",
+        $visitorId
+    ]);
+
+    return array_map("intval", $statement->fetchAll(PDO::FETCH_COLUMN));
 
 }
 
@@ -526,11 +601,13 @@ function handleSendMessage(PDO $pdo, int $chatId, string $message): void
 
     validateRateLimit($pdo, $chatId);
 
+    $replyToMessageId = getValidReplyMessageId($pdo, $chatId);
+
     $autoReplyMessage = "Thanks! Our team will reply shortly.";
 
     $hasAgentReply = hasAgentReply($pdo, $chatId);
 
-    $messageId = saveMessage($pdo, $chatId, "visitor", $message);
+    $messageId = saveMessage($pdo, $chatId, "visitor", $message, "text", null, $replyToMessageId);
 
     $autoReply = "";
 
@@ -568,6 +645,8 @@ function handleSendFile(PDO $pdo, int $chatId): void
 
     validateRateLimit($pdo, $chatId);
 
+    $replyToMessageId = getValidReplyMessageId($pdo, $chatId);
+
     $fileData = saveChatUploadedFile($_FILES["chat_file"]);
 
     if (empty($fileData["success"])) {
@@ -590,7 +669,8 @@ function handleSendFile(PDO $pdo, int $chatId): void
         "visitor",
         $message,
         $fileData["message_type"],
-        $fileData
+        $fileData,
+        $replyToMessageId
     );
 
     $autoReply = "";
@@ -616,31 +696,49 @@ function handleSendFile(PDO $pdo, int $chatId): void
 }
 
 
-function handleLoadMessages(PDO $pdo, int $chatId): void
+function handleLoadMessages(PDO $pdo, int $chatId, string $visitorId): void
 {
 
     $lastMessageId = (int) ($_POST["last_message_id"] ?? 0);
 
     $query = "
         SELECT
-            id,
-            sender,
-            message,
-            message_type,
-            file_name,
-            file_mime,
-            file_size,
-            created_at
+            messages.id,
+            messages.sender,
+            messages.message,
+            messages.message_type,
+            messages.file_name,
+            messages.file_mime,
+            messages.file_size,
+            messages.is_deleted,
+            messages.created_at,
+            reply_messages.id AS reply_id,
+            reply_messages.sender AS reply_sender,
+            reply_messages.message AS reply_message,
+            reply_messages.message_type AS reply_message_type,
+            reply_messages.file_name AS reply_file_name,
+            reply_messages.is_deleted AS reply_is_deleted
         FROM messages
-        WHERE chat_id = ?
-        AND id > ?
-        ORDER BY id ASC
+        LEFT JOIN messages AS reply_messages
+            ON messages.reply_to_message_id = reply_messages.id
+            AND reply_messages.chat_id = messages.chat_id
+        WHERE messages.chat_id = ?
+        AND messages.id > ?
+        AND NOT EXISTS (
+            SELECT 1
+            FROM message_deletions
+            WHERE message_deletions.message_id = messages.id
+            AND message_deletions.deleted_for_type = 'visitor'
+            AND message_deletions.deleted_for_id = ?
+        )
+        ORDER BY messages.id ASC
     ";
 
     $statement = $pdo->prepare($query);
     $statement->execute([
         $chatId,
-        $lastMessageId
+        $lastMessageId,
+        $visitorId
     ]);
 
     $messages = $statement->fetchAll(PDO::FETCH_ASSOC);
@@ -654,8 +752,73 @@ function handleLoadMessages(PDO $pdo, int $chatId): void
     sendJsonResponse(true, [
         "chat_id" => $chatId,
         "last_message_id" => $lastMessageId,
+        "deleted_message_ids" => getDeletedMessageIds($pdo, $chatId),
+        "hidden_message_ids" => getHiddenMessageIds($pdo, $chatId, $visitorId),
         "messages" => $messages
     ]);
+
+}
+
+
+function handleDeleteForMe(PDO $pdo, int $chatId, string $visitorId, int $messageId): void
+{
+
+    $query = "
+        INSERT IGNORE INTO message_deletions (
+            message_id,
+            chat_id,
+            deleted_for_type,
+            deleted_for_id
+        )
+        SELECT
+            id,
+            chat_id,
+            ?,
+            ?
+        FROM messages
+        WHERE id = ?
+        AND chat_id = ?
+    ";
+
+    $statement = $pdo->prepare($query);
+    $statement->execute([
+        "visitor",
+        $visitorId,
+        $messageId,
+        $chatId
+    ]);
+
+    if ($statement->rowCount() === 0) {
+
+        sendJsonResponse(false, [
+            "message" => "Message cannot be deleted."
+        ]);
+
+    }
+
+    sendJsonResponse(true, [
+        "message_id" => $messageId,
+        "delete_type" => "me",
+        "message" => "Message deleted successfully."
+    ]);
+
+}
+
+
+function handleDeleteMessage(PDO $pdo, int $chatId, string $visitorId): void
+{
+
+    $messageId = (int) ($_POST["message_id"] ?? 0);
+
+    if ($messageId <= 0) {
+
+        sendJsonResponse(false, [
+            "message" => "Invalid message."
+        ]);
+
+    }
+
+    handleDeleteForMe($pdo, $chatId, $visitorId, $messageId);
 
 }
 
@@ -771,7 +934,13 @@ if ($action === "send_file") {
 
 if ($action === "load_messages") {
 
-    handleLoadMessages($pdo, $chat_id);
+    handleLoadMessages($pdo, $chat_id, $visitor_id);
+
+}
+
+if ($action === "delete_message") {
+
+    handleDeleteMessage($pdo, $chat_id, $visitor_id);
 
 }
 

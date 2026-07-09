@@ -59,6 +59,14 @@ $query = "
     AND widgets.widget_key = ?
     AND widgets.status = 'active'
     AND websites.status = 'active'
+    AND messages.is_deleted = 0
+    AND NOT EXISTS (
+        SELECT 1
+        FROM message_deletions
+        WHERE message_deletions.message_id = messages.id
+        AND message_deletions.deleted_for_type = 'visitor'
+        AND message_deletions.deleted_for_id = ?
+    )
     AND messages.message_type IN ('image', 'file', 'audio', 'video')
     LIMIT 1
 ";
@@ -68,7 +76,8 @@ $statement = $pdo->prepare($query);
 $statement->execute([
     $message_id,
     $visitor_id,
-    $widget_key
+    $widget_key,
+    $visitor_id
 ]);
 
 $message = $statement->fetch(PDO::FETCH_ASSOC);

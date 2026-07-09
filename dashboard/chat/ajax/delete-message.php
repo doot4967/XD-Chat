@@ -3,8 +3,8 @@
 ==================================================
 Project : XD Chat
 Version : 2.0.0
-File    : download-file.php
-Module  : Dashboard Secure File Download
+File    : delete-message.php
+Module  : Delete Agent Message
 Status  : Development
 Author  : Umesh + ChatGPT
 Created : 08 July 2026
@@ -20,38 +20,47 @@ require_once '../../../database/connection.php';
 
 require_once '../../../includes/functions/session.php';
 
-require_once '../../../includes/functions/upload.php';
-
 requireLogin();
+
+header("Content-Type: application/json");
 
 
 /* ==========================================
-   02. GET REQUEST DATA
+   02. GET POST DATA
 ========================================== */
 
-$message_id = isset($_GET["message_id"])
-    ? (int) $_GET["message_id"]
+$message_id = isset($_POST["message_id"])
+    ? (int) $_POST["message_id"]
     : 0;
 
 if ($message_id <= 0) {
 
-    http_response_code(400);
-    exit("Invalid file request.");
+    echo json_encode([
+        "success" => false,
+        "message" => "Invalid message."
+    ]);
+
+    exit;
 
 }
 
 
 /* ==========================================
-   03. CHECK FILE OWNERSHIP
+   03. DELETE FOR ME
 ========================================== */
 
 $query = "
+    INSERT IGNORE INTO message_deletions (
+        message_id,
+        chat_id,
+        deleted_for_type,
+        deleted_for_id
+    )
     SELECT
-        messages.file_name,
-        messages.file_path,
-        messages.file_mime,
-        messages.file_size,
-        messages.message_type
+        messages.id,
+        messages.chat_id,
+        ?,
+        ?
     FROM messages
     INNER JOIN chats
         ON messages.chat_id = chats.id
@@ -59,38 +68,38 @@ $query = "
         ON chats.website_id = websites.id
     WHERE messages.id = ?
     AND websites.user_id = ?
-    AND messages.is_deleted = 0
-    AND NOT EXISTS (
-        SELECT 1
-        FROM message_deletions
-        WHERE message_deletions.message_id = messages.id
-        AND message_deletions.deleted_for_type = 'agent'
-        AND message_deletions.deleted_for_id = ?
-    )
-    AND messages.message_type IN ('image', 'file', 'audio', 'video')
-    LIMIT 1
 ";
 
 $statement = $pdo->prepare($query);
 
 $statement->execute([
+    "agent",
+    (string) $_SESSION["user_id"],
     $message_id,
-    $_SESSION["user_id"],
-    (string) $_SESSION["user_id"]
+    $_SESSION["user_id"]
 ]);
 
-$message = $statement->fetch(PDO::FETCH_ASSOC);
+if ($statement->rowCount() === 0) {
 
-if (!$message) {
+    echo json_encode([
+        "success" => false,
+        "message" => "Message cannot be deleted."
+    ]);
 
-    http_response_code(404);
-    exit("File not found.");
+    exit;
 
 }
 
 
 /* ==========================================
-   04. SEND FILE
+   04. SUCCESS RESPONSE
 ========================================== */
 
-sendChatFileDownload($message);
+echo json_encode([
+    "success" => true,
+    "message_id" => $message_id,
+    "delete_type" => "me",
+    "message" => "Message deleted successfully."
+]);
+
+exit;

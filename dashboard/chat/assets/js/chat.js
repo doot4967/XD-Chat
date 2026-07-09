@@ -21,6 +21,10 @@ let activeChatStatus = "open";
 
 let chatListStatusFilter = "open";
 
+let chatListSearchQuery = "";
+
+let chatSearchDebounceTimer = null;
+
 let isFirstChatLoad = true;
 
 let hasUnreadMessages = false;
@@ -46,6 +50,8 @@ let isChatListNotificationReady = false;
 let previousIncomingMessageSignature = "";
 
 let previousUnreadCounts = {};
+
+let activeReplyMessage = null;
 
 const chatMicIconSvg = `
     <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -89,11 +95,17 @@ document.addEventListener("DOMContentLoaded", function () {
 
     registerFilterEvents();
 
+    registerSearchEvents();
+
     registerCloseChatEvent();
 
     registerImageLightbox();
 
     registerSingleMediaPlayback();
+
+    registerMessageActions();
+
+    registerReplyPreviewEvents();
 
 });
 
@@ -163,7 +175,12 @@ function playNotificationSound() {
 
 function loadChatList() {
 
-    fetch("chat/ajax/chat-list.php?status=" + encodeURIComponent(chatListStatusFilter))
+    const params = new URLSearchParams();
+
+    params.append("status", chatListStatusFilter);
+    params.append("search", chatListSearchQuery);
+
+    fetch("chat/ajax/chat-list.php?" + params.toString())
 
         .then(function (response) {
             return response.text();
@@ -248,6 +265,7 @@ function registerChatEvents() {
             hideNewMessagesButton();
 
             closeVisitorInfoBox();
+            clearActiveReplyMessage();
 
             document.getElementById("xdChatVisitorName").innerText =
                 this.dataset.visitorName;
@@ -388,6 +406,31 @@ function registerFilterEvents() {
 }
 
 
+function registerSearchEvents() {
+
+    const searchInput = document.getElementById("xdChatSearch");
+
+    if (!searchInput) {
+        return;
+    }
+
+    searchInput.addEventListener("input", function () {
+
+        clearTimeout(chatSearchDebounceTimer);
+
+        chatSearchDebounceTimer = setTimeout(function () {
+
+            chatListSearchQuery = searchInput.value.trim();
+
+            loadChatList();
+
+        }, 300);
+
+    });
+
+}
+
+
 /* ==========================================
    07. LOAD CHAT MESSAGES
 ========================================== */
@@ -430,8 +473,11 @@ function loadChat(chatId, loadReason) {
                 return;
             }
 
+            closeDashboardMessageActionMenus();
+
             if (shouldPreserveMedia && previousMessageSignature !== "") {
                 appendNewChatMessages(messageBox, html);
+                syncDeletedDashboardMessages(messageBox, html);
             } else {
                 messageBox.innerHTML = html;
             }
@@ -575,6 +621,57 @@ function appendNewChatMessages(messageBox, html) {
         messageBox.appendChild(message.cloneNode(true));
 
     });
+
+}
+
+
+function syncDeletedDashboardMessages(messageBox, html) {
+
+    const template = document.createElement("template");
+
+    template.innerHTML = html.trim();
+
+    template.content
+        .querySelectorAll(".xd-admin-message.deleted")
+        .forEach(function (deletedMessage) {
+
+            const messageId = getChatMessageId(deletedMessage);
+
+            if (!messageId) {
+                return;
+            }
+
+            const currentMessage = messageBox.querySelector(
+                '[data-message-id="' + messageId + '"]'
+            );
+
+            if (!currentMessage || currentMessage.classList.contains("deleted")) {
+                syncDeletedDashboardReplyQuotes(messageBox, messageId);
+                return;
+            }
+
+            currentMessage.replaceWith(deletedMessage.cloneNode(true));
+            syncDeletedDashboardReplyQuotes(messageBox, messageId);
+
+        });
+
+}
+
+
+function syncDeletedDashboardReplyQuotes(messageBox, messageId) {
+
+    if (
+        activeReplyMessage &&
+        String(activeReplyMessage.id) === String(messageId)
+    ) {
+        clearActiveReplyMessage();
+    }
+
+    messageBox
+        .querySelectorAll('.xd-message-quote[data-reply-id="' + messageId + '"] span')
+        .forEach(function (quoteText) {
+            quoteText.textContent = "Deleted message";
+        });
 
 }
 
@@ -807,6 +904,7 @@ function markChatSeen(chatId) {
 function resetChatWindow() {
 
     isVisitorTyping = false;
+    clearActiveReplyMessage();
 
     document.getElementById("xdChatVisitorName").innerText =
         "Select a conversation";
@@ -1435,6 +1533,7 @@ function sendAgentMessage() {
     formData.append("chat_id", activeChatId);
 
     formData.append("message", message);
+    appendReplyToFormData(formData);
 
     input.value = "";
 
@@ -1495,6 +1594,7 @@ function sendAgentFile(file) {
     formData.append("chat_id", activeChatId);
 
     formData.append("chat_file", file);
+    appendReplyToFormData(formData);
 
     fetch("chat/ajax/send-message.php", {
         method: "POST",
@@ -1515,6 +1615,7 @@ function sendAgentFile(file) {
             loadChat(activeChatId, "send");
 
             loadChatList();
+            clearActiveReplyMessage();
 
         })
 
@@ -1526,7 +1627,443 @@ function sendAgentFile(file) {
 
 
 /* ==========================================
-   11. SMART AUTO SCROLL
+   11. MESSAGE ACTIONS
+========================================== */
+
+function registerMessageActions() {
+
+    const messageBox = document.getElementById("xdChatMessages");
+
+    if (!messageBox) {
+        return;
+    }
+
+    messageBox.addEventListener("click", function (event) {
+
+        const actionButton = event.target.closest(".xd-message-actions button");
+
+        if (!actionButton) {
+            return;
+        }
+
+        const messageItem = actionButton.closest(".xd-admin-message");
+
+        if (!messageItem) {
+            return;
+        }
+
+        if (actionButton.dataset.action === "reply") {
+            closeDashboardMessageActionMenus();
+            setActiveReplyMessage(messageItem);
+            return;
+        }
+
+        if (actionButton.dataset.action === "copy") {
+            closeDashboardMessageActionMenus();
+            copyMessageText(messageItem);
+            return;
+        }
+
+        if (actionButton.dataset.action === "delete") {
+            closeDashboardMessageActionMenus();
+            confirmDashboardMessageDelete(function () {
+                deleteDashboardMessage(messageItem);
+            });
+        }
+
+    });
+
+    messageBox.addEventListener("click", function (event) {
+
+        if (shouldSkipMessageClick) {
+            shouldSkipMessageClick = false;
+            event.preventDefault();
+            return;
+        }
+
+        if (event.target.closest(".xd-message-actions")) {
+            return;
+        }
+
+        const triggerButton = event.target.closest(".xd-message-menu-trigger");
+
+        if (triggerButton) {
+            const messageItem = triggerButton.closest(".xd-admin-message");
+
+            if (messageItem) {
+                event.stopPropagation();
+                openDashboardMessageActionMenu(messageItem, messageBox);
+            }
+
+            return;
+        }
+
+        if (!event.target.closest(".xd-admin-message")) {
+            closeDashboardMessageActionMenus();
+            return;
+        }
+
+        if (!event.target.closest(".xd-message-action-wrap")) {
+            closeDashboardMessageActionMenus();
+        }
+
+    });
+
+    messageBox.addEventListener("contextmenu", function (event) {
+
+        const messageItem = event.target.closest(".xd-admin-message");
+
+        if (
+            !messageItem ||
+            event.target.closest("a, button, input, audio, video")
+        ) {
+            return;
+        }
+
+        event.preventDefault();
+        openDashboardMessageActionMenu(messageItem, messageBox);
+
+    });
+
+    document.addEventListener("click", function (event) {
+
+        if (
+            !document.getElementById("xdChatMessages").contains(event.target) ||
+            (
+                !event.target.closest(".xd-admin-message") &&
+                !event.target.closest(".xd-message-action-wrap")
+            )
+        ) {
+            closeDashboardMessageActionMenus();
+        }
+
+    });
+
+    document.addEventListener("keydown", function (event) {
+
+        if (event.key === "Escape") {
+            closeDashboardMessageActionMenus();
+        }
+
+    });
+
+    let messageLongPressTimer = null;
+    let shouldSkipMessageClick = false;
+
+    messageBox.addEventListener("pointerdown", function (event) {
+
+        const messageItem = event.target.closest(".xd-admin-message");
+
+        if (
+            !messageItem ||
+            event.target.closest("a, button, input, audio, video, .xd-message-action-wrap")
+        ) {
+            return;
+        }
+
+        clearTimeout(messageLongPressTimer);
+
+        messageLongPressTimer = setTimeout(function () {
+            shouldSkipMessageClick = true;
+            openDashboardMessageActionMenu(messageItem, messageBox);
+        }, 550);
+
+    });
+
+    ["pointerup", "pointercancel", "pointerleave", "pointermove"].forEach(function (eventName) {
+
+        messageBox.addEventListener(eventName, function () {
+            clearTimeout(messageLongPressTimer);
+        });
+
+    });
+
+}
+
+
+function registerReplyPreviewEvents() {
+
+    const cancelButton = document.getElementById("xdChatReplyCancel");
+
+    if (cancelButton) {
+        cancelButton.addEventListener("click", clearActiveReplyMessage);
+    }
+
+}
+
+
+function setActiveReplyMessage(messageItem) {
+
+    activeReplyMessage = {
+        id: messageItem.dataset.messageId,
+        sender: messageItem.dataset.messageSender === "agent" ? "Admin" : "Visitor",
+        text: getShortMessageText(messageItem.dataset.messageText || "")
+    };
+
+    document.getElementById("xdChatReplySender").innerText = activeReplyMessage.sender;
+    document.getElementById("xdChatReplyText").innerText = activeReplyMessage.text;
+    document.getElementById("xdChatReplyPreview").classList.add("active");
+    document.getElementById("xdChatInput").focus();
+
+}
+
+
+function clearActiveReplyMessage() {
+
+    activeReplyMessage = null;
+
+    const replyPreview = document.getElementById("xdChatReplyPreview");
+
+    if (replyPreview) {
+        replyPreview.classList.remove("active");
+    }
+
+}
+
+
+function appendReplyToFormData(formData) {
+
+    if (activeReplyMessage && activeReplyMessage.id) {
+        formData.append("reply_to_message_id", activeReplyMessage.id);
+    }
+
+}
+
+
+function deleteDashboardMessage(messageItem) {
+
+    if (!messageItem) {
+        return;
+    }
+
+    const formData = new FormData();
+
+    formData.append("message_id", messageItem.dataset.messageId || "0");
+
+    fetch("chat/ajax/delete-message.php", {
+        method: "POST",
+        body: formData
+    })
+
+        .then(function (response) {
+            return response.json();
+        })
+
+        .then(function (data) {
+
+            if (!data.success) {
+                alert(data.message || "Message could not be deleted.");
+                return;
+            }
+
+            hideDashboardMessageForCurrentUser(messageItem);
+            loadChatList();
+            return;
+
+        })
+
+        .catch(function (error) {
+            console.error(error);
+        });
+
+}
+
+
+function hideDashboardMessageForCurrentUser(messageItem) {
+
+    const messageId = messageItem.dataset.messageId || "";
+
+    if (
+        activeReplyMessage &&
+        String(activeReplyMessage.id) === String(messageId)
+    ) {
+        clearActiveReplyMessage();
+    }
+
+    messageItem.remove();
+
+}
+
+
+function confirmDashboardMessageDelete(onConfirm) {
+
+    closeDashboardMessageActionMenus();
+
+    let dialog = document.getElementById("xdDeleteMessageDialog");
+
+    if (!dialog) {
+
+        dialog = document.createElement("div");
+        dialog.id = "xdDeleteMessageDialog";
+        dialog.className = "xd-delete-dialog";
+        dialog.innerHTML = `
+            <div class="xd-delete-dialog-card">
+                <strong>Delete this message?</strong>
+                <div>
+                    <button type="button" data-action="cancel">
+                        Cancel
+                    </button>
+                    <button type="button" data-action="delete">
+                        Delete
+                    </button>
+                </div>
+            </div>
+        `;
+
+        document.body.appendChild(dialog);
+
+    }
+
+    dialog.classList.add("active");
+
+    const closeDialog = function () {
+        dialog.classList.remove("active");
+    };
+
+    dialog.onclick = function (event) {
+
+        const actionButton = event.target.closest("button");
+
+        if (!actionButton) {
+            if (event.target === dialog) {
+                closeDialog();
+            }
+            return;
+        }
+
+        if (actionButton.dataset.action === "cancel") {
+            closeDialog();
+            return;
+        }
+
+        if (actionButton.dataset.action === "delete") {
+            closeDialog();
+            onConfirm();
+        }
+
+    };
+
+}
+
+
+function copyMessageText(messageItem) {
+
+    const copyText = messageItem.dataset.messageText || "";
+
+    copyTextToClipboard(copyText).then(function () {
+        showCopyFeedback(messageItem);
+    });
+
+}
+
+
+function copyTextToClipboard(text) {
+
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        return navigator.clipboard.writeText(text);
+    }
+
+    const textarea = document.createElement("textarea");
+
+    textarea.value = text;
+    textarea.style.position = "fixed";
+    textarea.style.opacity = "0";
+
+    document.body.appendChild(textarea);
+    textarea.select();
+    document.execCommand("copy");
+    textarea.remove();
+
+    return Promise.resolve();
+
+}
+
+
+function showCopyFeedback(messageItem) {
+
+    messageItem.classList.add("copied");
+
+    setTimeout(function () {
+        messageItem.classList.remove("copied");
+    }, 1500);
+
+}
+
+
+function closeDashboardMessageActionMenus() {
+
+    document
+        .querySelectorAll(".xd-admin-message.actions-open")
+        .forEach(function (messageItem) {
+            messageItem.classList.remove("actions-open");
+            messageItem.classList.remove("actions-up");
+            messageItem.classList.remove("actions-left");
+
+            const menu = messageItem.querySelector(".xd-message-actions");
+
+            if (menu) {
+                menu.setAttribute("aria-hidden", "true");
+            }
+        });
+
+}
+
+
+function openDashboardMessageActionMenu(messageItem, messageBox) {
+
+    closeDashboardMessageActionMenus();
+    messageItem.classList.add("actions-open");
+
+    const menu = messageItem.querySelector(".xd-message-actions");
+
+    if (menu) {
+        menu.setAttribute("aria-hidden", "false");
+    }
+
+    positionDashboardMessageActionMenu(messageItem, messageBox);
+
+}
+
+
+function positionDashboardMessageActionMenu(messageItem, messageBox) {
+
+    const messageRect = messageItem.getBoundingClientRect();
+    const boxRect = messageBox.getBoundingClientRect();
+    const menu = messageItem.querySelector(".xd-message-actions");
+    const menuWidth = menu ? menu.offsetWidth : 150;
+    const menuHeight = menu ? menu.offsetHeight : 150;
+    const safeBottom = Math.min(
+        boxRect.bottom,
+        window.innerHeight - 16
+    );
+
+    messageItem.classList.remove("actions-up");
+    messageItem.classList.remove("actions-left");
+
+    if (safeBottom - messageRect.bottom < menuHeight + 12) {
+        messageItem.classList.add("actions-up");
+    }
+
+    if (messageRect.right - menuWidth < boxRect.left + 8) {
+        messageItem.classList.add("actions-left");
+    }
+
+}
+
+
+function getShortMessageText(text) {
+
+    const cleanText = String(text || "Attachment").replace(/\s+/g, " ").trim();
+
+    return cleanText.length > 80
+        ? cleanText.slice(0, 77) + "..."
+        : cleanText;
+
+}
+
+
+/* ==========================================
+   12. SMART AUTO SCROLL
 ========================================== */
 
 function isMessageBoxAtBottom(messageBox) {
@@ -1629,6 +2166,8 @@ function registerMessageScrollEvent() {
     }
 
     messageBox.addEventListener("scroll", function () {
+
+        closeDashboardMessageActionMenus();
 
         if (isMessageBoxAtBottom(messageBox)) {
 

@@ -39,6 +39,10 @@ $message = isset($_POST["message"])
     ? trim($_POST["message"])
     : "";
 
+$reply_to_message_id = isset($_POST["reply_to_message_id"])
+    ? (int) $_POST["reply_to_message_id"]
+    : 0;
+
 $has_file = isset($_FILES["chat_file"])
     && (int) $_FILES["chat_file"]["error"] !== UPLOAD_ERR_NO_FILE;
 
@@ -108,6 +112,31 @@ if ($chat["status"] === "closed") {
 }
 
 
+if ($reply_to_message_id > 0) {
+
+    $query = "
+        SELECT id
+        FROM messages
+        WHERE id = ?
+        AND chat_id = ?
+        AND is_deleted = 0
+        LIMIT 1
+    ";
+
+    $statement = $pdo->prepare($query);
+
+    $statement->execute([
+        $reply_to_message_id,
+        $chat_id
+    ]);
+
+    if (!$statement->fetchColumn()) {
+        $reply_to_message_id = 0;
+    }
+
+}
+
+
 /* ==========================================
    05. PREPARE MESSAGE DATA
 ========================================== */
@@ -146,6 +175,7 @@ if ($has_file) {
 $query = "
     INSERT INTO messages (
         chat_id,
+        reply_to_message_id,
         sender,
         message,
         message_type,
@@ -153,13 +183,14 @@ $query = "
         file_path,
         file_mime,
         file_size
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
 ";
 
 $statement = $pdo->prepare($query);
 
 $statement->execute([
     $chat_id,
+    $reply_to_message_id > 0 ? $reply_to_message_id : null,
     "agent",
     $message,
     $message_type,

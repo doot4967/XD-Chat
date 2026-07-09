@@ -305,6 +305,17 @@ Created : 06 July 2026
                 ↓ New Message <span>0</span>
             </button>
 
+            <div class="xd-chat-reply-preview">
+                <div>
+                    <strong></strong>
+                    <span></span>
+                </div>
+                <button type="button"
+                        aria-label="Cancel reply">
+                    ×
+                </button>
+            </div>
+
             <form class="xd-chat-preform">
 
                 <strong>Before we start</strong>
@@ -441,6 +452,10 @@ Created : 06 July 2026
         const chatBody = chatWindow.querySelector(".xd-chat-body");
         const newMessageButton = chatWindow.querySelector(".xd-chat-new-message");
         const newMessageCount = chatWindow.querySelector(".xd-chat-new-message span");
+        const replyPreview = chatWindow.querySelector(".xd-chat-reply-preview");
+        const replyPreviewSender = chatWindow.querySelector(".xd-chat-reply-preview strong");
+        const replyPreviewText = chatWindow.querySelector(".xd-chat-reply-preview span");
+        const replyPreviewCancel = chatWindow.querySelector(".xd-chat-reply-preview button");
         const preChatForm = chatWindow.querySelector(".xd-chat-preform");
         const nameInput = chatWindow.querySelector(".xd-chat-name");
         const emailInput = chatWindow.querySelector(".xd-chat-email");
@@ -474,6 +489,7 @@ Created : 06 July 2026
         let unreadAdminMessageCount = 0;
         let unreadOpenChatMessageCount = 0;
         let allowAutomaticScroll = true;
+        let activeReplyMessage = null;
         let activeEmojiCategory = "Recent";
         let mediaRecorder = null;
         let recordingChunks = [];
@@ -613,6 +629,7 @@ Created : 06 July 2026
             formData.append("widget_key", widgetKey);
             formData.append("visitor_id", visitorId);
             formData.append("message", message);
+            appendReplyToFormData(formData);
             appendVisitorDetails(formData);
 
             fetch(baseUrl + "widget-api.php", {
@@ -633,6 +650,7 @@ Created : 06 July 2026
                         return;
                     }
 
+                    clearActiveReplyMessage();
                     loadMessagesFromDatabase();
 
                 })
@@ -657,6 +675,7 @@ Created : 06 July 2026
             formData.append("widget_key", widgetKey);
             formData.append("visitor_id", visitorId);
             formData.append("chat_file", file);
+            appendReplyToFormData(formData);
             appendVisitorDetails(formData);
 
             fetch(baseUrl + "widget-api.php", {
@@ -677,6 +696,7 @@ Created : 06 July 2026
                     }
 
                     formError.textContent = "";
+                    clearActiveReplyMessage();
                     loadMessagesFromDatabase();
 
                 })
@@ -1024,8 +1044,12 @@ Created : 06 July 2026
                         return;
                     }
 
+                    syncHiddenMessages(data.hidden_message_ids || []);
+                    syncDeletedMessages(data.deleted_message_ids || []);
+
                     if (data.messages.length > 0) {
 
+                        closeMessageActionMenus();
                         removeEmptyText();
 
                         let hasNewAdminMessage = false;
@@ -1268,6 +1292,11 @@ Created : 06 July 2026
 
         function addMessageFromDatabase(item, messageId, isVisitorMessage) {
 
+            if (parseInt(item.is_deleted || 0, 10) === 1) {
+                addDeletedMessage(item, messageId, isVisitorMessage);
+                return;
+            }
+
             if (item.message_type === "image") {
                 addFileMessage(item, messageId, isVisitorMessage, true);
                 return;
@@ -1289,21 +1318,52 @@ Created : 06 July 2026
             }
 
             if (isVisitorMessage) {
-                addUserMessage(item.message, messageId);
+                addUserMessage(item.message, messageId, item);
                 return;
             }
 
-            addAgentMessage(item.message, messageId);
+            addAgentMessage(item.message, messageId, item);
 
         }
 
 
-        function addUserMessage(message, messageId) {
+        function addDeletedMessage(item, messageId, isVisitorMessage) {
+
+            const deletedMessage = document.createElement("div");
+
+            deletedMessage.className = isVisitorMessage
+                ? "xd-chat-message user deleted xd-chat-database-message"
+                : "xd-chat-message deleted xd-chat-database-message";
+
+            deletedMessage.setAttribute("data-message-id", messageId);
+            deletedMessage.setAttribute("data-copy-text", "Deleted message");
+            deletedMessage.setAttribute("data-sender-name", isVisitorMessage ? "Visitor" : "Admin");
+            deletedMessage.setAttribute("data-is-deleted", "1");
+
+            deletedMessage.innerHTML = `
+                <span class="xd-message-deleted-text">
+                    &#128465; This message was deleted.
+                </span>
+                <span class="xd-chat-time">
+                    Just now
+                </span>
+            `;
+
+            chatBody.appendChild(deletedMessage);
+
+            scrollChatToBottom();
+
+        }
+
+
+        function addUserMessage(message, messageId, replyData) {
 
             const userMessage = document.createElement("div");
 
             userMessage.className = "xd-chat-message user";
             userMessage.setAttribute("data-message", message);
+            userMessage.setAttribute("data-copy-text", message);
+            userMessage.setAttribute("data-sender-name", "Visitor");
 
             if (messageId) {
                 userMessage.classList.add("xd-chat-database-message");
@@ -1313,6 +1373,8 @@ Created : 06 July 2026
             }
 
             userMessage.innerHTML = `
+                ${renderMessageActions(!!messageId)}
+                ${renderQuotedPreview(replyData)}
                 ${escapeHTML(message)}
                 <span class="xd-chat-time">
                     Just now
@@ -1338,11 +1400,15 @@ Created : 06 July 2026
                 : "xd-chat-message xd-chat-file-message xd-chat-database-message";
 
             fileMessage.setAttribute("data-message", item.message || item.file_name || "");
+            fileMessage.setAttribute("data-copy-text", item.file_name || item.message || "Attachment");
+            fileMessage.setAttribute("data-sender-name", isVisitorMessage ? "Visitor" : "Admin");
             fileMessage.setAttribute("data-message-id", messageId);
 
             if (isImage) {
 
                 fileMessage.innerHTML = `
+                    ${renderMessageActions(true)}
+                    ${renderQuotedPreview(item)}
                     <button class="xd-chat-image-preview" type="button">
                         <img src="${escapeHTML(downloadUrl)}"
                              alt="${escapeHTML(item.file_name || "Image")}">
@@ -1361,6 +1427,8 @@ Created : 06 July 2026
             } else {
 
                 fileMessage.innerHTML = `
+                    ${renderMessageActions(true)}
+                    ${renderQuotedPreview(item)}
                     <div class="xd-chat-file-card">
                         <div class="xd-chat-file-icon">
                             FILE
@@ -1421,9 +1489,13 @@ Created : 06 July 2026
                 : "xd-chat-message xd-chat-file-message xd-chat-media-message xd-chat-database-message";
 
             mediaMessage.setAttribute("data-message", item.message || item.file_name || "");
+            mediaMessage.setAttribute("data-copy-text", item.file_name || item.message || "Attachment");
+            mediaMessage.setAttribute("data-sender-name", isVisitorMessage ? "Visitor" : "Admin");
             mediaMessage.setAttribute("data-message-id", messageId);
 
             mediaMessage.innerHTML = `
+                ${renderMessageActions(true)}
+                ${renderQuotedPreview(item)}
                 <div class="xd-chat-media-card">
                     ${mediaTag}
                     <div class="xd-chat-file-meta">
@@ -1480,18 +1552,22 @@ Created : 06 July 2026
         }
 
 
-        function addAgentMessage(message, messageId) {
+        function addAgentMessage(message, messageId, replyData) {
 
             const agentMessage = document.createElement("div");
 
             agentMessage.className = "xd-chat-message xd-chat-database-message";
             agentMessage.setAttribute("data-message", message);
+            agentMessage.setAttribute("data-copy-text", message);
+            agentMessage.setAttribute("data-sender-name", "Admin");
 
             if (messageId) {
                 agentMessage.setAttribute("data-message-id", messageId);
             }
 
             agentMessage.innerHTML = `
+                ${renderMessageActions(true)}
+                ${renderQuotedPreview(replyData)}
                 ${escapeHTML(message)}
                 <span class="xd-chat-time">
                     Just now
@@ -1644,6 +1720,417 @@ Created : 06 July 2026
         }
 
 
+        function syncDeletedMessages(deletedMessageIds) {
+
+            deletedMessageIds.forEach(function (messageId) {
+
+                const messageElement = chatBody.querySelector(
+                    '[data-message-id="' + messageId + '"]'
+                );
+
+                if (!messageElement || messageElement.classList.contains("deleted")) {
+                    syncDeletedReplyQuotes(messageId);
+                    return;
+                }
+
+                renderDeletedMessageElement(messageElement);
+                syncDeletedReplyQuotes(messageId);
+
+            });
+
+        }
+
+
+        function syncHiddenMessages(hiddenMessageIds) {
+
+            hiddenMessageIds.forEach(function (messageId) {
+
+                const messageElement = chatBody.querySelector(
+                    '[data-message-id="' + messageId + '"]'
+                );
+
+                if (messageElement) {
+                    hideMessageForCurrentUser(messageElement);
+                }
+
+            });
+
+        }
+
+
+        function syncDeletedReplyQuotes(messageId) {
+
+            if (
+                activeReplyMessage &&
+                String(activeReplyMessage.id) === String(messageId)
+            ) {
+                clearActiveReplyMessage();
+            }
+
+            chatBody
+                .querySelectorAll('.xd-message-quote[data-reply-id="' + messageId + '"] span')
+                .forEach(function (quoteText) {
+                    quoteText.textContent = "Deleted message";
+                });
+
+        }
+
+
+        function renderDeletedMessageElement(messageElement) {
+
+            const senderName = messageElement.getAttribute("data-sender-name") || "Message";
+            const messageId = messageElement.getAttribute("data-message-id") || "";
+            const isUserMessage = messageElement.classList.contains("user");
+
+            messageElement.className = isUserMessage
+                ? "xd-chat-message user deleted xd-chat-database-message"
+                : "xd-chat-message deleted xd-chat-database-message";
+            messageElement.setAttribute("data-message-id", messageId);
+            messageElement.setAttribute("data-copy-text", "Deleted message");
+            messageElement.setAttribute("data-sender-name", senderName);
+            messageElement.setAttribute("data-is-deleted", "1");
+            messageElement.innerHTML = `
+                <span class="xd-message-deleted-text">
+                    &#128465; This message was deleted.
+                </span>
+                <span class="xd-chat-time">
+                    Just now
+                </span>
+            `;
+
+        }
+
+
+        function renderMessageActions(canDeleteForMe) {
+
+            return `
+                <div class="xd-message-action-wrap">
+                    <button class="xd-message-menu-trigger"
+                            type="button"
+                            aria-label="Message actions">
+                        &#8942;
+                    </button>
+
+                    <div class="xd-message-actions"
+                         role="menu"
+                         aria-hidden="true">
+                    ${canDeleteForMe ? `
+                        <button type="button" data-action="delete">
+                            Delete
+                        </button>
+                    ` : ""}
+                    <button type="button" data-action="reply">↩ Reply</button>
+                    <button type="button" data-action="copy">📋 Copy</button>
+                    </div>
+                </div>
+            `;
+
+        }
+
+
+        function renderQuotedPreview(replyData) {
+
+            const replyId = replyData && (replyData.reply_id || replyData.id);
+
+            if (!replyId || (replyData && replyData.id && !replyData.sender)) {
+                return "";
+            }
+
+            const sender = replyData.reply_sender || replyData.sender || "";
+            const senderName = sender === "agent" || sender === "Admin"
+                ? "Admin"
+                : "Visitor";
+            const messageType = replyData.reply_message_type || replyData.message_type || "text";
+            const isReplyDeleted = parseInt(replyData.reply_is_deleted || 0, 10) === 1;
+            const text = isReplyDeleted
+                ? "Deleted message"
+                : (
+                    messageType === "text"
+                        ? (replyData.reply_message || replyData.message || replyData.text || "")
+                        : (replyData.reply_file_name || replyData.file_name || ucfirst(messageType))
+                );
+
+            return `
+                <div class="xd-message-quote" data-reply-id="${escapeHTML(replyId)}">
+                    <strong>${escapeHTML(senderName)}</strong>
+                    <span>${escapeHTML(getShortMessageText(text))}</span>
+                </div>
+            `;
+
+        }
+
+
+        function setActiveReplyMessage(messageElement) {
+
+            if (!messageElement.getAttribute("data-message-id")) {
+                return;
+            }
+
+            activeReplyMessage = {
+                id: messageElement.getAttribute("data-message-id"),
+                sender: messageElement.getAttribute("data-sender-name") || "Message",
+                text: getShortMessageText(messageElement.getAttribute("data-copy-text") || "")
+            };
+
+            replyPreviewSender.textContent = activeReplyMessage.sender;
+            replyPreviewText.textContent = activeReplyMessage.text;
+            replyPreview.classList.add("active");
+            chatInput.focus();
+
+        }
+
+
+        function clearActiveReplyMessage() {
+
+            activeReplyMessage = null;
+            replyPreview.classList.remove("active");
+
+        }
+
+
+        function appendReplyToFormData(formData) {
+
+            if (activeReplyMessage && activeReplyMessage.id) {
+                formData.append("reply_to_message_id", activeReplyMessage.id);
+            }
+
+        }
+
+
+        function deleteVisitorMessage(messageElement) {
+
+            if (!messageElement) {
+                return;
+            }
+
+            const formData = new FormData();
+
+            formData.append("action", "delete_message");
+            formData.append("widget_key", widgetKey);
+            formData.append("visitor_id", visitorId);
+            formData.append("message_id", messageElement.getAttribute("data-message-id") || "0");
+            appendVisitorDetails(formData);
+
+            fetch(baseUrl + "widget-api.php", {
+                method: "POST",
+                body: formData
+            })
+
+                .then(function (response) {
+                    return response.json();
+                })
+
+                .then(function (data) {
+
+                    if (!data.success) {
+                        formError.textContent = data.message || "Message could not be deleted.";
+                        return;
+                    }
+
+                    hideMessageForCurrentUser(messageElement);
+
+                })
+
+                .catch(function (error) {
+                    console.error("XD Chat Delete Message API Error :", error);
+                });
+
+        }
+
+
+        function hideMessageForCurrentUser(messageElement) {
+
+            const messageId = messageElement.getAttribute("data-message-id") || "";
+
+            if (
+                activeReplyMessage &&
+                String(activeReplyMessage.id) === String(messageId)
+            ) {
+                clearActiveReplyMessage();
+            }
+
+            messageElement.remove();
+
+            showEmptyTextIfNeeded();
+
+        }
+
+
+        function confirmMessageDelete(onConfirm) {
+
+            closeMessageActionMenus();
+
+            let dialog = document.querySelector(".xd-delete-dialog");
+
+            if (!dialog) {
+
+                dialog = document.createElement("div");
+                dialog.className = "xd-delete-dialog";
+                dialog.innerHTML = `
+                    <div class="xd-delete-dialog-card">
+                        <strong>Delete this message?</strong>
+                        <div>
+                            <button type="button" data-action="cancel">
+                                Cancel
+                            </button>
+                            <button type="button" data-action="delete">
+                                Delete
+                            </button>
+                        </div>
+                    </div>
+                `;
+
+                chatWindow.appendChild(dialog);
+
+            }
+
+            dialog.classList.add("active");
+
+            const closeDialog = function () {
+                dialog.classList.remove("active");
+            };
+
+            dialog.onclick = function (event) {
+
+                const actionButton = event.target.closest("button");
+
+                if (!actionButton) {
+                    if (event.target === dialog) {
+                        closeDialog();
+                    }
+                    return;
+                }
+
+                if (actionButton.dataset.action === "cancel") {
+                    closeDialog();
+                    return;
+                }
+
+                if (actionButton.dataset.action === "delete") {
+                    closeDialog();
+                    onConfirm();
+                }
+
+            };
+
+        }
+
+
+        function copyMessageText(messageElement) {
+
+            copyTextToClipboard(messageElement.getAttribute("data-copy-text") || "")
+                .then(function () {
+                    messageElement.classList.add("copied");
+
+                    setTimeout(function () {
+                        messageElement.classList.remove("copied");
+                    }, 1500);
+                });
+
+        }
+
+
+        function closeMessageActionMenus() {
+
+            chatBody.querySelectorAll(".actions-open").forEach(function (messageElement) {
+                messageElement.classList.remove("actions-open");
+                messageElement.classList.remove("actions-up");
+                messageElement.classList.remove("actions-left");
+
+                const menu = messageElement.querySelector(".xd-message-actions");
+
+                if (menu) {
+                    menu.setAttribute("aria-hidden", "true");
+                }
+            });
+
+        }
+
+
+        function openMessageActionMenu(messageElement) {
+
+            closeMessageActionMenus();
+            messageElement.classList.add("actions-open");
+
+            const menu = messageElement.querySelector(".xd-message-actions");
+
+            if (menu) {
+                menu.setAttribute("aria-hidden", "false");
+            }
+
+            positionMessageActionMenu(messageElement);
+
+        }
+
+
+        function positionMessageActionMenu(messageElement) {
+
+            const messageRect = messageElement.getBoundingClientRect();
+            const bodyRect = chatBody.getBoundingClientRect();
+            const menu = messageElement.querySelector(".xd-message-actions");
+            const menuWidth = menu ? menu.offsetWidth : 150;
+            const menuHeight = menu ? menu.offsetHeight : 150;
+            const safeBottom = Math.min(
+                bodyRect.bottom,
+                window.innerHeight - 16
+            );
+
+            messageElement.classList.remove("actions-up");
+            messageElement.classList.remove("actions-left");
+
+            if (safeBottom - messageRect.bottom < menuHeight + 12) {
+                messageElement.classList.add("actions-up");
+            }
+
+            if (messageRect.right - menuWidth < bodyRect.left + 8) {
+                messageElement.classList.add("actions-left");
+            }
+
+        }
+
+
+        function copyTextToClipboard(text) {
+
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                return navigator.clipboard.writeText(text);
+            }
+
+            const textarea = document.createElement("textarea");
+
+            textarea.value = text;
+            textarea.style.position = "fixed";
+            textarea.style.opacity = "0";
+
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand("copy");
+            textarea.remove();
+
+            return Promise.resolve();
+
+        }
+
+
+        function getShortMessageText(text) {
+
+            const cleanText = String(text || "Attachment").replace(/\s+/g, " ").trim();
+
+            return cleanText.length > 80
+                ? cleanText.slice(0, 77) + "..."
+                : cleanText;
+
+        }
+
+
+        function ucfirst(value) {
+
+            const text = String(value || "");
+
+            return text.charAt(0).toUpperCase() + text.slice(1);
+
+        }
+
+
         function pauseOtherChatMedia(activeMedia) {
 
             chatWindow.querySelectorAll("audio, video").forEach(function (media) {
@@ -1776,6 +2263,148 @@ Created : 06 July 2026
             sendVoiceRecording();
         });
 
+        replyPreviewCancel.addEventListener("click", clearActiveReplyMessage);
+
+        chatBody.addEventListener("click", function (event) {
+
+            const actionButton = event.target.closest(".xd-message-actions button");
+
+            if (!actionButton) {
+                return;
+            }
+
+            const messageElement = actionButton.closest(".xd-chat-message");
+
+            if (!messageElement) {
+                return;
+            }
+
+            if (actionButton.dataset.action === "reply") {
+                closeMessageActionMenus();
+                setActiveReplyMessage(messageElement);
+                return;
+            }
+
+            if (actionButton.dataset.action === "copy") {
+                closeMessageActionMenus();
+                copyMessageText(messageElement);
+                return;
+            }
+
+            if (actionButton.dataset.action === "delete") {
+                closeMessageActionMenus();
+                confirmMessageDelete(function () {
+                    deleteVisitorMessage(messageElement);
+                });
+            }
+
+        });
+
+        chatBody.addEventListener("click", function (event) {
+
+            if (shouldSkipMessageClick) {
+                shouldSkipMessageClick = false;
+                event.preventDefault();
+                return;
+            }
+
+            if (event.target.closest(".xd-message-actions")) {
+                return;
+            }
+
+            const triggerButton = event.target.closest(".xd-message-menu-trigger");
+
+            if (triggerButton) {
+                const messageElement = triggerButton.closest(".xd-chat-message");
+
+                if (messageElement) {
+                    event.stopPropagation();
+                    openMessageActionMenu(messageElement);
+                }
+
+                return;
+            }
+
+            if (!event.target.closest(".xd-chat-message")) {
+                closeMessageActionMenus();
+                return;
+            }
+
+            if (!event.target.closest(".xd-message-action-wrap")) {
+                closeMessageActionMenus();
+            }
+
+        });
+
+        chatBody.addEventListener("contextmenu", function (event) {
+
+            const messageElement = event.target.closest(".xd-chat-message");
+
+            if (
+                !messageElement ||
+                event.target.closest("a, button, input, audio, video")
+            ) {
+                return;
+            }
+
+            event.preventDefault();
+            openMessageActionMenu(messageElement);
+
+        });
+
+        document.addEventListener("click", function (event) {
+
+            if (
+                !chatWindow.contains(event.target) ||
+                (
+                    !event.target.closest(".xd-chat-message") &&
+                    !event.target.closest(".xd-message-action-wrap")
+                )
+            ) {
+                closeMessageActionMenus();
+            }
+
+        });
+
+        document.addEventListener("keydown", function (event) {
+
+            if (event.key === "Escape") {
+                closeMessageActionMenus();
+            }
+
+        });
+
+        let messageLongPressTimer = null;
+        let shouldSkipMessageClick = false;
+
+        chatBody.addEventListener("pointerdown", function (event) {
+
+            const messageElement = event.target.closest(".xd-chat-message");
+
+            if (
+                !messageElement ||
+                event.target.closest("a, button, input, audio, video, .xd-message-action-wrap")
+            ) {
+                return;
+            }
+
+            clearTimeout(messageLongPressTimer);
+
+            messageLongPressTimer = setTimeout(function () {
+                shouldSkipMessageClick = true;
+                openMessageActionMenu(messageElement);
+            }, 550);
+
+        });
+
+        ["pointerup", "pointercancel", "pointerleave", "pointermove"].forEach(function (eventName) {
+
+            chatBody.addEventListener(eventName, function () {
+                clearTimeout(messageLongPressTimer);
+            });
+
+        });
+
         lightbox.addEventListener("click", function (event) {
 
             if (event.target === lightbox) {
@@ -1795,6 +2424,8 @@ Created : 06 July 2026
         });
 
         chatBody.addEventListener("scroll", function () {
+
+            closeMessageActionMenus();
 
             if (isChatBodyAtBottom()) {
                 clearOpenChatNewMessageBadge();

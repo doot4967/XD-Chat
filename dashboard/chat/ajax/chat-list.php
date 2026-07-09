@@ -31,9 +31,14 @@ $status = isset($_GET["status"])
     ? trim($_GET["status"])
     : "open";
 
+$search = isset($_GET["search"])
+    ? trim($_GET["search"])
+    : "";
+
 $allowedStatuses = [
     "open",
-    "closed"
+    "closed",
+    "unread"
 ];
 
 if (!in_array($status, $allowedStatuses, true)) {
@@ -42,10 +47,46 @@ if (!in_array($status, $allowedStatuses, true)) {
 
 }
 
+$chatStatus = $status === "unread"
+    ? "open"
+    : $status;
+
+$searchLike = "%" . $search . "%";
+
 
 /* ==========================================
    03. GET CHAT LIST
 ========================================== */
+
+$whereConditions = [
+    "websites.user_id = ?",
+    "chats.status = ?"
+];
+
+$queryParams = [
+    $_SESSION["user_id"],
+    $chatStatus
+];
+
+if ($search !== "") {
+
+    $whereConditions[] = "(
+        chats.visitor_name LIKE ?
+        OR chats.visitor_email LIKE ?
+        OR websites.website_name LIKE ?
+    )";
+
+    $queryParams[] = $searchLike;
+    $queryParams[] = $searchLike;
+    $queryParams[] = $searchLike;
+
+}
+
+$unreadFilterSql = $status === "unread"
+    ? "WHERE chat_data.unread_count > 0"
+    : "";
+
+$whereSql = implode("\n        AND ", $whereConditions);
 
 $query = "
     SELECT
@@ -96,9 +137,9 @@ $query = "
         FROM chats
         INNER JOIN websites
             ON chats.website_id = websites.id
-        WHERE websites.user_id = ?
-        AND chats.status = ?
+        WHERE " . $whereSql . "
     ) AS chat_data
+    " . $unreadFilterSql . "
     ORDER BY
         CASE
             WHEN chat_data.status = 'open'
@@ -111,10 +152,7 @@ $query = "
 
 $statement = $pdo->prepare($query);
 
-$statement->execute([
-    $_SESSION["user_id"],
-    $status
-]);
+$statement->execute($queryParams);
 
 $chats = $statement->fetchAll(PDO::FETCH_ASSOC);
 
@@ -126,7 +164,7 @@ $chats = $statement->fetchAll(PDO::FETCH_ASSOC);
 if (count($chats) === 0) { ?>
 
     <div class="xd-chat-empty-state">
-        No <?php echo htmlspecialchars($status); ?> conversations yet.
+        No matching conversations found.
     </div>
 
 <?php exit; }
