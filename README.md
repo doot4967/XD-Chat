@@ -200,6 +200,7 @@ Recent chat-related database changes applied during development:
 Production setup notes are available here:
 
 - [Deployment Guide](docs/DEPLOYMENT.md)
+- [Production Checklist](docs/PRODUCTION-CHECKLIST.md)
 - [Backup and Restore Guide](docs/BACKUP-RESTORE.md)
 - [Apache Example](docs/server/apache-xd-chat.conf.example)
 - [Nginx Example](docs/server/nginx-xd-chat.conf.example)
