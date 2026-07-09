@@ -1265,6 +1265,160 @@ Created : 10 July 2026
     text-align:center;
 }
 
+.xd-sa-settings-grid{
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:14px;
+}
+
+.xd-sa-settings-card{
+    min-width:0;
+    padding:14px;
+    border:1px solid rgba(226,232,240,.85);
+    border-radius:16px;
+    background:#ffffff;
+    box-shadow:0 18px 45px rgba(15,23,42,.06);
+}
+
+.xd-sa-settings-summary{
+    grid-column:span 2;
+}
+
+.xd-sa-settings-form{
+    display:grid;
+    gap:12px;
+    margin-top:14px;
+}
+
+.xd-sa-settings-field label{
+    display:block;
+    margin-bottom:5px;
+    color:#64748b;
+    font-size:10px;
+    font-weight:800;
+    text-transform:uppercase;
+}
+
+.xd-sa-settings-field input{
+    width:100%;
+    min-height:36px;
+    padding:0 11px;
+    border:1px solid #dbe3ef;
+    border-radius:10px;
+    outline:none;
+    color:#0f172a;
+    font-size:12px;
+    font-weight:700;
+    background:#ffffff;
+}
+
+.xd-sa-settings-field input:focus{
+    border-color:#2563eb;
+    box-shadow:0 0 0 3px rgba(37,99,235,.10);
+}
+
+.xd-sa-settings-readonly-grid{
+    display:grid;
+    grid-template-columns:repeat(3,minmax(0,1fr));
+    gap:10px;
+}
+
+.xd-sa-settings-readonly-grid div{
+    min-width:0;
+    padding:10px;
+    border:1px solid #edf2f7;
+    border-radius:10px;
+    background:#f8fafc;
+}
+
+.xd-sa-settings-readonly-grid span{
+    display:block;
+    color:#64748b;
+    font-size:10px;
+    font-weight:800;
+    text-transform:uppercase;
+}
+
+.xd-sa-settings-readonly-grid strong{
+    display:block;
+    overflow:hidden;
+    margin-top:4px;
+    color:#0f172a;
+    font-size:12px;
+    font-weight:900;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+}
+
+.xd-sa-settings-actions{
+    display:flex;
+    justify-content:flex-end;
+}
+
+.xd-sa-settings-actions button{
+    min-height:36px;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    padding:0 16px;
+    border:0;
+    border-radius:10px;
+    background:#2563eb;
+    color:#ffffff;
+    cursor:pointer;
+    font-size:12px;
+    font-weight:900;
+}
+
+.xd-sa-settings-actions button:hover{
+    background:#1d4ed8;
+}
+
+.xd-sa-settings-summary-list{
+    display:grid;
+    grid-template-columns:repeat(4,minmax(0,1fr));
+    gap:10px;
+    margin-top:14px;
+}
+
+.xd-sa-settings-summary-list > div{
+    min-width:0;
+    display:flex;
+    gap:10px;
+    padding:12px;
+    border:1px solid #edf2f7;
+    border-radius:12px;
+    background:#f8fafc;
+}
+
+.xd-sa-settings-summary-list i{
+    width:30px;
+    height:30px;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    flex:0 0 30px;
+    border-radius:10px;
+    background:#eff6ff;
+    color:#2563eb;
+}
+
+.xd-sa-settings-summary-list strong{
+    display:block;
+    color:#0f172a;
+    font-size:12px;
+    font-weight:900;
+}
+
+.xd-sa-settings-summary-list span{
+    display:block;
+    margin-top:3px;
+    color:#64748b;
+    font-size:10px;
+    font-weight:700;
+    line-height:1.4;
+}
+
 
 /* ==========================================
    07. RESPONSIVE
@@ -1286,6 +1440,18 @@ Created : 10 July 2026
     .xd-sa-analytics-grid,
     .xd-sa-analytics-insights{
         grid-template-columns:1fr;
+    }
+
+    .xd-sa-settings-grid{
+        grid-template-columns:1fr;
+    }
+
+    .xd-sa-settings-summary{
+        grid-column:auto;
+    }
+
+    .xd-sa-settings-summary-list{
+        grid-template-columns:repeat(2,minmax(0,1fr));
     }
 
     .xd-sa-filter-bar{
@@ -1376,6 +1542,11 @@ Created : 10 July 2026
     }
 
     .xd-sa-analytics-filter{
+        grid-template-columns:1fr;
+    }
+
+    .xd-sa-settings-readonly-grid,
+    .xd-sa-settings-summary-list{
         grid-template-columns:1fr;
     }
 }

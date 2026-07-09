@@ -58,7 +58,7 @@ $superAdminMenus = [
         "key" => "settings",
         "label" => "Settings",
         "icon" => "fa-solid fa-gear",
-        "href" => "#"
+        "href" => "settings.php"
     ]
 ];
 ?>
