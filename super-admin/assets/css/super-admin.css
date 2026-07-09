@@ -490,7 +490,286 @@ Created : 10 July 2026
 
 
 /* ==========================================
-   06. RESPONSIVE
+   06. USERS MANAGEMENT
+========================================== */
+
+.xd-sa-users-panel,
+.xd-sa-user-detail{
+    padding:14px;
+    border:1px solid rgba(226,232,240,.85);
+    border-radius:14px;
+    background:#ffffff;
+    box-shadow:0 10px 24px rgba(15,23,42,.08);
+}
+
+.xd-sa-user-detail{
+    margin-top:12px;
+}
+
+.xd-sa-users-header{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    margin-bottom:13px;
+}
+
+.xd-sa-users-header h2{
+    margin:0;
+    color:#0f172a;
+    font-size:16px;
+}
+
+.xd-sa-users-header p{
+    margin:4px 0 0;
+    color:#64748b;
+    font-size:11px;
+}
+
+.xd-sa-users-header a{
+    min-height:31px;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    padding:7px 10px;
+    border-radius:9px;
+    background:#eff6ff;
+    color:#2563eb;
+    font-size:11px;
+    font-weight:800;
+    text-decoration:none;
+}
+
+.xd-sa-filter-bar{
+    display:grid;
+    grid-template-columns:minmax(220px,1fr) 150px 150px auto;
+    gap:10px;
+    align-items:end;
+    margin-bottom:13px;
+    padding:11px;
+    border-radius:12px;
+    background:#f8fafc;
+}
+
+.xd-sa-filter-field{
+    min-width:0;
+}
+
+.xd-sa-filter-field label{
+    display:block;
+    margin-bottom:5px;
+    color:#64748b;
+    font-size:10px;
+    font-weight:800;
+    text-transform:uppercase;
+}
+
+.xd-sa-filter-field input,
+.xd-sa-filter-field select{
+    width:100%;
+    min-height:34px;
+    padding:8px 10px;
+    border:1px solid #dbe3ef;
+    border-radius:9px;
+    background:#ffffff;
+    color:#0f172a;
+    font-size:12px;
+    outline:none;
+}
+
+.xd-sa-filter-field input:focus,
+.xd-sa-filter-field select:focus{
+    border-color:#2563eb;
+    box-shadow:0 0 0 3px rgba(37,99,235,.10);
+}
+
+.xd-sa-filter-actions{
+    display:flex;
+    align-items:center;
+    gap:8px;
+}
+
+.xd-sa-filter-actions button,
+.xd-sa-filter-actions a{
+    min-height:34px;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    padding:8px 12px;
+    border:0;
+    border-radius:9px;
+    font-size:12px;
+    font-weight:800;
+    text-decoration:none;
+    cursor:pointer;
+}
+
+.xd-sa-filter-actions button{
+    background:#2563eb;
+    color:#ffffff;
+}
+
+.xd-sa-filter-actions a{
+    background:#e2e8f0;
+    color:#475569;
+}
+
+.xd-sa-table-wrap{
+    width:100%;
+    overflow-x:auto;
+}
+
+.xd-sa-users-table{
+    width:100%;
+    min-width:920px;
+    border-collapse:collapse;
+}
+
+.xd-sa-users-table th{
+    padding:10px 9px;
+    color:#64748b;
+    font-size:10px;
+    font-weight:900;
+    text-align:left;
+    text-transform:uppercase;
+    white-space:nowrap;
+}
+
+.xd-sa-users-table td{
+    padding:11px 9px;
+    border-top:1px solid #edf2f7;
+    color:#475569;
+    font-size:12px;
+    vertical-align:middle;
+    white-space:nowrap;
+}
+
+.xd-sa-users-table td strong{
+    color:#0f172a;
+    font-size:12px;
+}
+
+.xd-sa-badge{
+    min-height:24px;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    padding:5px 8px;
+    border-radius:999px;
+    font-size:10px;
+    font-weight:900;
+    white-space:nowrap;
+}
+
+.xd-sa-badge.role{
+    background:#eff6ff;
+    color:#2563eb;
+}
+
+.xd-sa-badge.status.active{
+    background:#dcfce7;
+    color:#15803d;
+}
+
+.xd-sa-badge.status.inactive{
+    background:#fee2e2;
+    color:#dc2626;
+}
+
+.xd-sa-action-link{
+    min-height:28px;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    padding:6px 9px;
+    border-radius:8px;
+    background:#2563eb;
+    color:#ffffff;
+    font-size:11px;
+    font-weight:800;
+    text-decoration:none;
+}
+
+.xd-sa-empty-state{
+    display:grid;
+    gap:4px;
+    padding:20px;
+    color:#64748b;
+    text-align:center;
+}
+
+.xd-sa-empty-state strong{
+    color:#0f172a;
+    font-size:13px;
+}
+
+.xd-sa-empty-state span{
+    font-size:11px;
+}
+
+.xd-sa-pagination{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    margin-top:12px;
+    padding-top:12px;
+    border-top:1px solid #edf2f7;
+    color:#64748b;
+    font-size:11px;
+    font-weight:700;
+}
+
+.xd-sa-pagination div{
+    display:flex;
+    align-items:center;
+    gap:8px;
+}
+
+.xd-sa-pagination a{
+    min-height:30px;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    padding:7px 10px;
+    border-radius:9px;
+    background:#eff6ff;
+    color:#2563eb;
+    font-size:11px;
+    font-weight:900;
+    text-decoration:none;
+}
+
+.xd-sa-detail-grid{
+    display:grid;
+    grid-template-columns:repeat(4,minmax(0,1fr));
+    gap:10px;
+}
+
+.xd-sa-detail-grid div{
+    padding:11px;
+    border-radius:10px;
+    background:#f8fafc;
+}
+
+.xd-sa-detail-grid span{
+    display:block;
+    color:#64748b;
+    font-size:10px;
+    font-weight:800;
+    text-transform:uppercase;
+}
+
+.xd-sa-detail-grid strong{
+    display:block;
+    margin-top:5px;
+    color:#0f172a;
+    font-size:13px;
+}
+
+
+/* ==========================================
+   07. RESPONSIVE
 ========================================== */
 
 @media(max-width:1100px){
@@ -500,6 +779,14 @@ Created : 10 July 2026
 
     .xd-sa-panel-grid{
         grid-template-columns:1fr;
+    }
+
+    .xd-sa-filter-bar{
+        grid-template-columns:1fr 1fr;
+    }
+
+    .xd-sa-detail-grid{
+        grid-template-columns:repeat(2,minmax(0,1fr));
     }
 }
 
@@ -540,6 +827,10 @@ Created : 10 July 2026
     .xd-sa-content{
         padding:20px;
     }
+
+    .xd-sa-filter-bar{
+        grid-template-columns:1fr;
+    }
 }
 
 @media(max-width:620px){
@@ -575,5 +866,24 @@ Created : 10 July 2026
         height:190px;
         gap:8px;
         padding:12px;
+    }
+
+    .xd-sa-users-header,
+    .xd-sa-pagination{
+        align-items:flex-start;
+        flex-direction:column;
+    }
+
+    .xd-sa-filter-actions{
+        width:100%;
+    }
+
+    .xd-sa-filter-actions button,
+    .xd-sa-filter-actions a{
+        flex:1;
+    }
+
+    .xd-sa-detail-grid{
+        grid-template-columns:1fr;
     }
 }

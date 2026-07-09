@@ -18,13 +18,120 @@ Created : 10 July 2026
 
 require_once '../includes/functions/session.php';
 
+require_once '../database/connection.php';
+
 requireRole([
     "super_admin"
 ]);
 
 
 /* ==========================================
-   02. PAGE CONFIGURATION
+   02. DASHBOARD HELPERS
+========================================== */
+
+function getSuperAdminCount(PDO $pdo, string $table): string
+{
+
+    $allowedTables = [
+        "users",
+        "websites",
+        "widgets",
+        "chats",
+        "messages"
+    ];
+
+    if (!in_array($table, $allowedTables, true)) {
+
+        return "--";
+
+    }
+
+    try {
+
+        $statement = $pdo->prepare("SELECT COUNT(*) FROM " . $table);
+
+        $statement->execute();
+
+        return number_format((int) $statement->fetchColumn());
+
+    } catch (Throwable $exception) {
+
+        return "--";
+
+    }
+
+}
+
+
+function formatSuperAdminStorageSize(int $bytes): string
+{
+
+    if ($bytes >= 1024 * 1024 * 1024) {
+
+        return round($bytes / 1024 / 1024 / 1024, 2) . " GB";
+
+    }
+
+    if ($bytes >= 1024 * 1024) {
+
+        return round($bytes / 1024 / 1024, 2) . " MB";
+
+    }
+
+    return round($bytes / 1024, 2) . " KB";
+
+}
+
+
+function getSuperAdminStorageUsed(): string
+{
+
+    $uploadPath = dirname(__DIR__)
+        . DIRECTORY_SEPARATOR
+        . "uploads"
+        . DIRECTORY_SEPARATOR
+        . "chat-files";
+
+    if (!is_dir($uploadPath)) {
+
+        return "--";
+
+    }
+
+    try {
+
+        $totalBytes = 0;
+
+        $iterator = new RecursiveIteratorIterator(
+            new RecursiveDirectoryIterator(
+                $uploadPath,
+                FilesystemIterator::SKIP_DOTS
+            )
+        );
+
+        foreach ($iterator as $fileInfo) {
+
+            if ($fileInfo->isFile()) {
+
+                $totalBytes += $fileInfo->getSize();
+
+            }
+
+        }
+
+        return formatSuperAdminStorageSize($totalBytes);
+
+    } catch (Throwable $exception) {
+
+        return "--";
+
+    }
+
+}
+
+
+/* ==========================================
+   03. PAGE CONFIGURATION
 ========================================== */
 
 $page_title = "Super Admin Dashboard | XD Chat";
@@ -38,37 +145,37 @@ $active_menu = "dashboard";
 $dashboardCards = [
     [
         "label" => "Total Users",
-        "value" => "--",
+        "value" => getSuperAdminCount($pdo, "users"),
         "icon" => "fa-solid fa-users",
         "tone" => "blue"
     ],
     [
         "label" => "Total Websites",
-        "value" => "--",
+        "value" => getSuperAdminCount($pdo, "websites"),
         "icon" => "fa-solid fa-globe",
         "tone" => "green"
     ],
     [
         "label" => "Total Widgets",
-        "value" => "--",
+        "value" => getSuperAdminCount($pdo, "widgets"),
         "icon" => "fa-solid fa-puzzle-piece",
         "tone" => "purple"
     ],
     [
         "label" => "Total Chats",
-        "value" => "--",
+        "value" => getSuperAdminCount($pdo, "chats"),
         "icon" => "fa-regular fa-comments",
         "tone" => "orange"
     ],
     [
         "label" => "Total Messages",
-        "value" => "--",
+        "value" => getSuperAdminCount($pdo, "messages"),
         "icon" => "fa-regular fa-envelope",
         "tone" => "blue"
     ],
     [
         "label" => "Storage Used",
-        "value" => "--",
+        "value" => getSuperAdminStorageUsed(),
         "icon" => "fa-solid fa-hard-drive",
         "tone" => "green"
     ]
@@ -90,7 +197,7 @@ require_once 'includes/header.php';
             <div>
                 <span><?php echo htmlspecialchars($card["label"]); ?></span>
                 <strong><?php echo htmlspecialchars($card["value"]); ?></strong>
-                <small>Real analytics will be added in Phase 2.</small>
+                <small>Live platform count.</small>
             </div>
 
         </article>

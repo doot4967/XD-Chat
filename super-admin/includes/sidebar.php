@@ -22,7 +22,7 @@ $superAdminMenus = [
         "key" => "users",
         "label" => "Users",
         "icon" => "fa-solid fa-users",
-        "href" => "#"
+        "href" => "users.php"
     ],
     [
         "key" => "websites",

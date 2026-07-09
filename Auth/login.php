@@ -55,6 +55,14 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
             loginUser($result["user"]);
 
+            if ($result["user"]["role"] === "super_admin") {
+
+                header("Location: ../super-admin/index.php");
+
+                exit;
+
+            }
+
             header("Location: ../dashboard/index.php");
 
             exit;
