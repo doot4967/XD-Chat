@@ -900,6 +900,28 @@ Created : 10 July 2026
     white-space:nowrap;
 }
 
+.xd-sa-widget-filter{
+    grid-template-columns:minmax(220px,1fr) 120px 120px 150px 210px auto;
+}
+
+.xd-sa-widgets-table{
+    min-width:1040px;
+}
+
+.xd-sa-widget-meta-badge{
+    min-height:24px;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    padding:5px 8px;
+    border-radius:999px;
+    background:#f1f5f9;
+    color:#475569;
+    font-size:10px;
+    font-weight:900;
+    white-space:nowrap;
+}
+
 
 /* ==========================================
    07. RESPONSIVE
@@ -923,6 +945,10 @@ Created : 10 July 2026
     }
 
     .xd-sa-website-filter{
+        grid-template-columns:1fr 1fr;
+    }
+
+    .xd-sa-widget-filter{
         grid-template-columns:1fr 1fr;
     }
 
@@ -978,6 +1004,10 @@ Created : 10 July 2026
     }
 
     .xd-sa-website-filter{
+        grid-template-columns:1fr;
+    }
+
+    .xd-sa-widget-filter{
         grid-template-columns:1fr;
     }
 }

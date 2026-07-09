@@ -34,7 +34,7 @@ $superAdminMenus = [
         "key" => "widgets",
         "label" => "Widgets",
         "icon" => "fa-solid fa-puzzle-piece",
-        "href" => "#"
+        "href" => "widgets.php"
     ],
     [
         "key" => "chats",
