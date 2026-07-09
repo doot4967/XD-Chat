@@ -53,6 +53,8 @@ let previousUnreadCounts = {};
 
 let activeReplyMessage = null;
 
+const dashboardCsrfToken = window.XD_CSRF_TOKEN || "";
+
 const chatMicIconSvg = `
     <svg viewBox="0 0 24 24" aria-hidden="true">
         <path d="M12 14c1.7 0 3-1.3 3-3V6c0-1.7-1.3-3-3-3S9 4.3 9 6v5c0 1.7 1.3 3 3 3z"></path>
@@ -111,7 +113,18 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
 /* ==========================================
-   03. NOTIFICATION HELPER
+   03. CSRF HELPER
+========================================== */
+
+function appendDashboardCsrfToken(formData) {
+
+    formData.append("csrf_token", dashboardCsrfToken);
+
+}
+
+
+/* ==========================================
+   04. NOTIFICATION HELPER
 ========================================== */
 
 function enableNotificationHelper() {
@@ -837,6 +850,7 @@ function closeActiveChat() {
     formData.append("chat_id", activeChatId);
 
     formData.append("status", "closed");
+    appendDashboardCsrfToken(formData);
 
     fetch("chat/ajax/update-status.php", {
         method: "POST",
@@ -876,6 +890,7 @@ function markChatSeen(chatId) {
     const formData = new FormData();
 
     formData.append("chat_id", chatId);
+    appendDashboardCsrfToken(formData);
 
     fetch("chat/ajax/mark-seen.php", {
         method: "POST",
@@ -1534,6 +1549,7 @@ function sendAgentMessage() {
 
     formData.append("message", message);
     appendReplyToFormData(formData);
+    appendDashboardCsrfToken(formData);
 
     input.value = "";
 
@@ -1595,6 +1611,7 @@ function sendAgentFile(file) {
 
     formData.append("chat_file", file);
     appendReplyToFormData(formData);
+    appendDashboardCsrfToken(formData);
 
     fetch("chat/ajax/send-message.php", {
         method: "POST",
@@ -1839,6 +1856,7 @@ function deleteDashboardMessage(messageItem) {
     const formData = new FormData();
 
     formData.append("message_id", messageItem.dataset.messageId || "0");
+    appendDashboardCsrfToken(formData);
 
     fetch("chat/ajax/delete-message.php", {
         method: "POST",

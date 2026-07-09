@@ -46,29 +46,39 @@ $message = "";
 
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
-    $website_name = clean($_POST["website_name"]);
+    $csrf_token = $_POST["csrf_token"] ?? "";
 
-    $domain = clean($_POST["domain"]);
+    if (!verifyCsrfToken($csrf_token)) {
 
-    $status = clean($_POST["status"]);
+        $message = "Invalid request. Please try again.";
 
-    $save = addWebsite(
-        $pdo,
-        $_SESSION["user_id"],
-        $website_name,
-        $domain,
-        $status
-    );
+    } else {
 
-    if ($save) {
+        $website_name = clean($_POST["website_name"]);
 
-        header("Location: websites.php?added=1");
+        $domain = clean($_POST["domain"]);
 
-        exit;
+        $status = clean($_POST["status"]);
+
+        $save = addWebsite(
+            $pdo,
+            $_SESSION["user_id"],
+            $website_name,
+            $domain,
+            $status
+        );
+
+        if ($save) {
+
+            header("Location: websites.php?added=1");
+
+            exit;
+
+        }
+
+        $message = "Unable to save website.";
 
     }
-
-    $message = "Unable to save website.";
 
 }
 
@@ -125,6 +135,10 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             <?php } ?>
 
             <form method="POST" class="xd-form">
+
+                <input type="hidden"
+                       name="csrf_token"
+                       value="<?php echo htmlspecialchars(getCsrfToken()); ?>">
 
                 <div class="xd-form-group">
 

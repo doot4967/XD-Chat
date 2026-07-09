@@ -26,7 +26,25 @@ header("Content-Type: application/json");
 
 
 /* ==========================================
-   02. GET POST DATA
+   02. VERIFY CSRF TOKEN
+========================================== */
+
+$csrf_token = $_POST["csrf_token"] ?? "";
+
+if (!verifyCsrfToken($csrf_token)) {
+
+    echo json_encode([
+        "success" => false,
+        "message" => "Invalid request. Please refresh and try again."
+    ]);
+
+    exit;
+
+}
+
+
+/* ==========================================
+   03. GET POST DATA
 ========================================== */
 
 $chat_id = isset($_POST["chat_id"])
@@ -39,7 +57,7 @@ $status = isset($_POST["status"])
 
 
 /* ==========================================
-   03. VALIDATION
+   04. VALIDATION
 ========================================== */
 
 if ($chat_id <= 0 || !in_array($status, ["closed"], true)) {
@@ -55,7 +73,7 @@ if ($chat_id <= 0 || !in_array($status, ["closed"], true)) {
 
 
 /* ==========================================
-   04. CHECK CHAT OWNERSHIP
+   05. CHECK CHAT OWNERSHIP
 ========================================== */
 
 $query = "
@@ -90,7 +108,7 @@ if (!$chat) {
 
 
 /* ==========================================
-   05. UPDATE STATUS
+   06. UPDATE STATUS
 ========================================== */
 
 $query = "
@@ -110,7 +128,7 @@ $statement->execute([
 
 
 /* ==========================================
-   06. SUCCESS RESPONSE
+   07. SUCCESS RESPONSE
 ========================================== */
 
 echo json_encode([

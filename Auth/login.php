@@ -33,27 +33,37 @@ $message = "";
 
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
-    $email = clean($_POST["email"]);
+    $csrf_token = $_POST["csrf_token"] ?? "";
 
-    $password = clean($_POST["password"]);
+    if (!verifyCsrfToken($csrf_token)) {
 
-    $result = authenticateUser(
-        $pdo,
-        $email,
-        $password
-    );
+        $message = "Invalid request. Please try again.";
 
-    if ($result["status"] === true) {
+    } else {
 
-        loginUser($result["user"]);
+        $email = clean($_POST["email"]);
 
-        header("Location: ../dashboard/index.php");
+        $password = clean($_POST["password"]);
 
-        exit;
+        $result = authenticateUser(
+            $pdo,
+            $email,
+            $password
+        );
+
+        if ($result["status"] === true) {
+
+            loginUser($result["user"]);
+
+            header("Location: ../dashboard/index.php");
+
+            exit;
+
+        }
+
+        $message = $result["message"];
 
     }
-
-    $message = $result["message"];
 
 }
 
@@ -130,6 +140,10 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 <?php } ?>
 
                 <form method="POST" class="xd-auth-form">
+
+                    <input type="hidden"
+                           name="csrf_token"
+                           value="<?php echo htmlspecialchars(getCsrfToken()); ?>">
 
                     <div class="xd-auth-field">
 

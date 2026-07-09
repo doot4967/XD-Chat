@@ -84,6 +84,9 @@ $page_description = "Manage visitor conversations in real time.";
 </div>
 
 <script src="../assets/js/03-dashboard.js"></script>
+<script>
+    window.XD_CSRF_TOKEN = "<?php echo htmlspecialchars(getCsrfToken()); ?>";
+</script>
 <script src="/XD-Chat/dashboard/chat/assets/js/chat.js?v=<?php echo time(); ?>"></script>
 
 </body>

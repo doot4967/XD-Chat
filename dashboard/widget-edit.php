@@ -80,67 +80,77 @@ if (!$widget) {
 
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
-    $website_id = (int) $_POST["website_id"];
+    $csrf_token = $_POST["csrf_token"] ?? "";
 
-    $widget_name = trim($_POST["widget_name"]);
+    if (!verifyCsrfToken($csrf_token)) {
 
-    $theme = trim($_POST["theme"]);
-
-    $position = trim($_POST["position"]);
-
-    $widget_color = trim($_POST["widget_color"]);
-
-    $widget_icon = "chat";
-
-    $welcome_message = trim($_POST["welcome_message"]);
-
-    $offline_message = trim($_POST["offline_message"]);
-
-    $status = trim($_POST["status"]);
-
-
-    if (
-        empty($website_id) ||
-        empty($widget_name) ||
-        empty($theme) ||
-        empty($position) ||
-        empty($widget_color) ||
-        empty($status)
-    ) {
-
-        $error = "Please fill all required fields.";
-
-    } elseif (
-        widgetExistsForWebsite(
-            $pdo,
-            $_SESSION["user_id"],
-            $website_id,
-            $widget_id
-        )
-    ) {
-
-        $error = "This website already has a widget.";
+        $error = "Invalid request. Please try again.";
 
     } else {
 
-        updateWidget(
-            $pdo,
-            $widget_id,
-            $_SESSION["user_id"],
-            $website_id,
-            $widget_name,
-            $theme,
-            $position,
-            $widget_color,
-            $widget_icon,
-            $welcome_message,
-            $offline_message,
-            $status
-        );
+        $website_id = (int) $_POST["website_id"];
 
-        header("Location: widgets.php?updated=1");
+        $widget_name = trim($_POST["widget_name"]);
 
-        exit;
+        $theme = trim($_POST["theme"]);
+
+        $position = trim($_POST["position"]);
+
+        $widget_color = trim($_POST["widget_color"]);
+
+        $widget_icon = "chat";
+
+        $welcome_message = trim($_POST["welcome_message"]);
+
+        $offline_message = trim($_POST["offline_message"]);
+
+        $status = trim($_POST["status"]);
+
+
+        if (
+            empty($website_id) ||
+            empty($widget_name) ||
+            empty($theme) ||
+            empty($position) ||
+            empty($widget_color) ||
+            empty($status)
+        ) {
+
+            $error = "Please fill all required fields.";
+
+        } elseif (
+            widgetExistsForWebsite(
+                $pdo,
+                $_SESSION["user_id"],
+                $website_id,
+                $widget_id
+            )
+        ) {
+
+            $error = "This website already has a widget.";
+
+        } else {
+
+            updateWidget(
+                $pdo,
+                $widget_id,
+                $_SESSION["user_id"],
+                $website_id,
+                $widget_name,
+                $theme,
+                $position,
+                $widget_color,
+                $widget_icon,
+                $welcome_message,
+                $offline_message,
+                $status
+            );
+
+            header("Location: widgets.php?updated=1");
+
+            exit;
+
+        }
 
     }
 
@@ -199,6 +209,10 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             <?php } ?>
 
             <form method="POST" class="xd-form">
+
+                <input type="hidden"
+                       name="csrf_token"
+                       value="<?php echo htmlspecialchars(getCsrfToken()); ?>">
 
                 <div class="xd-form-group">
 

@@ -22,6 +22,8 @@ require_once '../includes/functions/auth.php';
 
 require_once '../includes/functions/validation.php';
 
+require_once '../includes/functions/session.php';
+
 
 /* ==========================================
    02. HANDLE REGISTER REQUEST
@@ -31,18 +33,28 @@ $message = "";
 
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
-    $full_name = clean($_POST["full_name"]);
+    $csrf_token = $_POST["csrf_token"] ?? "";
 
-    $email = clean($_POST["email"]);
+    if (!verifyCsrfToken($csrf_token)) {
 
-    $password = clean($_POST["password"]);
+        $message = "Invalid request. Please try again.";
 
-    $message = registerUser(
-        $pdo,
-        $full_name,
-        $email,
-        $password
-    );
+    } else {
+
+        $full_name = clean($_POST["full_name"]);
+
+        $email = clean($_POST["email"]);
+
+        $password = clean($_POST["password"]);
+
+        $message = registerUser(
+            $pdo,
+            $full_name,
+            $email,
+            $password
+        );
+
+    }
 
 }
 
@@ -119,6 +131,10 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 <?php } ?>
 
                 <form method="POST" class="xd-auth-form">
+
+                    <input type="hidden"
+                           name="csrf_token"
+                           value="<?php echo htmlspecialchars(getCsrfToken()); ?>">
 
                     <div class="xd-auth-field">
 

@@ -28,7 +28,25 @@ header("Content-Type: application/json");
 
 
 /* ==========================================
-   02. GET POST DATA
+   02. VERIFY CSRF TOKEN
+========================================== */
+
+$csrf_token = $_POST["csrf_token"] ?? "";
+
+if (!verifyCsrfToken($csrf_token)) {
+
+    echo json_encode([
+        "success" => false,
+        "message" => "Invalid request. Please refresh and try again."
+    ]);
+
+    exit;
+
+}
+
+
+/* ==========================================
+   03. GET POST DATA
 ========================================== */
 
 $chat_id = isset($_POST["chat_id"])
@@ -48,7 +66,7 @@ $has_file = isset($_FILES["chat_file"])
 
 
 /* ==========================================
-   03. VALIDATION
+   04. VALIDATION
 ========================================== */
 
 if ($chat_id <= 0 || ($message === "" && !$has_file)) {
@@ -64,7 +82,7 @@ if ($chat_id <= 0 || ($message === "" && !$has_file)) {
 
 
 /* ==========================================
-   04. CHECK CHAT OWNERSHIP
+   05. CHECK CHAT OWNERSHIP
 ========================================== */
 
 $query = "
@@ -138,7 +156,7 @@ if ($reply_to_message_id > 0) {
 
 
 /* ==========================================
-   05. PREPARE MESSAGE DATA
+   06. PREPARE MESSAGE DATA
 ========================================== */
 
 $message_type = "text";
@@ -169,7 +187,7 @@ if ($has_file) {
 
 
 /* ==========================================
-   06. INSERT AGENT MESSAGE
+   07. INSERT AGENT MESSAGE
 ========================================== */
 
 $query = "
@@ -202,7 +220,7 @@ $statement->execute([
 
 
 /* ==========================================
-   07. SUCCESS RESPONSE
+   08. SUCCESS RESPONSE
 ========================================== */
 
 echo json_encode([

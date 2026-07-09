@@ -26,7 +26,25 @@ header("Content-Type: application/json");
 
 
 /* ==========================================
-   02. GET POST DATA
+   02. VERIFY CSRF TOKEN
+========================================== */
+
+$csrf_token = $_POST["csrf_token"] ?? "";
+
+if (!verifyCsrfToken($csrf_token)) {
+
+    echo json_encode([
+        "success" => false,
+        "message" => "Invalid request. Please refresh and try again."
+    ]);
+
+    exit;
+
+}
+
+
+/* ==========================================
+   03. GET POST DATA
 ========================================== */
 
 $message_id = isset($_POST["message_id"])
@@ -46,7 +64,7 @@ if ($message_id <= 0) {
 
 
 /* ==========================================
-   03. DELETE FOR ME
+   04. DELETE FOR ME
 ========================================== */
 
 $query = "
@@ -92,7 +110,7 @@ if ($statement->rowCount() === 0) {
 
 
 /* ==========================================
-   04. SUCCESS RESPONSE
+   05. SUCCESS RESPONSE
 ========================================== */
 
 echo json_encode([
