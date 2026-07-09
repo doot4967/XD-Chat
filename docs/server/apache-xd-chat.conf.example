@@ -1,0 +1,36 @@
+# Apache example for XD Chat production upload protection.
+# Copy the relevant parts into your Apache VirtualHost.
+# Adjust paths and domain names for your server.
+
+<VirtualHost *:443>
+    ServerName your-domain.com
+    DocumentRoot /var/www/xd-chat
+
+    SSLEngine on
+    SSLCertificateFile /path/to/fullchain.pem
+    SSLCertificateKeyFile /path/to/privkey.pem
+
+    <Directory /var/www/xd-chat>
+        Options -Indexes
+        AllowOverride All
+        Require all granted
+    </Directory>
+
+    # Upload files must not be directly accessible.
+    # XD Chat serves files through secure PHP download endpoints.
+    <Directory /var/www/xd-chat/uploads>
+        Options -Indexes
+        AllowOverride All
+        Require all denied
+        php_flag engine off
+        RemoveHandler .php .phtml .php3 .php4 .php5 .php7 .php8
+        RemoveType .php .phtml .php3 .php4 .php5 .php7 .php8
+    </Directory>
+
+    <FilesMatch "\.(php|phtml|php3|php4|php5|php7|php8|js|exe|bat|sh|cmd|com|scr|msi|jar|vbs|ps1)$">
+        Require all denied
+    </FilesMatch>
+
+    ErrorLog ${APACHE_LOG_DIR}/xd-chat-error.log
+    CustomLog ${APACHE_LOG_DIR}/xd-chat-access.log combined
+</VirtualHost>

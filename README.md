@@ -195,6 +195,15 @@ Recent chat-related database changes applied during development:
 - WhatsApp integration.
 - Subscription and billing system.
 
+## Deployment Documents
+
+Production setup notes are available here:
+
+- [Deployment Guide](docs/DEPLOYMENT.md)
+- [Backup and Restore Guide](docs/BACKUP-RESTORE.md)
+- [Apache Example](docs/server/apache-xd-chat.conf.example)
+- [Nginx Example](docs/server/nginx-xd-chat.conf.example)
+
 ## Development Rule
 
 Do not add new chat features during feature freeze. Only fix verified bugs and regressions.

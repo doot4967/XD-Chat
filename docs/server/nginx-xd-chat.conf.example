@@ -1,0 +1,45 @@
+# Nginx example for XD Chat production upload protection.
+# Adjust root, server_name, PHP socket, and SSL paths for your server.
+
+server {
+    listen 443 ssl http2;
+    server_name your-domain.com;
+
+    root /var/www/xd-chat;
+    index index.php index.html;
+
+    ssl_certificate /path/to/fullchain.pem;
+    ssl_certificate_key /path/to/privkey.pem;
+
+    client_max_body_size 20M;
+
+    location / {
+        try_files $uri $uri/ /index.php?$query_string;
+    }
+
+    # Upload files must not be directly accessible.
+    # XD Chat serves files through secure PHP download endpoints.
+    location ^~ /uploads/ {
+        deny all;
+        return 403;
+    }
+
+    # Never execute scripts from upload paths.
+    location ~* ^/uploads/.*\.(php|phtml|php3|php4|php5|php7|php8|js|exe|bat|sh|cmd|com|scr|msi|jar|vbs|ps1)$ {
+        deny all;
+        return 403;
+    }
+
+    location ~ \.php$ {
+        include fastcgi_params;
+        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+        fastcgi_pass unix:/run/php/php8.2-fpm.sock;
+    }
+
+    location ~ /\. {
+        deny all;
+    }
+
+    access_log /var/log/nginx/xd-chat-access.log;
+    error_log /var/log/nginx/xd-chat-error.log;
+}
