@@ -46,7 +46,7 @@ $superAdminMenus = [
         "key" => "analytics",
         "label" => "Analytics",
         "icon" => "fa-solid fa-chart-line",
-        "href" => "#"
+        "href" => "analytics.php"
     ],
     [
         "key" => "audit",
