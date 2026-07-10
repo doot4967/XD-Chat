@@ -57,6 +57,56 @@ if (session_status() === PHP_SESSION_NONE) {
 define("XD_SESSION_TIMEOUT", 7200);
 
 
+function getConfiguredSessionTimeout(): int
+{
+
+    $connection_path = dirname(__DIR__, 2)
+        . DIRECTORY_SEPARATOR
+        . "database"
+        . DIRECTORY_SEPARATOR
+        . "connection.php";
+
+    $settings_path = dirname(__DIR__, 2)
+        . DIRECTORY_SEPARATOR
+        . "includes"
+        . DIRECTORY_SEPARATOR
+        . "functions"
+        . DIRECTORY_SEPARATOR
+        . "platform-settings.php";
+
+    try {
+
+        require $connection_path;
+
+        if (!isset($pdo) || !$pdo instanceof PDO) {
+
+            return XD_SESSION_TIMEOUT;
+
+        }
+
+        if (is_file($settings_path)) {
+
+            require_once $settings_path;
+
+        }
+
+        if (!function_exists("getPlatformSessionIdleTimeout")) {
+
+            return XD_SESSION_TIMEOUT;
+
+        }
+
+        return getPlatformSessionIdleTimeout($pdo);
+
+    } catch (Throwable $exception) {
+
+        return XD_SESSION_TIMEOUT;
+
+    }
+
+}
+
+
 /* ==========================================
    03. LOGIN USER
 ========================================== */
@@ -112,7 +162,7 @@ function isSessionExpired(): bool
 
     }
 
-    return (time() - (int) $_SESSION["last_activity"]) > XD_SESSION_TIMEOUT;
+    return (time() - (int) $_SESSION["last_activity"]) > getConfiguredSessionTimeout();
 
 }
 

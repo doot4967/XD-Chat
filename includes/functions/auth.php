@@ -16,8 +16,48 @@ Created : 05 July 2026
    01. REGISTER USER
 ================================================== */
 
-function registerUser($pdo, $full_name, $email, $password)
+function registerUser($pdo, $full_name, $email, $password, array $options = [])
 {
+
+    $allowedRoles = [
+        "admin",
+        "agent"
+    ];
+
+    $allowedStatuses = [
+        "active",
+        "inactive"
+    ];
+
+    $role = $options["role"] ?? "admin";
+
+    $status = $options["status"] ?? "active";
+
+    $minimumPasswordLength = (int) ($options["minimum_password_length"] ?? 8);
+
+    if (!in_array($role, $allowedRoles, true)) {
+
+        $role = "admin";
+
+    }
+
+    if (!in_array($status, $allowedStatuses, true)) {
+
+        $status = "active";
+
+    }
+
+    if ($minimumPasswordLength < 8 || $minimumPasswordLength > 64) {
+
+        $minimumPasswordLength = 8;
+
+    }
+
+    if (strlen($password) < $minimumPasswordLength) {
+
+        return "Password must be at least " . $minimumPasswordLength . " characters.";
+
+    }
 
     /* -------------------------------
        Check Existing Email
@@ -57,10 +97,14 @@ function registerUser($pdo, $full_name, $email, $password)
         (
             full_name,
             email,
-            password
+            password,
+            role,
+            status
         )
         VALUES
         (
+            ?,
+            ?,
             ?,
             ?,
             ?
@@ -70,8 +114,16 @@ function registerUser($pdo, $full_name, $email, $password)
     $insert->execute([
         $full_name,
         $email,
-        $hash
+        $hash,
+        $role,
+        $status
     ]);
+
+    if ($status === "inactive") {
+
+        return "Account created successfully. Your account is pending activation. Please contact support.";
+
+    }
 
     return "Account created successfully.";
 

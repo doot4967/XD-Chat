@@ -358,6 +358,112 @@ function getPlatformSetting(PDO $pdo, string $key, $default = null)
 }
 
 
+/* ==========================================
+   04. SAFE RUNTIME GETTERS
+========================================== */
+
+function getPlatformBooleanSettingSafe(PDO $pdo, string $key, bool $fallback): bool
+{
+
+    $value = getPlatformSetting($pdo, $key, $fallback);
+
+    return is_bool($value) ? $value : $fallback;
+
+}
+
+
+function getPlatformIntegerSettingSafe(PDO $pdo, string $key, int $fallback, int $min, int $max): int
+{
+
+    $value = getPlatformSetting($pdo, $key, $fallback);
+
+    if (!is_int($value) && !ctype_digit((string) $value)) {
+
+        return $fallback;
+
+    }
+
+    $value = (int) $value;
+
+    if ($value < $min || $value > $max) {
+
+        return $fallback;
+
+    }
+
+    return $value;
+
+}
+
+
+function getPlatformStringSettingSafe(PDO $pdo, string $key, string $fallback, array $allowedValues = []): string
+{
+
+    $value = getPlatformSetting($pdo, $key, $fallback);
+
+    if (!is_string($value)) {
+
+        return $fallback;
+
+    }
+
+    if (!empty($allowedValues) && !in_array($value, $allowedValues, true)) {
+
+        return $fallback;
+
+    }
+
+    return $value;
+
+}
+
+
+function isPlatformRegistrationAllowed(PDO $pdo): bool
+{
+
+    return getPlatformBooleanSettingSafe($pdo, "allow_registration", true);
+
+}
+
+
+function getPlatformDefaultUserRole(PDO $pdo): string
+{
+
+    return getPlatformStringSettingSafe($pdo, "default_new_user_role", "admin", [
+        "admin",
+        "agent"
+    ]);
+
+}
+
+
+function getPlatformDefaultUserStatus(PDO $pdo): string
+{
+
+    return getPlatformStringSettingSafe($pdo, "default_new_user_status", "active", [
+        "active",
+        "inactive"
+    ]);
+
+}
+
+
+function getPlatformMinimumPasswordLength(PDO $pdo): int
+{
+
+    return getPlatformIntegerSettingSafe($pdo, "minimum_password_length", 8, 8, 64);
+
+}
+
+
+function getPlatformSessionIdleTimeout(PDO $pdo): int
+{
+
+    return getPlatformIntegerSettingSafe($pdo, "session_idle_timeout", 7200, 900, 86400);
+
+}
+
+
 function getPlatformSettingsByCategory(PDO $pdo, string $category): array
 {
 
@@ -374,7 +480,7 @@ function getPlatformSettingsByCategory(PDO $pdo, string $category): array
 
 
 /* ==========================================
-   04. UPDATE SETTINGS
+   05. UPDATE SETTINGS
 ========================================== */
 
 function updatePlatformSetting(PDO $pdo, string $key, $value, ?int $updatedBy = null): bool
