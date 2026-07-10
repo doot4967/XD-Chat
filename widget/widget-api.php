@@ -279,6 +279,8 @@ function getOrCreateChat(PDO $pdo, array $widget, string $visitorId, array $visi
 
     if (!$chat) {
 
+        $defaultChatStatus = getPlatformDefaultChatStatus($pdo);
+
         $query = "
             INSERT INTO chats (
                 website_id,
@@ -303,7 +305,7 @@ function getOrCreateChat(PDO $pdo, array $widget, string $visitorId, array $visi
             $visitorDetails["visitor_referrer"],
             $visitorDetails["visitor_browser"],
             $visitorDetails["visitor_device"],
-            "open"
+            $defaultChatStatus
         ]);
 
         return (int) $pdo->lastInsertId();
@@ -394,10 +396,10 @@ function updateChatVisitorDetails(PDO $pdo, int $chatId, array $visitorDetails):
    05. MESSAGE HELPERS
 ========================================== */
 
-function validateVisitorMessage(string $message): void
+function validateVisitorMessage(PDO $pdo, string $message): void
 {
 
-    $messageMaxLength = 1000;
+    $messageMaxLength = getPlatformMessageMaxLength($pdo);
 
     if (empty($message)) {
 
@@ -407,10 +409,10 @@ function validateVisitorMessage(string $message): void
 
     }
 
-    if (strlen($message) > $messageMaxLength) {
+    if (mb_strlen($message, "UTF-8") > $messageMaxLength) {
 
         sendJsonResponse(false, [
-            "message" => "Message is too long."
+            "message" => "Message is too long. Maximum " . $messageMaxLength . " characters allowed."
         ]);
 
     }
@@ -597,7 +599,7 @@ function getHiddenMessageIds(PDO $pdo, int $chatId, string $visitorId): array
 function handleSendMessage(PDO $pdo, int $chatId, string $message): void
 {
 
-    validateVisitorMessage($message);
+    validateVisitorMessage($pdo, $message);
 
     validateRateLimit($pdo, $chatId);
 
@@ -647,7 +649,7 @@ function handleSendFile(PDO $pdo, int $chatId): void
 
     $replyToMessageId = getValidReplyMessageId($pdo, $chatId);
 
-    $fileData = saveChatUploadedFile($_FILES["chat_file"]);
+    $fileData = saveChatUploadedFile($_FILES["chat_file"], $pdo);
 
     if (empty($fileData["success"])) {
 

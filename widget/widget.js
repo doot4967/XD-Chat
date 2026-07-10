@@ -199,6 +199,18 @@ Created : 06 July 2026
     function createWidget(widget) {
 
         const widgetColor = widget.color || "#2563eb";
+        const widgetConfig = widget.config || {};
+        const uploadConfig = widgetConfig.uploads || {};
+        const uploadFallbacks = {
+            documents: ["pdf", "doc", "docx", "xls", "xlsx", "txt"],
+            images: ["jpg", "jpeg", "png", "webp"],
+            audio: ["mp3", "wav", "ogg"],
+            videos: ["mp4", "webm", "mov"]
+        };
+        const messageMaxLength = parseInt(widgetConfig.messageMaxLength, 10) || 1000;
+        const documentAccept = buildUploadAccept(["documents"]);
+        const mediaAccept = buildUploadAccept(["images", "videos"]);
+        const audioAccept = buildUploadAccept(["audio"]);
         const micIconSvg = `
             <svg viewBox="0 0 24 24" aria-hidden="true">
                 <path d="M12 14c1.7 0 3-1.3 3-3V6c0-1.7-1.3-3-3-3S9 4.3 9 6v5c0 1.7 1.3 3 3 3z"></path>
@@ -220,6 +232,35 @@ Created : 06 July 2026
         const welcomeMessage = formatMessage(
             widget.welcome_message || "Hi there!\nHow can we help you today?"
         );
+
+        function buildUploadAccept(categories) {
+
+            const extensions = [];
+
+            categories.forEach(function (category) {
+
+                const categoryConfig = uploadConfig[category] || {};
+                const categoryExtensions = Array.isArray(categoryConfig.extensions)
+                    ? categoryConfig.extensions
+                    : uploadFallbacks[category] || [];
+
+                categoryExtensions.forEach(function (extension) {
+
+                    extension = String(extension || "").trim().toLowerCase().replace(/^\./, "");
+
+                    if (extension !== "" && extensions.indexOf(extension) === -1) {
+                        extensions.push(extension);
+                    }
+
+                });
+
+            });
+
+            return extensions.map(function (extension) {
+                return "." + extension;
+            }).join(",");
+
+        }
 
         const bubble = document.createElement("button");
         bubble.className = "xd-chat-bubble";
@@ -354,17 +395,17 @@ Created : 06 July 2026
                     <div class="xd-chat-attach-menu">
 
                         <button type="button"
-                                data-accept=".pdf,.doc,.docx,.xls,.xlsx,.txt">
+                                data-accept="${escapeHTML(documentAccept)}">
                             Document
                         </button>
 
                         <button type="button"
-                                data-accept=".jpg,.jpeg,.png,.webp,.mp4,.webm,.mov">
+                                data-accept="${escapeHTML(mediaAccept)}">
                             Photos & Videos
                         </button>
 
                         <button type="button"
-                                data-accept=".mp3,.wav,.ogg">
+                                data-accept="${escapeHTML(audioAccept)}">
                             Audio
                         </button>
 
@@ -396,6 +437,7 @@ Created : 06 July 2026
 
                 <input type="text"
                        class="xd-chat-input"
+                       maxlength="${messageMaxLength}"
                        placeholder="Type your message...">
 
                 <button class="xd-chat-record"

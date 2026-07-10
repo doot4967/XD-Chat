@@ -464,6 +464,222 @@ function getPlatformSessionIdleTimeout(PDO $pdo): int
 }
 
 
+function getPlatformMessageMaxLength(PDO $pdo): int
+{
+
+    return getPlatformIntegerSettingSafe($pdo, "message_max_length", 1000, 100, 5000);
+
+}
+
+
+function getPlatformDefaultChatStatus(PDO $pdo): string
+{
+
+    return getPlatformStringSettingSafe($pdo, "default_chat_status", "open", [
+        "open"
+    ]);
+
+}
+
+
+function getPlatformDeleteEveryoneTimeLimit(PDO $pdo): int
+{
+
+    return getPlatformIntegerSettingSafe($pdo, "delete_everyone_time_limit", 60, 5, 1440);
+
+}
+
+
+function getPlatformDefaultWelcomeMessage(PDO $pdo): string
+{
+
+    $fallback = "Hi there! How can we help you today?";
+
+    $message = getPlatformStringSettingSafe(
+        $pdo,
+        "default_welcome_message",
+        $fallback
+    );
+
+    $message = trim($message);
+
+    if ($message === "") {
+        $message = $fallback;
+    }
+
+    return mb_substr($message, 0, 500, "UTF-8");
+
+}
+
+
+function getPlatformDefaultOfflineMessage(PDO $pdo): string
+{
+
+    $fallback = "We are currently offline. Please leave a message.";
+
+    $message = getPlatformStringSettingSafe(
+        $pdo,
+        "default_offline_message",
+        $fallback
+    );
+
+    $message = trim($message);
+
+    if ($message === "") {
+        $message = $fallback;
+    }
+
+    return mb_substr($message, 0, 500, "UTF-8");
+
+}
+
+
+function getPlatformUploadSettingMap(): array
+{
+
+    return [
+        "images" => [
+            "size_key" => "image_max_size_mb",
+            "fallback_size" => 5,
+            "min_size" => 1,
+            "max_size" => 20,
+            "types_key" => "allowed_image_types",
+            "fallback_types" => ["jpg", "jpeg", "png", "webp"],
+            "secure_whitelist" => ["jpg", "jpeg", "png", "webp"]
+        ],
+        "documents" => [
+            "size_key" => "document_max_size_mb",
+            "fallback_size" => 10,
+            "min_size" => 1,
+            "max_size" => 50,
+            "types_key" => "allowed_document_types",
+            "fallback_types" => ["pdf", "doc", "docx", "xls", "xlsx", "txt"],
+            "secure_whitelist" => ["pdf", "doc", "docx", "xls", "xlsx", "txt"]
+        ],
+        "audio" => [
+            "size_key" => "audio_max_size_mb",
+            "fallback_size" => 10,
+            "min_size" => 1,
+            "max_size" => 50,
+            "types_key" => "allowed_audio_types",
+            "fallback_types" => ["mp3", "wav", "ogg", "webm"],
+            "secure_whitelist" => ["mp3", "wav", "ogg", "webm"]
+        ],
+        "videos" => [
+            "size_key" => "video_max_size_mb",
+            "fallback_size" => 15,
+            "min_size" => 1,
+            "max_size" => 100,
+            "types_key" => "allowed_video_types",
+            "fallback_types" => ["mp4", "webm", "mov"],
+            "secure_whitelist" => ["mp4", "webm", "mov"]
+        ]
+    ];
+
+}
+
+
+function normalizePlatformExtensionList(array $extensions, array $secureWhitelist): array
+{
+
+    $normalized = [];
+
+    foreach ($extensions as $extension) {
+
+        $extension = strtolower(trim((string) $extension));
+        $extension = ltrim($extension, ".");
+
+        if (
+            $extension !== "" &&
+            in_array($extension, $secureWhitelist, true) &&
+            !in_array($extension, $normalized, true)
+        ) {
+
+            $normalized[] = $extension;
+
+        }
+
+    }
+
+    return $normalized;
+
+}
+
+
+function getPlatformUploadMaxSizeMb(PDO $pdo, string $category): int
+{
+
+    $settings = getPlatformUploadSettingMap();
+
+    if (!isset($settings[$category])) {
+        return 10;
+    }
+
+    $rule = $settings[$category];
+
+    return getPlatformIntegerSettingSafe(
+        $pdo,
+        $rule["size_key"],
+        $rule["fallback_size"],
+        $rule["min_size"],
+        $rule["max_size"]
+    );
+
+}
+
+
+function getPlatformUploadMaxSizeBytes(PDO $pdo, string $category): int
+{
+
+    return getPlatformUploadMaxSizeMb($pdo, $category) * 1024 * 1024;
+
+}
+
+
+function getPlatformAllowedUploadTypes(PDO $pdo, string $category): array
+{
+
+    $settings = getPlatformUploadSettingMap();
+
+    if (!isset($settings[$category])) {
+        return [];
+    }
+
+    $rule = $settings[$category];
+    $value = getPlatformSetting($pdo, $rule["types_key"], $rule["fallback_types"]);
+
+    if (!is_array($value)) {
+        $value = $rule["fallback_types"];
+    }
+
+    $extensions = normalizePlatformExtensionList($value, $rule["secure_whitelist"]);
+
+    return !empty($extensions)
+        ? $extensions
+        : $rule["fallback_types"];
+
+}
+
+
+function getPlatformUploadRuntimeConfig(PDO $pdo): array
+{
+
+    $config = [];
+
+    foreach (array_keys(getPlatformUploadSettingMap()) as $category) {
+
+        $config[$category] = [
+            "maxSizeMb" => getPlatformUploadMaxSizeMb($pdo, $category),
+            "extensions" => getPlatformAllowedUploadTypes($pdo, $category)
+        ];
+
+    }
+
+    return $config;
+
+}
+
+
 function getPlatformSettingsByCategory(PDO $pdo, string $category): array
 {
 

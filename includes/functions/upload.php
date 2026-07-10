@@ -16,6 +16,8 @@ Created : 08 July 2026
    01. UPLOAD CONFIG
 ========================================== */
 
+require_once __DIR__ . "/platform-settings.php";
+
 define("XD_CHAT_IMAGE_MAX_SIZE", 5 * 1024 * 1024);
 define("XD_CHAT_DOCUMENT_MAX_SIZE", 10 * 1024 * 1024);
 define("XD_CHAT_AUDIO_MAX_SIZE", 10 * 1024 * 1024);
@@ -38,20 +40,44 @@ function getChatUploadRelativePath(string $category, string $fileName): string
 }
 
 
-function getChatUploadRules(): array
+function getChatUploadRules(?PDO $pdo = null): array
 {
+
+    $imageMaxSize = XD_CHAT_IMAGE_MAX_SIZE;
+    $documentMaxSize = XD_CHAT_DOCUMENT_MAX_SIZE;
+    $audioMaxSize = XD_CHAT_AUDIO_MAX_SIZE;
+    $videoMaxSize = XD_CHAT_VIDEO_MAX_SIZE;
+
+    $imageExtensions = ["jpg", "jpeg", "png", "webp"];
+    $documentExtensions = ["pdf", "doc", "docx", "xls", "xlsx", "txt"];
+    $audioExtensions = ["mp3", "wav", "ogg", "webm"];
+    $videoExtensions = ["mp4", "webm", "mov"];
+
+    if ($pdo instanceof PDO) {
+
+        $imageMaxSize = getPlatformUploadMaxSizeBytes($pdo, "images");
+        $documentMaxSize = getPlatformUploadMaxSizeBytes($pdo, "documents");
+        $audioMaxSize = getPlatformUploadMaxSizeBytes($pdo, "audio");
+        $videoMaxSize = getPlatformUploadMaxSizeBytes($pdo, "videos");
+
+        $imageExtensions = getPlatformAllowedUploadTypes($pdo, "images");
+        $documentExtensions = getPlatformAllowedUploadTypes($pdo, "documents");
+        $audioExtensions = getPlatformAllowedUploadTypes($pdo, "audio");
+        $videoExtensions = getPlatformAllowedUploadTypes($pdo, "videos");
+
+    }
 
     return [
         "images" => [
             "message_type" => "image",
-            "max_size" => XD_CHAT_IMAGE_MAX_SIZE,
-            "extensions" => ["jpg", "jpeg", "png", "webp"],
+            "max_size" => $imageMaxSize,
+            "extensions" => $imageExtensions,
             "mimes" => ["image/jpeg", "image/png", "image/webp"]
         ],
         "documents" => [
             "message_type" => "file",
-            "max_size" => XD_CHAT_DOCUMENT_MAX_SIZE,
-            "extensions" => ["pdf", "doc", "docx", "xls", "xlsx", "txt"],
+            "max_size" => $documentMaxSize,
+            "extensions" => $documentExtensions,
             "mimes" => [
                 "application/pdf",
                 "application/msword",
@@ -67,8 +93,8 @@ function getChatUploadRules(): array
         ],
         "audio" => [
             "message_type" => "audio",
-            "max_size" => XD_CHAT_AUDIO_MAX_SIZE,
-            "extensions" => ["mp3", "wav", "ogg", "webm"],
+            "max_size" => $audioMaxSize,
+            "extensions" => $audioExtensions,
             "mimes" => [
                 "audio/mpeg",
                 "audio/mp3",
@@ -81,8 +107,8 @@ function getChatUploadRules(): array
         ],
         "videos" => [
             "message_type" => "video",
-            "max_size" => XD_CHAT_VIDEO_MAX_SIZE,
-            "extensions" => ["mp4", "webm", "mov"],
+            "max_size" => $videoMaxSize,
+            "extensions" => $videoExtensions,
             "mimes" => [
                 "video/mp4",
                 "video/webm",
@@ -203,10 +229,10 @@ function getChatUploadedFileMime(string $temporaryPath): string
 }
 
 
-function getChatUploadCategory(string $extension, string $mime): ?array
+function getChatUploadCategory(string $extension, string $mime, ?PDO $pdo = null): ?array
 {
 
-    foreach (getChatUploadRules() as $category => $rule) {
+    foreach (getChatUploadRules($pdo) as $category => $rule) {
 
         if (
             in_array($extension, $rule["extensions"], true) &&
@@ -247,7 +273,7 @@ function formatChatFileSize(int $bytes): string
    04. SAVE UPLOAD
 ========================================== */
 
-function saveChatUploadedFile(array $file): array
+function saveChatUploadedFile(array $file, ?PDO $pdo = null): array
 {
 
     ensureChatUploadDirectories();
@@ -290,7 +316,7 @@ function saveChatUploadedFile(array $file): array
         $mime = "audio/webm";
     }
 
-    $categoryData = getChatUploadCategory($extension, $mime);
+    $categoryData = getChatUploadCategory($extension, $mime, $pdo);
 
     if (!$categoryData) {
         return [

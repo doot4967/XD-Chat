@@ -24,6 +24,8 @@ require_once '../includes/functions/widget.php';
 
 require_once '../includes/functions/website.php';
 
+require_once '../includes/functions/platform-settings.php';
+
 requireLogin();
 
 
@@ -38,6 +40,10 @@ $page_heading = "Add Widget";
 $page_description = "Create a new chat widget for your website.";
 
 $error = "";
+
+$default_welcome_message = getPlatformDefaultWelcomeMessage($pdo);
+
+$default_offline_message = getPlatformDefaultOfflineMessage($pdo);
 
 $websites = getWebsitesWithoutWidget(
     $pdo,
@@ -74,6 +80,14 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $welcome_message = trim($_POST["welcome_message"]);
 
         $offline_message = trim($_POST["offline_message"]);
+
+        if ($welcome_message === "") {
+            $welcome_message = $default_welcome_message;
+        }
+
+        if ($offline_message === "") {
+            $offline_message = $default_offline_message;
+        }
 
         $status = trim($_POST["status"]);
 
@@ -297,7 +311,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
                         <textarea name="welcome_message"
                                   rows="4"
-                                  placeholder="Hi there! How can we help you today?"></textarea>
+                                  placeholder="<?php echo htmlspecialchars($default_welcome_message); ?>"><?php echo htmlspecialchars($default_welcome_message); ?></textarea>
 
                     </div>
 
@@ -308,7 +322,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
                         <textarea name="offline_message"
                                   rows="4"
-                                  placeholder="We are currently offline. Please leave a message."></textarea>
+                                  placeholder="<?php echo htmlspecialchars($default_offline_message); ?>"><?php echo htmlspecialchars($default_offline_message); ?></textarea>
 
                     </div>
 

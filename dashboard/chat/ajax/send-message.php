@@ -117,6 +117,19 @@ if (!$chat) {
 
 }
 
+$message_max_length = getPlatformMessageMaxLength($pdo);
+
+if ($message !== "" && mb_strlen($message, "UTF-8") > $message_max_length) {
+
+    echo json_encode([
+        "success" => false,
+        "message" => "Message is too long. Maximum " . $message_max_length . " characters allowed."
+    ]);
+
+    exit;
+
+}
+
 
 if ($chat["status"] === "closed") {
 
@@ -164,7 +177,7 @@ $file_data = null;
 
 if ($has_file) {
 
-    $file_data = saveChatUploadedFile($_FILES["chat_file"]);
+    $file_data = saveChatUploadedFile($_FILES["chat_file"], $pdo);
 
     if (empty($file_data["success"])) {
 

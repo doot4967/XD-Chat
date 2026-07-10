@@ -10,6 +10,37 @@ Author  : Umesh + ChatGPT
 Created : 06 July 2026
 ==================================================
 */
+
+require_once __DIR__ . '/../../../includes/functions/platform-settings.php';
+
+$xd_chat_upload_config = getPlatformUploadRuntimeConfig($pdo);
+$xd_chat_message_max_length = getPlatformMessageMaxLength($pdo);
+
+$xd_chat_format_accept = function (array $extensions): string {
+
+    $values = [];
+
+    foreach ($extensions as $extension) {
+
+        $extension = strtolower(trim((string) $extension));
+        $extension = ltrim($extension, ".");
+
+        if ($extension !== "") {
+            $values[] = "." . $extension;
+        }
+
+    }
+
+    return implode(",", array_values(array_unique($values)));
+
+};
+
+$xd_chat_document_accept = $xd_chat_format_accept($xd_chat_upload_config["documents"]["extensions"] ?? []);
+$xd_chat_media_accept = $xd_chat_format_accept(array_merge(
+    $xd_chat_upload_config["images"]["extensions"] ?? [],
+    $xd_chat_upload_config["videos"]["extensions"] ?? []
+));
+$xd_chat_audio_accept = $xd_chat_format_accept($xd_chat_upload_config["audio"]["extensions"] ?? []);
 ?>
 
 <!-- ==========================================
@@ -176,17 +207,17 @@ Created : 06 July 2026
                      id="xdChatAttachMenu">
 
                     <button type="button"
-                            data-accept=".pdf,.doc,.docx,.xls,.xlsx,.txt">
+                            data-accept="<?php echo htmlspecialchars($xd_chat_document_accept); ?>">
                         Document
                     </button>
 
                     <button type="button"
-                            data-accept=".jpg,.jpeg,.png,.webp,.mp4,.webm,.mov">
+                            data-accept="<?php echo htmlspecialchars($xd_chat_media_accept); ?>">
                         Photos & Videos
                     </button>
 
                     <button type="button"
-                            data-accept=".mp3,.wav,.ogg">
+                            data-accept="<?php echo htmlspecialchars($xd_chat_audio_accept); ?>">
                         Audio
                     </button>
 
@@ -223,6 +254,7 @@ Created : 06 July 2026
 
             <input type="text"
                    id="xdChatInput"
+                   maxlength="<?php echo (int) $xd_chat_message_max_length; ?>"
                    placeholder="Type your reply..."
                    disabled>
 

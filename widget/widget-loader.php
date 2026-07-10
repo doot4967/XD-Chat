@@ -18,6 +18,8 @@ Created : 06 July 2026
 
 require_once '../database/connection.php';
 
+require_once '../includes/functions/platform-settings.php';
+
 
 /* ==========================================
    02. SET JSON RESPONSE HEADER
@@ -215,7 +217,11 @@ echo json_encode([
         "color" => $widget["widget_color"],
         "icon" => $widget["widget_icon"],
         "welcome_message" => $widget["welcome_message"],
-        "offline_message" => $widget["offline_message"]
+        "offline_message" => $widget["offline_message"],
+        "config" => [
+            "messageMaxLength" => getPlatformMessageMaxLength($pdo),
+            "uploads" => getPlatformUploadRuntimeConfig($pdo)
+        ]
     ]
 ]);
 
