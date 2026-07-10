@@ -55,10 +55,16 @@ $superAdminMenus = [
         "href" => "audit-logs.php"
     ],
     [
-        "key" => "settings",
-        "label" => "Settings",
+        "key" => "account",
+        "label" => "My Account",
         "icon" => "fa-solid fa-gear",
         "href" => "settings.php"
+    ],
+    [
+        "key" => "platform_settings",
+        "label" => "Platform Settings",
+        "icon" => "fa-solid fa-sliders",
+        "href" => "platform-settings.php"
     ]
 ];
 ?>

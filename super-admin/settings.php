@@ -301,7 +301,7 @@ $page_heading = "Settings";
 
 $page_description = "Manage your Super Admin profile and password.";
 
-$active_menu = "settings";
+$active_menu = "account";
 
 $settingsMessage = $_GET["settings_message"] ?? "";
 

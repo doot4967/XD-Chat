@@ -375,3 +375,331 @@ CREATE TABLE audit_logs (
     ON DELETE SET NULL
 
 );
+
+
+/* ==================================================
+   09. PLATFORM SETTINGS
+================================================== */
+
+CREATE TABLE platform_settings (
+
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+
+    setting_key VARCHAR(120) NOT NULL UNIQUE,
+
+    setting_value JSON NOT NULL,
+
+    value_type ENUM(
+        'string',
+        'integer',
+        'boolean',
+        'json'
+    ) NOT NULL DEFAULT 'string',
+
+    category VARCHAR(50) NOT NULL,
+
+    label VARCHAR(150) NOT NULL,
+
+    description TEXT,
+
+    is_sensitive TINYINT(1) NOT NULL DEFAULT 0,
+
+    updated_by INT NULL,
+
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    ON UPDATE CURRENT_TIMESTAMP,
+
+    INDEX idx_platform_settings_category (category),
+
+    INDEX idx_platform_settings_updated_by (updated_by),
+
+    FOREIGN KEY (updated_by)
+    REFERENCES users(id)
+    ON DELETE SET NULL
+
+);
+
+
+/* ==================================================
+   10. PLATFORM SETTINGS SEED
+================================================== */
+
+INSERT INTO platform_settings (
+    setting_key,
+    setting_value,
+    value_type,
+    category,
+    label,
+    description,
+    is_sensitive
+) VALUES
+
+(
+    'platform_name',
+    JSON_QUOTE('XD Chat'),
+    'string',
+    'general',
+    'Platform Name',
+    'Main platform name shown across admin areas.',
+    0
+),
+
+(
+    'platform_tagline',
+    JSON_QUOTE('Live Chat Platform'),
+    'string',
+    'general',
+    'Platform Tagline',
+    'Short platform tagline for dashboard and branding.',
+    0
+),
+
+(
+    'support_email',
+    JSON_QUOTE(''),
+    'string',
+    'general',
+    'Support Email',
+    'Public support email for platform assistance.',
+    0
+),
+
+(
+    'support_phone',
+    JSON_QUOTE(''),
+    'string',
+    'general',
+    'Support Phone',
+    'Public support phone number for platform assistance.',
+    0
+),
+
+(
+    'default_timezone',
+    JSON_QUOTE('Asia/Kolkata'),
+    'string',
+    'general',
+    'Default Timezone',
+    'Default timezone for platform date and time display.',
+    0
+),
+
+(
+    'date_time_format',
+    JSON_QUOTE('d M Y, h:i A'),
+    'string',
+    'general',
+    'Date Time Format',
+    'Default date and time display format.',
+    0
+),
+
+(
+    'default_new_user_role',
+    JSON_QUOTE('admin'),
+    'string',
+    'security',
+    'Default New User Role',
+    'Default role assigned to newly registered users.',
+    0
+),
+
+(
+    'default_new_user_status',
+    JSON_QUOTE('active'),
+    'string',
+    'security',
+    'Default New User Status',
+    'Default account status for newly registered users.',
+    0
+),
+
+(
+    'session_idle_timeout',
+    '7200',
+    'integer',
+    'security',
+    'Session Idle Timeout',
+    'Session idle timeout in seconds.',
+    0
+),
+
+(
+    'minimum_password_length',
+    '8',
+    'integer',
+    'security',
+    'Minimum Password Length',
+    'Minimum password length for user accounts.',
+    0
+),
+
+(
+    'allow_registration',
+    'true',
+    'boolean',
+    'security',
+    'Allow Registration',
+    'Controls whether public registration is enabled.',
+    0
+),
+
+(
+    'default_welcome_message',
+    JSON_QUOTE('Hi there! How can we help you today?'),
+    'string',
+    'chat',
+    'Default Welcome Message',
+    'Default widget welcome message for new widgets.',
+    0
+),
+
+(
+    'default_offline_message',
+    JSON_QUOTE('We are currently offline. Please leave a message.'),
+    'string',
+    'chat',
+    'Default Offline Message',
+    'Default widget offline message for new widgets.',
+    0
+),
+
+(
+    'default_chat_status',
+    JSON_QUOTE('open'),
+    'string',
+    'chat',
+    'Default Chat Status',
+    'Default status assigned to new visitor chats.',
+    0
+),
+
+(
+    'message_max_length',
+    '1000',
+    'integer',
+    'chat',
+    'Message Maximum Length',
+    'Maximum allowed text message length.',
+    0
+),
+
+(
+    'delete_everyone_time_limit',
+    '60',
+    'integer',
+    'chat',
+    'Delete From Everyone Time Limit',
+    'Time limit in minutes for future delete-from-everyone behavior.',
+    0
+),
+
+(
+    'image_max_size_mb',
+    '5',
+    'integer',
+    'upload',
+    'Image Maximum Size',
+    'Maximum image upload size in MB.',
+    0
+),
+
+(
+    'document_max_size_mb',
+    '10',
+    'integer',
+    'upload',
+    'Document Maximum Size',
+    'Maximum document upload size in MB.',
+    0
+),
+
+(
+    'audio_max_size_mb',
+    '10',
+    'integer',
+    'upload',
+    'Audio Maximum Size',
+    'Maximum audio upload size in MB.',
+    0
+),
+
+(
+    'video_max_size_mb',
+    '15',
+    'integer',
+    'upload',
+    'Video Maximum Size',
+    'Maximum video upload size in MB.',
+    0
+),
+
+(
+    'allowed_image_types',
+    JSON_ARRAY('jpg', 'jpeg', 'png', 'webp'),
+    'json',
+    'upload',
+    'Allowed Image Types',
+    'Allowed image file extensions.',
+    0
+),
+
+(
+    'allowed_document_types',
+    JSON_ARRAY('pdf', 'doc', 'docx', 'xls', 'xlsx', 'txt'),
+    'json',
+    'upload',
+    'Allowed Document Types',
+    'Allowed document file extensions.',
+    0
+),
+
+(
+    'allowed_audio_types',
+    JSON_ARRAY('mp3', 'wav', 'ogg', 'webm'),
+    'json',
+    'upload',
+    'Allowed Audio Types',
+    'Allowed audio file extensions.',
+    0
+),
+
+(
+    'allowed_video_types',
+    JSON_ARRAY('mp4', 'webm', 'mov'),
+    'json',
+    'upload',
+    'Allowed Video Types',
+    'Allowed video file extensions.',
+    0
+),
+
+(
+    'maintenance_mode',
+    'false',
+    'boolean',
+    'system',
+    'Maintenance Mode',
+    'Stores maintenance mode setting. Runtime enforcement will be added later.',
+    0
+),
+
+(
+    'maintenance_message',
+    JSON_QUOTE('XD Chat is currently under maintenance. Please check back soon.'),
+    'string',
+    'system',
+    'Maintenance Message',
+    'Message shown during maintenance mode after runtime enforcement is added.',
+    0
+)
+
+ON DUPLICATE KEY UPDATE
+    setting_value = VALUES(setting_value),
+    value_type = VALUES(value_type),
+    category = VALUES(category),
+    label = VALUES(label),
+    description = VALUES(description),
+    is_sensitive = VALUES(is_sensitive);

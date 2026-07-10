@@ -1419,6 +1419,196 @@ Created : 10 July 2026
     line-height:1.4;
 }
 
+.xd-sa-platform-note{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    margin-bottom:12px;
+    padding:12px 14px;
+    border:1px solid #bfdbfe;
+    border-radius:14px;
+    background:#eff6ff;
+    color:#1d4ed8;
+}
+
+.xd-sa-platform-note strong{
+    font-size:12px;
+    font-weight:900;
+}
+
+.xd-sa-platform-note span{
+    color:#475569;
+    font-size:11px;
+    font-weight:700;
+}
+
+.xd-sa-platform-tabs{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+    margin-bottom:12px;
+}
+
+.xd-sa-platform-tabs a{
+    min-height:34px;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    padding:0 12px;
+    border:1px solid #dbe3ef;
+    border-radius:999px;
+    background:#ffffff;
+    color:#475569;
+    font-size:11px;
+    font-weight:900;
+}
+
+.xd-sa-platform-tabs a.active{
+    border-color:#2563eb;
+    background:#2563eb;
+    color:#ffffff;
+}
+
+.xd-sa-platform-card{
+    margin-top:0;
+}
+
+.xd-sa-platform-form{
+    margin-top:14px;
+}
+
+.xd-sa-platform-grid{
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:12px;
+}
+
+.xd-sa-platform-wide{
+    grid-column:span 2;
+}
+
+.xd-sa-settings-field select,
+.xd-sa-settings-field textarea{
+    width:100%;
+    min-height:36px;
+    padding:0 11px;
+    border:1px solid #dbe3ef;
+    border-radius:10px;
+    outline:none;
+    color:#0f172a;
+    font-size:12px;
+    font-weight:700;
+    background:#ffffff;
+}
+
+.xd-sa-settings-field textarea{
+    min-height:92px;
+    padding:10px 11px;
+    line-height:1.5;
+    resize:vertical;
+}
+
+.xd-sa-settings-field select:focus,
+.xd-sa-settings-field textarea:focus{
+    border-color:#2563eb;
+    box-shadow:0 0 0 3px rgba(37,99,235,.10);
+}
+
+.xd-sa-platform-toggle{
+    min-height:58px;
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:12px;
+    border:1px solid #edf2f7;
+    border-radius:12px;
+    background:#f8fafc;
+    cursor:pointer;
+}
+
+.xd-sa-platform-toggle input{
+    position:absolute;
+    opacity:0;
+    pointer-events:none;
+}
+
+.xd-sa-platform-toggle span{
+    width:42px;
+    height:24px;
+    position:relative;
+    flex:0 0 42px;
+    border-radius:999px;
+    background:#cbd5e1;
+    transition:.2s ease;
+}
+
+.xd-sa-platform-toggle span::after{
+    content:"";
+    width:18px;
+    height:18px;
+    position:absolute;
+    top:3px;
+    left:3px;
+    border-radius:50%;
+    background:#ffffff;
+    box-shadow:0 2px 8px rgba(15,23,42,.18);
+    transition:.2s ease;
+}
+
+.xd-sa-platform-toggle input:checked + span{
+    background:#2563eb;
+}
+
+.xd-sa-platform-toggle input:checked + span::after{
+    transform:translateX(18px);
+}
+
+.xd-sa-platform-toggle strong{
+    color:#0f172a;
+    font-size:12px;
+    font-weight:900;
+}
+
+.xd-sa-platform-checkboxes{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+}
+
+.xd-sa-platform-checkboxes label{
+    min-height:32px;
+    display:inline-flex;
+    align-items:center;
+    gap:7px;
+    padding:0 10px;
+    border:1px solid #dbe3ef;
+    border-radius:999px;
+    background:#ffffff;
+    color:#475569;
+    cursor:pointer;
+    font-size:11px;
+    font-weight:900;
+    text-transform:none;
+}
+
+.xd-sa-platform-checkboxes input{
+    width:14px;
+    height:14px;
+    accent-color:#2563eb;
+}
+
+.xd-sa-platform-warning{
+    padding:10px 12px;
+    border:1px solid #fde68a;
+    border-radius:12px;
+    background:#fffbeb;
+    color:#92400e;
+    font-size:11px;
+    font-weight:800;
+    line-height:1.5;
+}
+
 
 /* ==========================================
    07. RESPONSIVE
@@ -1452,6 +1642,14 @@ Created : 10 July 2026
 
     .xd-sa-settings-summary-list{
         grid-template-columns:repeat(2,minmax(0,1fr));
+    }
+
+    .xd-sa-platform-grid{
+        grid-template-columns:1fr;
+    }
+
+    .xd-sa-platform-wide{
+        grid-column:auto;
     }
 
     .xd-sa-filter-bar{
@@ -1548,6 +1746,16 @@ Created : 10 July 2026
     .xd-sa-settings-readonly-grid,
     .xd-sa-settings-summary-list{
         grid-template-columns:1fr;
+    }
+
+    .xd-sa-platform-note{
+        align-items:flex-start;
+        flex-direction:column;
+    }
+
+    .xd-sa-platform-tabs a{
+        flex:1;
+        min-width:140px;
     }
 }
 
