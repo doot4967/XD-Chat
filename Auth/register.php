@@ -24,12 +24,22 @@ require_once '../includes/functions/validation.php';
 
 require_once '../includes/functions/session.php';
 
+require_once '../includes/functions/platform-settings.php';
+
 
 /* ==========================================
    02. HANDLE REGISTER REQUEST
 ========================================== */
 
 $message = "";
+
+$registration_allowed = isPlatformRegistrationAllowed($pdo);
+
+$minimum_password_length = getPlatformMinimumPasswordLength($pdo);
+
+$default_user_role = getPlatformDefaultUserRole($pdo);
+
+$default_user_status = getPlatformDefaultUserStatus($pdo);
 
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
@@ -38,6 +48,10 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     if (!verifyCsrfToken($csrf_token)) {
 
         $message = "Invalid request. Please try again.";
+
+    } elseif (!$registration_allowed) {
+
+        $message = "New account registration is currently disabled.";
 
     } else {
 
@@ -51,7 +65,12 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             $pdo,
             $full_name,
             $email,
-            $password
+            $password,
+            [
+                "role" => $default_user_role,
+                "status" => $default_user_status,
+                "minimum_password_length" => $minimum_password_length
+            ]
         );
 
     }
@@ -124,62 +143,77 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
                 <?php if (!empty($message)) { ?>
 
-                    <div class="xd-auth-alert <?php if ($message === "Account created successfully.") { echo "success"; } ?>">
+                    <div class="xd-auth-alert <?php if (strpos($message, "Account created successfully.") === 0) { echo "success"; } ?>">
                         <?php echo htmlspecialchars($message); ?>
                     </div>
 
                 <?php } ?>
 
-                <form method="POST" class="xd-auth-form">
+                <?php if (!$registration_allowed) { ?>
 
-                    <input type="hidden"
-                           name="csrf_token"
-                           value="<?php echo htmlspecialchars(getCsrfToken()); ?>">
-
-                    <div class="xd-auth-field">
-
-                        <label>Full Name</label>
-
-                        <input
-                            type="text"
-                            name="full_name"
-                            placeholder="Your full name"
-                            required
-                        >
-
+                    <div class="xd-auth-alert">
+                        New account registration is currently disabled.
                     </div>
 
-                    <div class="xd-auth-field">
+                <?php } else { ?>
 
-                        <label>Email Address</label>
+                    <form method="POST" class="xd-auth-form">
 
-                        <input
-                            type="email"
-                            name="email"
-                            placeholder="you@example.com"
-                            required
-                        >
+                        <input type="hidden"
+                               name="csrf_token"
+                               value="<?php echo htmlspecialchars(getCsrfToken()); ?>">
 
-                    </div>
+                        <div class="xd-auth-field">
 
-                    <div class="xd-auth-field">
+                            <label>Full Name</label>
 
-                        <label>Password</label>
+                            <input
+                                type="text"
+                                name="full_name"
+                                placeholder="Your full name"
+                                required
+                            >
 
-                        <input
-                            type="password"
-                            name="password"
-                            placeholder="Create a secure password"
-                            required
-                        >
+                        </div>
 
-                    </div>
+                        <div class="xd-auth-field">
 
-                    <button type="submit" class="xd-auth-submit">
-                        Create Account
-                    </button>
+                            <label>Email Address</label>
 
-                </form>
+                            <input
+                                type="email"
+                                name="email"
+                                placeholder="you@example.com"
+                                required
+                            >
+
+                        </div>
+
+                        <div class="xd-auth-field">
+
+                            <label>Password</label>
+
+                            <input
+                                type="password"
+                                name="password"
+                                placeholder="Create a secure password"
+                                minlength="<?php echo (int) $minimum_password_length; ?>"
+                                required
+                            >
+
+                            <small>
+                                Minimum <?php echo (int) $minimum_password_length; ?> characters.
+                            </small>
+
+                        </div>
+
+                        <button type="submit" class="xd-auth-submit">
+                            Create Account
+                        </button>
+
+                    </form>
+
+                <?php } ?>
 
                 <p class="xd-auth-footer-text">
                     Already have an account?

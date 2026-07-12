@@ -31,7 +31,15 @@ require_once '../includes/functions/session.php';
 
 $message = "";
 
-if ($_SERVER["REQUEST_METHOD"] === "POST") {
+if (isset($_GET["inactive"]) && $_GET["inactive"] === "1") {
+
+    $message = "Your account is inactive. Please contact support.";
+
+}
+
+$request_method = $_SERVER["REQUEST_METHOD"] ?? "GET";
+
+if ($request_method === "POST") {
 
     $csrf_token = $_POST["csrf_token"] ?? "";
 
