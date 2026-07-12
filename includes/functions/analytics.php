@@ -379,3 +379,331 @@ function getRecentVisitors(PDO $pdo, int $user_id, int $limit = 5): array
     }
 
 }
+
+
+/* ==========================================
+   09. GET ANALYTICS OVERVIEW
+========================================== */
+
+function getAnalyticsOverview(PDO $pdo, int $user_id): array
+{
+
+    $fallback = [
+        "total_chats" => 0,
+        "open_chats" => 0,
+        "closed_chats" => 0,
+        "unique_visitors" => 0
+    ];
+
+    if ($user_id <= 0) {
+        return $fallback;
+    }
+
+    $visitorKeySql = "
+        CASE
+            WHEN chats.visitor_id IS NULL OR chats.visitor_id = ''
+            THEN CONCAT('chat:', chats.id)
+            ELSE CONCAT('visitor:', chats.website_id, ':', chats.visitor_id)
+        END
+    ";
+
+    $query = "
+        SELECT
+            COUNT(chats.id) AS total_chats,
+            SUM(CASE WHEN chats.status = 'open' THEN 1 ELSE 0 END) AS open_chats,
+            SUM(CASE WHEN chats.status = 'closed' THEN 1 ELSE 0 END) AS closed_chats,
+            COUNT(DISTINCT {$visitorKeySql}) AS unique_visitors
+        FROM chats
+        INNER JOIN websites
+            ON websites.id = chats.website_id
+        WHERE websites.user_id = ?
+    ";
+
+    try {
+
+        $statement = $pdo->prepare($query);
+
+        $statement->execute([
+            $user_id
+        ]);
+
+        $row = $statement->fetch(PDO::FETCH_ASSOC) ?: [];
+
+        return [
+            "total_chats" => (int) ($row["total_chats"] ?? 0),
+            "open_chats" => (int) ($row["open_chats"] ?? 0),
+            "closed_chats" => (int) ($row["closed_chats"] ?? 0),
+            "unique_visitors" => (int) ($row["unique_visitors"] ?? 0)
+        ];
+
+    } catch (Throwable $exception) {
+
+        error_log("Analytics overview load failed: " . $exception->getMessage());
+
+        return $fallback;
+
+    }
+
+}
+
+
+/* ==========================================
+   10. GET ANALYTICS MESSAGE BREAKDOWN
+========================================== */
+
+function getAnalyticsMessageBreakdown(PDO $pdo, int $user_id): array
+{
+
+    $fallback = [
+        "total_messages" => 0,
+        "visitor_messages" => 0,
+        "admin_messages" => 0,
+        "media_messages" => 0
+    ];
+
+    if ($user_id <= 0) {
+        return $fallback;
+    }
+
+    $query = "
+        SELECT
+            COUNT(messages.id) AS total_messages,
+            SUM(CASE WHEN messages.sender = 'visitor' THEN 1 ELSE 0 END) AS visitor_messages,
+            SUM(CASE WHEN messages.sender = 'agent' THEN 1 ELSE 0 END) AS admin_messages,
+            SUM(CASE WHEN messages.message_type IN ('image', 'file', 'audio', 'video') THEN 1 ELSE 0 END) AS media_messages
+        FROM messages
+        INNER JOIN chats
+            ON chats.id = messages.chat_id
+        INNER JOIN websites
+            ON websites.id = chats.website_id
+        WHERE websites.user_id = ?
+    ";
+
+    try {
+
+        $statement = $pdo->prepare($query);
+
+        $statement->execute([
+            $user_id
+        ]);
+
+        $row = $statement->fetch(PDO::FETCH_ASSOC) ?: [];
+
+        return [
+            "total_messages" => (int) ($row["total_messages"] ?? 0),
+            "visitor_messages" => (int) ($row["visitor_messages"] ?? 0),
+            "admin_messages" => (int) ($row["admin_messages"] ?? 0),
+            "media_messages" => (int) ($row["media_messages"] ?? 0)
+        ];
+
+    } catch (Throwable $exception) {
+
+        error_log("Analytics message breakdown load failed: " . $exception->getMessage());
+
+        return $fallback;
+
+    }
+
+}
+
+
+/* ==========================================
+   11. GET ANALYTICS SEVEN DAY TREND
+========================================== */
+
+function getAnalyticsSevenDayTrend(PDO $pdo, int $user_id, string $timezone = "UTC"): array
+{
+
+    $timezone = trim($timezone) !== "" ? $timezone : "UTC";
+
+    try {
+
+        $timezoneObject = new DateTimeZone($timezone);
+
+    } catch (Throwable $exception) {
+
+        $timezoneObject = new DateTimeZone("UTC");
+
+    }
+
+    $today = new DateTime("today", $timezoneObject);
+    $start = (clone $today)->modify("-6 days");
+    $end = (clone $today)->modify("+1 day");
+
+    $trend = [];
+
+    for ($day = 0; $day < 7; $day++) {
+
+        $date = (clone $start)->modify("+" . $day . " days");
+        $key = $date->format("Y-m-d");
+
+        $trend[$key] = [
+            "date" => $key,
+            "chats_created" => 0,
+            "messages_sent" => 0
+        ];
+
+    }
+
+    if ($user_id <= 0) {
+        return array_values($trend);
+    }
+
+    $startSql = $start->format("Y-m-d H:i:s");
+    $endSql = $end->format("Y-m-d H:i:s");
+
+    try {
+
+        $chatQuery = "
+            SELECT
+                DATE(chats.created_at) AS activity_date,
+                COUNT(chats.id) AS total
+            FROM chats
+            INNER JOIN websites
+                ON websites.id = chats.website_id
+            WHERE websites.user_id = :user_id
+            AND chats.created_at >= :start_date
+            AND chats.created_at < :end_date
+            GROUP BY DATE(chats.created_at)
+        ";
+
+        $chatStatement = $pdo->prepare($chatQuery);
+        $chatStatement->execute([
+            ":user_id" => $user_id,
+            ":start_date" => $startSql,
+            ":end_date" => $endSql
+        ]);
+
+        foreach ($chatStatement->fetchAll(PDO::FETCH_ASSOC) as $row) {
+
+            $dateKey = (string) ($row["activity_date"] ?? "");
+
+            if (isset($trend[$dateKey])) {
+                $trend[$dateKey]["chats_created"] = (int) ($row["total"] ?? 0);
+            }
+
+        }
+
+        $messageQuery = "
+            SELECT
+                DATE(messages.created_at) AS activity_date,
+                COUNT(messages.id) AS total
+            FROM messages
+            INNER JOIN chats
+                ON chats.id = messages.chat_id
+            INNER JOIN websites
+                ON websites.id = chats.website_id
+            WHERE websites.user_id = :user_id
+            AND messages.created_at >= :start_date
+            AND messages.created_at < :end_date
+            GROUP BY DATE(messages.created_at)
+        ";
+
+        $messageStatement = $pdo->prepare($messageQuery);
+        $messageStatement->execute([
+            ":user_id" => $user_id,
+            ":start_date" => $startSql,
+            ":end_date" => $endSql
+        ]);
+
+        foreach ($messageStatement->fetchAll(PDO::FETCH_ASSOC) as $row) {
+
+            $dateKey = (string) ($row["activity_date"] ?? "");
+
+            if (isset($trend[$dateKey])) {
+                $trend[$dateKey]["messages_sent"] = (int) ($row["total"] ?? 0);
+            }
+
+        }
+
+    } catch (Throwable $exception) {
+
+        error_log("Analytics seven day trend load failed: " . $exception->getMessage());
+
+    }
+
+    return array_values($trend);
+
+}
+
+
+/* ==========================================
+   12. GET WEBSITE PERFORMANCE ANALYTICS
+========================================== */
+
+function getWebsitePerformanceAnalytics(PDO $pdo, int $user_id): array
+{
+
+    if ($user_id <= 0) {
+        return [];
+    }
+
+    $visitorKeySql = "
+        CASE
+            WHEN chats.visitor_id IS NULL OR chats.visitor_id = ''
+            THEN CONCAT('chat:', chats.id)
+            ELSE CONCAT('visitor:', chats.website_id, ':', chats.visitor_id)
+        END
+    ";
+
+    $query = "
+        SELECT
+            websites.id,
+            websites.website_name,
+            websites.domain,
+            COUNT(DISTINCT chats.id) AS total_chats,
+            COUNT(DISTINCT CASE WHEN chats.status = 'open' THEN chats.id END) AS open_chats,
+            COUNT(DISTINCT CASE WHEN chats.status = 'closed' THEN chats.id END) AS closed_chats,
+            COUNT(DISTINCT {$visitorKeySql}) AS unique_visitors,
+            COUNT(messages.id) AS total_messages
+        FROM websites
+        LEFT JOIN chats
+            ON chats.website_id = websites.id
+        LEFT JOIN messages
+            ON messages.chat_id = chats.id
+        WHERE websites.user_id = ?
+        GROUP BY
+            websites.id,
+            websites.website_name,
+            websites.domain
+        ORDER BY
+            total_chats DESC,
+            websites.website_name ASC,
+            websites.id DESC
+    ";
+
+    try {
+
+        $statement = $pdo->prepare($query);
+
+        $statement->execute([
+            $user_id
+        ]);
+
+        $rows = $statement->fetchAll(PDO::FETCH_ASSOC);
+
+        return array_map(
+            function (array $row): array {
+                return [
+                    "id" => (int) ($row["id"] ?? 0),
+                    "website_name" => (string) ($row["website_name"] ?? ""),
+                    "domain" => (string) ($row["domain"] ?? ""),
+                    "total_chats" => (int) ($row["total_chats"] ?? 0),
+                    "open_chats" => (int) ($row["open_chats"] ?? 0),
+                    "closed_chats" => (int) ($row["closed_chats"] ?? 0),
+                    "unique_visitors" => (int) ($row["unique_visitors"] ?? 0),
+                    "total_messages" => (int) ($row["total_messages"] ?? 0)
+                ];
+            },
+            $rows
+        );
+
+    } catch (Throwable $exception) {
+
+        error_log("Website performance analytics load failed: " . $exception->getMessage());
+
+        return [];
+
+    }
+
+}
