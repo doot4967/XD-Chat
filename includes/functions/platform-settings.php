@@ -48,6 +48,13 @@ function getPlatformSettingDefinitions(): array
             "label" => "Support Phone",
             "description" => "Public support phone number for platform assistance."
         ],
+        "footer_copyright_text" => [
+            "value" => "",
+            "type" => "string",
+            "category" => "general",
+            "label" => "Footer Copyright Text",
+            "description" => "Optional footer copyright text. Blank values use the platform fallback."
+        ],
         "default_timezone" => [
             "value" => "Asia/Kolkata",
             "type" => "string",
@@ -460,6 +467,74 @@ function getPlatformSessionIdleTimeout(PDO $pdo): int
 {
 
     return getPlatformIntegerSettingSafe($pdo, "session_idle_timeout", 7200, 900, 86400);
+
+}
+
+
+function getPlatformName(PDO $pdo): string
+{
+
+    $name = trim(getPlatformStringSettingSafe($pdo, "platform_name", "XD Chat"));
+
+    if ($name === "") {
+        return "XD Chat";
+    }
+
+    return mb_substr($name, 0, 100, "UTF-8");
+
+}
+
+
+function getPlatformTagline(PDO $pdo): string
+{
+
+    $tagline = trim(getPlatformStringSettingSafe($pdo, "platform_tagline", "Live Chat Platform"));
+
+    if ($tagline === "") {
+        return "Live Chat Platform";
+    }
+
+    return mb_substr($tagline, 0, 180, "UTF-8");
+
+}
+
+
+function getPlatformSupportEmail(PDO $pdo): string
+{
+
+    $email = trim(getPlatformStringSettingSafe($pdo, "support_email", ""));
+
+    return filter_var($email, FILTER_VALIDATE_EMAIL) ? $email : "";
+
+}
+
+
+function getPlatformCopyright(PDO $pdo): string
+{
+
+    $copyright = trim(getPlatformStringSettingSafe($pdo, "footer_copyright_text", ""));
+
+    if ($copyright !== "") {
+        return mb_substr($copyright, 0, 180, "UTF-8");
+    }
+
+    return "© " . date("Y") . " " . getPlatformName($pdo) . ". All rights reserved.";
+
+}
+
+
+function getPlatformPageTitle(PDO $pdo, string $pageTitle = ""): string
+{
+
+    $platformName = getPlatformName($pdo);
+
+    $pageTitle = trim($pageTitle);
+
+    if ($pageTitle === "") {
+        return $platformName;
+    }
+
+    return $pageTitle . " | " . $platformName;
 
 }
 

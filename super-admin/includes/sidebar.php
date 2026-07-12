@@ -11,6 +11,18 @@ Created : 10 July 2026
 ==================================================
 */
 
+if (!function_exists("getPlatformName")) {
+    require_once dirname(__DIR__, 2) . "/includes/functions/platform-settings.php";
+}
+
+$superAdminPlatformName = isset($pdo) && $pdo instanceof PDO
+    ? getPlatformName($pdo)
+    : "XD Chat";
+
+$superAdminPlatformTagline = isset($pdo) && $pdo instanceof PDO
+    ? getPlatformTagline($pdo)
+    : "Live Chat Platform";
+
 $superAdminMenus = [
     [
         "key" => "dashboard",
@@ -80,8 +92,8 @@ $superAdminMenus = [
             </div>
 
             <div>
-                <strong>XD Chat</strong>
-                <small>Super Admin</small>
+                <strong><?php echo htmlspecialchars($superAdminPlatformName); ?></strong>
+                <small><?php echo htmlspecialchars($superAdminPlatformTagline); ?></small>
             </div>
 
         </div>

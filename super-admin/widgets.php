@@ -20,6 +20,8 @@ require_once '../includes/functions/session.php';
 
 require_once '../database/connection.php';
 
+require_once '../includes/functions/platform-settings.php';
+
 requireRole([
     "super_admin"
 ]);
@@ -405,7 +407,7 @@ if ($viewWidgetId > 0) {
    07. PAGE CONFIGURATION
 ========================================== */
 
-$page_title = "Widgets Overview | XD Chat";
+$page_title = getPlatformPageTitle($pdo, "Widgets Overview");
 
 $page_heading = "Widgets Overview";
 

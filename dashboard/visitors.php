@@ -20,6 +20,8 @@ require_once '../database/connection.php';
 
 require_once '../includes/functions/session.php';
 
+require_once '../includes/functions/platform-settings.php';
+
 requireLogin();
 
 
@@ -27,7 +29,7 @@ requireLogin();
    02. PAGE CONFIGURATION
 ========================================== */
 
-$page_title = "Visitors | XD Chat";
+$page_title = getPlatformPageTitle($pdo, "Visitors");
 
 $page_heading = "Visitors";
 

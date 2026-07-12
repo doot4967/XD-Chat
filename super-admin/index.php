@@ -20,6 +20,8 @@ require_once '../includes/functions/session.php';
 
 require_once '../database/connection.php';
 
+require_once '../includes/functions/platform-settings.php';
+
 requireRole([
     "super_admin"
 ]);
@@ -134,7 +136,7 @@ function getSuperAdminStorageUsed(): string
    03. PAGE CONFIGURATION
 ========================================== */
 
-$page_title = "Super Admin Dashboard | XD Chat";
+$page_title = getPlatformPageTitle($pdo, "Super Admin Dashboard");
 
 $page_heading = "Super Admin Dashboard";
 

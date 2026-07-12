@@ -20,6 +20,8 @@ require_once '../includes/functions/session.php';
 
 require_once '../database/connection.php';
 
+require_once '../includes/functions/platform-settings.php';
+
 requireRole([
     "super_admin"
 ]);
@@ -241,7 +243,7 @@ try {
    05. PAGE CONFIGURATION
 ========================================== */
 
-$page_title = "Audit Logs | XD Chat";
+$page_title = getPlatformPageTitle($pdo, "Audit Logs");
 
 $page_heading = "Audit Logs";
 

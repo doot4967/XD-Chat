@@ -20,6 +20,8 @@ require_once '../database/connection.php';
 
 require_once '../includes/functions/session.php';
 
+require_once '../includes/functions/platform-settings.php';
+
 require_once '../includes/functions/validation.php';
 
 require_once '../includes/functions/website.php';
@@ -31,7 +33,7 @@ requireLogin();
    02. PAGE CONFIGURATION
 ========================================== */
 
-$page_title = "Edit Website | XD Chat";
+$page_title = getPlatformPageTitle($pdo, "Edit Website");
 
 $page_heading = "Edit Website";
 
@@ -129,7 +131,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     <meta name="viewport"
           content="width=device-width, initial-scale=1.0">
 
-    <title><?php echo $page_title; ?></title>
+    <title><?php echo htmlspecialchars($page_title); ?></title>
 
     <link rel="stylesheet" href="../assets/css/01-reset.css">
     <link rel="stylesheet" href="../assets/css/02-variables.css">

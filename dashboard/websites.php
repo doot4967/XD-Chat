@@ -20,6 +20,8 @@ require_once '../database/connection.php';
 
 require_once '../includes/functions/session.php';
 
+require_once '../includes/functions/platform-settings.php';
+
 require_once '../includes/functions/website.php';
 
 requireLogin();
@@ -29,7 +31,7 @@ requireLogin();
    02. PAGE CONFIGURATION
 ========================================== */
 
-$page_title = "Websites | XD Chat";
+$page_title = getPlatformPageTitle($pdo, "Websites");
 
 $page_heading = "Websites";
 
@@ -52,7 +54,7 @@ $websites = getWebsites(
     <meta name="viewport"
           content="width=device-width, initial-scale=1.0">
 
-    <title><?php echo $page_title; ?></title>
+    <title><?php echo htmlspecialchars($page_title); ?></title>
 
     <link rel="stylesheet" href="../assets/css/01-reset.css">
     <link rel="stylesheet" href="../assets/css/02-variables.css">

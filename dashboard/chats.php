@@ -20,6 +20,8 @@ require_once '../database/connection.php';
 
 require_once '../includes/functions/session.php';
 
+require_once '../includes/functions/platform-settings.php';
+
 requireLogin();
 
 
@@ -27,7 +29,7 @@ requireLogin();
    02. PAGE CONFIGURATION
 ========================================== */
 
-$page_title = "Live Chats | XD Chat";
+$page_title = getPlatformPageTitle($pdo, "Live Chats");
 
 $page_heading = "Live Chats";
 
@@ -45,7 +47,7 @@ $page_description = "Manage visitor conversations in real time.";
     <meta name="viewport"
           content="width=device-width, initial-scale=1.0">
 
-    <title><?php echo $page_title; ?></title>
+    <title><?php echo htmlspecialchars($page_title); ?></title>
 
     <link rel="stylesheet" href="../assets/css/01-reset.css">
     <link rel="stylesheet" href="../assets/css/02-variables.css">

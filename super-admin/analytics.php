@@ -20,6 +20,8 @@ require_once '../includes/functions/session.php';
 
 require_once '../database/connection.php';
 
+require_once '../includes/functions/platform-settings.php';
+
 requireRole([
     "super_admin"
 ]);
@@ -560,7 +562,7 @@ $peakActivity = getSuperAdminInsightRows(
    06. PAGE CONFIGURATION
 ========================================== */
 
-$page_title = "Analytics | XD Chat";
+$page_title = getPlatformPageTitle($pdo, "Analytics");
 
 $page_heading = "Analytics Dashboard";
 

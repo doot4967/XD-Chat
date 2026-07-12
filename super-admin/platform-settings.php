@@ -159,15 +159,17 @@ function validatePlatformSettingsCategory(string $category, array $input): array
 
         $values["support_phone"] = trim($input["support_phone"] ?? "");
 
+        $values["footer_copyright_text"] = trim($input["footer_copyright_text"] ?? "");
+
         $values["default_timezone"] = trim($input["default_timezone"] ?? "");
 
         $values["date_time_format"] = trim($input["date_time_format"] ?? "");
 
-        if ($values["platform_name"] === "" || strlen($values["platform_name"]) > 100) {
+        if ($values["platform_name"] === "" || mb_strlen($values["platform_name"], "UTF-8") > 100) {
             $errors[] = "Platform name is required and must be 100 characters or less.";
         }
 
-        if (strlen($values["platform_tagline"]) > 180) {
+        if (mb_strlen($values["platform_tagline"], "UTF-8") > 180) {
             $errors[] = "Platform tagline must be 180 characters or less.";
         }
 
@@ -175,8 +177,12 @@ function validatePlatformSettingsCategory(string $category, array $input): array
             $errors[] = "Support email must be valid or empty.";
         }
 
-        if (strlen($values["support_phone"]) > 30) {
+        if (mb_strlen($values["support_phone"], "UTF-8") > 30) {
             $errors[] = "Support phone must be 30 characters or less.";
+        }
+
+        if (mb_strlen($values["footer_copyright_text"], "UTF-8") > 180) {
+            $errors[] = "Footer copyright text must be 180 characters or less.";
         }
 
         if (!in_array($values["default_timezone"], timezone_identifiers_list(), true)) {
@@ -412,11 +418,11 @@ if ($requestMethod === "POST") {
    05. PAGE CONFIGURATION
 ========================================== */
 
-$page_title = "Platform Settings | XD Chat";
+$page_title = getPlatformPageTitle($pdo, "Platform Settings");
 
 $page_heading = "Platform Settings";
 
-$page_description = "Manage stored global settings for the XD Chat platform.";
+$page_description = "Manage stored global settings for the " . getPlatformName($pdo) . " platform.";
 
 $active_menu = "platform_settings";
 
@@ -450,7 +456,7 @@ require_once 'includes/header.php';
 
 <section class="xd-sa-platform-note">
     <strong>Phase 11A Foundation</strong>
-    <span>These settings are saved and audited, but runtime behavior is not connected yet.</span>
+    <span>Platform name and tagline are connected to Dashboard and Super Admin runtime. Logo and favicon branding will be added separately.</span>
 </section>
 
 <?php if ($settingsMessage !== "") { ?>
@@ -519,6 +525,14 @@ require_once 'includes/header.php';
                            name="support_phone"
                            maxlength="30"
                            value="<?php echo htmlspecialchars($settings["support_phone"]["value"]); ?>">
+                </div>
+                <div class="xd-sa-settings-field xd-sa-platform-wide">
+                    <label>Footer / Copyright Text</label>
+                    <input type="text"
+                           name="footer_copyright_text"
+                           maxlength="180"
+                           placeholder="<?php echo htmlspecialchars(getPlatformCopyright($pdo)); ?>"
+                           value="<?php echo htmlspecialchars($settings["footer_copyright_text"]["value"]); ?>">
                 </div>
                 <div class="xd-sa-settings-field">
                     <label>Default Timezone</label>

@@ -22,6 +22,8 @@ require_once '../database/connection.php';
 
 require_once '../includes/functions/audit.php';
 
+require_once '../includes/functions/platform-settings.php';
+
 requireRole([
     "super_admin"
 ]);
@@ -295,7 +297,7 @@ if (!$currentUser) {
    05. PAGE CONFIGURATION
 ========================================== */
 
-$page_title = "Settings | XD Chat";
+$page_title = getPlatformPageTitle($pdo, "Settings");
 
 $page_heading = "Settings";
 

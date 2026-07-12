@@ -1,3 +1,17 @@
+<?php
+if (!function_exists("getPlatformName")) {
+    require_once dirname(__DIR__, 2) . "/includes/functions/platform-settings.php";
+}
+
+$dashboardPlatformName = isset($pdo) && $pdo instanceof PDO
+    ? getPlatformName($pdo)
+    : "XD Chat";
+
+$dashboardPlatformTagline = isset($pdo) && $pdo instanceof PDO
+    ? getPlatformTagline($pdo)
+    : "Live Chat Platform";
+?>
+
 <aside class="xd-dashboard-sidebar">
 
     <div>
@@ -9,8 +23,8 @@
             </div>
 
             <div>
-                XD Chat
-                <small>Live Chat Platform</small>
+                <?php echo htmlspecialchars($dashboardPlatformName); ?>
+                <small><?php echo htmlspecialchars($dashboardPlatformTagline); ?></small>
             </div>
 
         </div>

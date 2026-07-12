@@ -22,6 +22,8 @@ require_once '../database/connection.php';
 
 require_once '../includes/functions/audit.php';
 
+require_once '../includes/functions/platform-settings.php';
+
 requireRole([
     "super_admin"
 ]);
@@ -463,7 +465,7 @@ if ($viewUserId > 0) {
    07. PAGE CONFIGURATION
 ========================================== */
 
-$page_title = "Users Management | XD Chat";
+$page_title = getPlatformPageTitle($pdo, "Users Management");
 
 $page_heading = "Users Management";
 

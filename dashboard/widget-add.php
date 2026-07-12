@@ -33,7 +33,7 @@ requireLogin();
    02. PAGE CONFIGURATION
 ========================================== */
 
-$page_title = "Add Widget | XD Chat";
+$page_title = getPlatformPageTitle($pdo, "Add Widget");
 
 $page_heading = "Add Widget";
 
@@ -151,7 +151,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     <meta name="viewport"
           content="width=device-width, initial-scale=1.0">
 
-    <title><?php echo $page_title; ?></title>
+    <title><?php echo htmlspecialchars($page_title); ?></title>
 
     <link rel="stylesheet" href="../assets/css/01-reset.css">
     <link rel="stylesheet" href="../assets/css/02-variables.css">

@@ -20,6 +20,8 @@ require_once '../database/connection.php';
 
 require_once '../includes/functions/session.php';
 
+require_once '../includes/functions/platform-settings.php';
+
 require_once '../includes/functions/widget.php';
 
 requireLogin();
@@ -29,7 +31,7 @@ requireLogin();
    02. PAGE CONFIGURATION
 ========================================== */
 
-$page_title = "Widgets | XD Chat";
+$page_title = getPlatformPageTitle($pdo, "Widgets");
 
 $page_heading = "Widgets";
 
@@ -52,7 +54,7 @@ $widgets = getWidgets(
     <meta name="viewport"
           content="width=device-width, initial-scale=1.0">
 
-    <title><?php echo $page_title; ?></title>
+    <title><?php echo htmlspecialchars($page_title); ?></title>
 
     <link rel="stylesheet" href="../assets/css/01-reset.css">
     <link rel="stylesheet" href="../assets/css/02-variables.css">
