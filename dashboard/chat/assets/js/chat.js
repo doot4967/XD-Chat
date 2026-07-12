@@ -21,6 +21,8 @@ let activeChatStatus = "open";
 
 let chatListStatusFilter = "open";
 
+let isChatStatusUpdating = false;
+
 let chatListSearchQuery = "";
 
 let chatSearchDebounceTimer = null;
@@ -380,13 +382,9 @@ function registerFilterEvents() {
 
             enableNotificationHelper();
 
-            filterButtons.forEach(function (item) {
-                item.classList.remove("active");
-            });
-
-            this.classList.add("active");
-
             chatListStatusFilter = this.dataset.status || "open";
+
+            updateChatFilterActiveState();
 
             activeChatId = 0;
 
@@ -415,6 +413,49 @@ function registerFilterEvents() {
         });
 
     });
+
+}
+
+
+function updateChatFilterActiveState() {
+
+    const filterButtons = document.querySelectorAll(".xd-chat-filter");
+
+    filterButtons.forEach(function (item) {
+        item.classList.toggle(
+            "active",
+            (item.dataset.status || "open") === chatListStatusFilter
+        );
+    });
+
+}
+
+
+function syncActiveChatFilterWithStatus() {
+
+    const filterCanFollowStatus =
+        chatListStatusFilter === "open" ||
+        chatListStatusFilter === "closed";
+
+    const activeStatusCanBeListed =
+        activeChatStatus === "open" ||
+        activeChatStatus === "closed";
+
+    if (
+        activeChatId <= 0 ||
+        isChatStatusUpdating ||
+        !filterCanFollowStatus ||
+        !activeStatusCanBeListed ||
+        chatListStatusFilter === activeChatStatus
+    ) {
+        return;
+    }
+
+    chatListStatusFilter = activeChatStatus;
+
+    updateChatFilterActiveState();
+
+    loadChatList();
 
 }
 
@@ -496,6 +537,8 @@ function loadChat(chatId, loadReason) {
             }
 
             updateVisitorInfoBox(messageBox);
+
+            syncActiveChatFilterWithStatus();
 
             updateChatControls(activeChatStatus);
 
@@ -798,7 +841,15 @@ function updateChatControls(chatStatus) {
 
     recordButton.disabled = !hasActiveChat || isClosed;
 
-    closeButton.disabled = !hasActiveChat || isClosed;
+    closeButton.disabled = !hasActiveChat || isChatStatusUpdating;
+
+    if (closeButton) {
+        if (isChatStatusUpdating) {
+            closeButton.innerText = isClosed ? "Reopening..." : "Closing...";
+        } else {
+            closeButton.innerText = isClosed ? "Reopen Chat" : "Close Chat";
+        }
+    }
 
     input.placeholder = isClosed
         ? "This chat is closed."
@@ -835,7 +886,7 @@ function closeChatComposerPanels() {
 
 function closeActiveChat() {
 
-    if (activeChatId <= 0 || activeChatStatus === "closed") {
+    if (activeChatId <= 0 || isChatStatusUpdating) {
         const attachMenu = document.getElementById("xdChatAttachMenu");
 
         if (attachMenu) {
@@ -845,12 +896,18 @@ function closeActiveChat() {
         return;
     }
 
+    const nextStatus = activeChatStatus === "closed" ? "open" : "closed";
+
     const formData = new FormData();
 
     formData.append("chat_id", activeChatId);
 
-    formData.append("status", "closed");
+    formData.append("status", nextStatus);
     appendDashboardCsrfToken(formData);
+
+    isChatStatusUpdating = true;
+
+    updateChatControls(activeChatStatus);
 
     fetch("chat/ajax/update-status.php", {
         method: "POST",
@@ -868,7 +925,11 @@ function closeActiveChat() {
                 return;
             }
 
-            activeChatStatus = "closed";
+            activeChatStatus = data.status || nextStatus;
+
+            chatListStatusFilter = activeChatStatus;
+
+            updateChatFilterActiveState();
 
             updateChatControls(activeChatStatus);
 
@@ -880,6 +941,11 @@ function closeActiveChat() {
 
         .catch(function (error) {
             console.error(error);
+        })
+
+        .finally(function () {
+            isChatStatusUpdating = false;
+            updateChatControls(activeChatStatus);
         });
 
 }

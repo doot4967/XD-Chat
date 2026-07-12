@@ -60,7 +60,7 @@ $status = isset($_POST["status"])
    04. VALIDATION
 ========================================== */
 
-if ($chat_id <= 0 || !in_array($status, ["closed"], true)) {
+if ($chat_id <= 0 || !in_array($status, ["open", "closed"], true)) {
 
     echo json_encode([
         "success" => false,
@@ -73,67 +73,127 @@ if ($chat_id <= 0 || !in_array($status, ["closed"], true)) {
 
 
 /* ==========================================
-   05. CHECK CHAT OWNERSHIP
+   05. UPDATE STATUS
 ========================================== */
 
-$query = "
-    SELECT chats.id
-    FROM chats
-    INNER JOIN websites
-        ON chats.website_id = websites.id
-    WHERE chats.id = ?
-    AND websites.user_id = ?
-    LIMIT 1
-";
+$closingMessage = "Your issue/query has been resolved. This chat has been closed. If you need further help, please send a new message.";
 
-$statement = $pdo->prepare($query);
+try {
 
-$statement->execute([
-    $chat_id,
-    $_SESSION["user_id"]
-]);
+    $pdo->beginTransaction();
 
-$chat = $statement->fetch(PDO::FETCH_ASSOC);
+    $query = "
+        SELECT
+            chats.id,
+            chats.status
+        FROM chats
+        INNER JOIN websites
+            ON chats.website_id = websites.id
+        WHERE chats.id = ?
+        AND websites.user_id = ?
+        LIMIT 1
+        FOR UPDATE
+    ";
 
-if (!$chat) {
+    $statement = $pdo->prepare($query);
+
+    $statement->execute([
+        $chat_id,
+        $_SESSION["user_id"]
+    ]);
+
+    $chat = $statement->fetch(PDO::FETCH_ASSOC);
+
+    if (!$chat) {
+
+        $pdo->rollBack();
+
+        echo json_encode([
+            "success" => false,
+            "message" => "Chat not found or access denied."
+        ]);
+
+        exit;
+
+    }
+
+    $currentStatus = $chat["status"] ?? "";
+
+    if ($status === "closed" && $currentStatus !== "closed") {
+
+        $query = "
+            INSERT INTO messages (
+                chat_id,
+                sender,
+                message,
+                message_type
+            ) VALUES (?, ?, ?, ?)
+        ";
+
+        $statement = $pdo->prepare($query);
+
+        $statement->execute([
+            $chat_id,
+            "agent",
+            $closingMessage,
+            "system"
+        ]);
+
+    }
+
+    if ($status !== $currentStatus) {
+
+        $query = "
+            UPDATE chats
+            SET
+                status = ?,
+                closed_at = CASE
+                    WHEN ? = 'closed'
+                    THEN NOW()
+                    ELSE NULL
+                END
+            WHERE id = ?
+        ";
+
+        $statement = $pdo->prepare($query);
+
+        $statement->execute([
+            $status,
+            $status,
+            $chat_id
+        ]);
+
+    }
+
+    $pdo->commit();
+
+    echo json_encode([
+        "success" => true,
+        "status" => $status,
+        "message" => $status === "closed"
+            ? (
+                $currentStatus === "closed"
+                    ? "Chat is already closed."
+                    : "Chat closed successfully."
+            )
+            : "Chat reopened successfully."
+    ]);
+
+    exit;
+
+} catch (Throwable $exception) {
+
+    if ($pdo->inTransaction()) {
+        $pdo->rollBack();
+    }
+
+    error_log("Chat status update failed: " . $exception->getMessage());
 
     echo json_encode([
         "success" => false,
-        "message" => "Chat not found or access denied."
+        "message" => "Unable to update chat status. Please try again."
     ]);
 
     exit;
 
 }
-
-
-/* ==========================================
-   06. UPDATE STATUS
-========================================== */
-
-$query = "
-    UPDATE chats
-    SET
-        status = ?,
-        closed_at = NOW()
-    WHERE id = ?
-";
-
-$statement = $pdo->prepare($query);
-
-$statement->execute([
-    $status,
-    $chat_id
-]);
-
-
-/* ==========================================
-   07. SUCCESS RESPONSE
-========================================== */
-
-echo json_encode([
-    "success" => true,
-    "message" => "Chat closed successfully."
-]);
-
-exit;

@@ -392,6 +392,26 @@ function updateChatVisitorDetails(PDO $pdo, int $chatId, array $visitorDetails):
 }
 
 
+function reopenChatIfClosed(PDO $pdo, int $chatId): void
+{
+
+    $query = "
+        UPDATE chats
+        SET
+            status = 'open',
+            closed_at = NULL
+        WHERE id = ?
+        AND status = 'closed'
+    ";
+
+    $statement = $pdo->prepare($query);
+    $statement->execute([
+        $chatId
+    ]);
+
+}
+
+
 /* ==========================================
    05. MESSAGE HELPERS
 ========================================== */
@@ -609,6 +629,8 @@ function handleSendMessage(PDO $pdo, int $chatId, string $message): void
 
     $hasAgentReply = hasAgentReply($pdo, $chatId);
 
+    reopenChatIfClosed($pdo, $chatId);
+
     $messageId = saveMessage($pdo, $chatId, "visitor", $message, "text", null, $replyToMessageId);
 
     $autoReply = "";
@@ -664,6 +686,8 @@ function handleSendFile(PDO $pdo, int $chatId): void
     $autoReplyMessage = "Thanks! Our team will reply shortly.";
 
     $hasAgentReply = hasAgentReply($pdo, $chatId);
+
+    reopenChatIfClosed($pdo, $chatId);
 
     $messageId = saveMessage(
         $pdo,
