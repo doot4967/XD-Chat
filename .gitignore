@@ -1,0 +1,28 @@
+# Environment secrets
+.env
+.env.*
+!.env.example
+
+# Runtime chat uploads
+uploads/chat-files/**
+!uploads/chat-files/
+!uploads/chat-files/.htaccess
+!uploads/chat-files/**/
+!uploads/chat-files/**/.htaccess
+!uploads/chat-files/**/.gitkeep
+
+# Runtime platform branding uploads
+uploads/platform/branding/**
+!uploads/platform/branding/
+!uploads/platform/branding/.htaccess
+!uploads/platform/branding/.gitkeep
+
+# Accidental/local temporary files
+main
+*.log
+*.tmp
+*.cache
+
+# OS noise
+.DS_Store
+Thumbs.db
