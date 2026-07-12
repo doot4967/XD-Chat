@@ -28,7 +28,47 @@ require_once '../includes/functions/platform-settings.php';
 
 
 /* ==========================================
-   02. HANDLE REGISTER REQUEST
+   02. LOAD BRANDING
+========================================== */
+
+$platform_name = getPlatformName($pdo);
+
+$platform_tagline = getPlatformTagline($pdo);
+
+$platform_logo_url = getPlatformLogoUrl($pdo);
+
+$platform_favicon_url = getPlatformFaviconUrl($pdo);
+
+$page_title = getPlatformPageTitle($pdo, "Register");
+
+$auth_initials = (function (string $name): string {
+
+    $name = trim($name);
+
+    if ($name === "") {
+        return "XD";
+    }
+
+    $parts = preg_split('/\s+/u', $name, -1, PREG_SPLIT_NO_EMPTY);
+
+    if (count($parts) >= 2) {
+        return mb_strtoupper(
+            mb_substr($parts[0], 0, 1, "UTF-8") . mb_substr($parts[1], 0, 1, "UTF-8"),
+            "UTF-8"
+        );
+    }
+
+    $initials = mb_substr($name, 0, 2, "UTF-8");
+
+    return $initials !== ""
+        ? mb_strtoupper($initials, "UTF-8")
+        : "XD";
+
+})($platform_name);
+
+
+/* ==========================================
+   03. HANDLE REGISTER REQUEST
 ========================================== */
 
 $message = "";
@@ -89,7 +129,12 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     <meta name="viewport"
           content="width=device-width, initial-scale=1.0">
 
-    <title>Create Account | XD Chat</title>
+    <title><?php echo htmlspecialchars($page_title, ENT_QUOTES, "UTF-8"); ?></title>
+
+    <?php if ($platform_favicon_url !== "") { ?>
+        <link rel="icon"
+              href="<?php echo htmlspecialchars($platform_favicon_url, ENT_QUOTES, "UTF-8"); ?>">
+    <?php } ?>
 
     <link rel="stylesheet"
           href="../assets/css/09-auth.css">
@@ -99,7 +144,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 <body class="xd-auth-page">
 
     <!-- ==========================================
-         03. AUTH WRAPPER
+         04. AUTH WRAPPER
     ========================================== -->
 
     <main class="xd-auth-wrapper">
@@ -107,18 +152,23 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         <section class="xd-auth-card">
 
             <!-- ==========================================
-                 04. BRAND PANEL
+                 05. BRAND PANEL
             ========================================== -->
 
             <div class="xd-auth-brand">
 
                 <div class="xd-auth-logo">
-                    XD
+                    <?php if ($platform_logo_url !== "") { ?>
+                        <img src="<?php echo htmlspecialchars($platform_logo_url, ENT_QUOTES, "UTF-8"); ?>"
+                             alt="<?php echo htmlspecialchars($platform_name, ENT_QUOTES, "UTF-8"); ?>">
+                    <?php } else { ?>
+                        <?php echo htmlspecialchars($auth_initials, ENT_QUOTES, "UTF-8"); ?>
+                    <?php } ?>
                 </div>
 
-                <span>Start your live chat workspace</span>
+                <span><?php echo htmlspecialchars($platform_tagline, ENT_QUOTES, "UTF-8"); ?></span>
 
-                <h1>Create your XD Chat account</h1>
+                <h1>Create your <?php echo htmlspecialchars($platform_name, ENT_QUOTES, "UTF-8"); ?> account</h1>
 
                 <p>
                     Add websites, install widgets, and start replying to visitors from your dashboard.
@@ -128,7 +178,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
 
             <!-- ==========================================
-                 05. REGISTER FORM
+                 06. REGISTER FORM
             ========================================== -->
 
             <div class="xd-auth-content">
