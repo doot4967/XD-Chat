@@ -1872,24 +1872,24 @@ Created : 06 July 2026
 
         function renderQuotedPreview(replyData) {
 
-            const replyId = replyData && (replyData.reply_id || replyData.id);
+            const replyId = replyData && replyData.reply_id;
 
-            if (!replyId || (replyData && replyData.id && !replyData.sender)) {
+            if (!replyId) {
                 return "";
             }
 
-            const sender = replyData.reply_sender || replyData.sender || "";
+            const sender = replyData.reply_sender || "";
             const senderName = sender === "agent" || sender === "Admin"
                 ? "Admin"
                 : "Visitor";
-            const messageType = replyData.reply_message_type || replyData.message_type || "text";
+            const messageType = replyData.reply_message_type || "text";
             const isReplyDeleted = parseInt(replyData.reply_is_deleted || 0, 10) === 1;
             const text = isReplyDeleted
                 ? "Deleted message"
                 : (
                     messageType === "text"
-                        ? (replyData.reply_message || replyData.message || replyData.text || "")
-                        : (replyData.reply_file_name || replyData.file_name || ucfirst(messageType))
+                        ? (replyData.reply_message || "")
+                        : (replyData.reply_file_name || ucfirst(messageType))
                 );
 
             return `
