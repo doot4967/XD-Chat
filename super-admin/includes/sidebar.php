@@ -23,6 +23,10 @@ $superAdminPlatformTagline = isset($pdo) && $pdo instanceof PDO
     ? getPlatformTagline($pdo)
     : "Live Chat Platform";
 
+$superAdminPlatformLogoUrl = isset($pdo) && $pdo instanceof PDO
+    ? getPlatformLogoUrl($pdo)
+    : "";
+
 $superAdminMenus = [
     [
         "key" => "dashboard",
@@ -88,7 +92,12 @@ $superAdminMenus = [
         <div class="xd-sa-logo">
 
             <div class="xd-sa-logo-mark">
-                <i class="fa-regular fa-comments"></i>
+                <?php if ($superAdminPlatformLogoUrl !== "") { ?>
+                    <img src="<?php echo htmlspecialchars($superAdminPlatformLogoUrl); ?>"
+                         alt="<?php echo htmlspecialchars($superAdminPlatformName); ?> logo">
+                <?php } else { ?>
+                    <i class="fa-regular fa-comments"></i>
+                <?php } ?>
             </div>
 
             <div>

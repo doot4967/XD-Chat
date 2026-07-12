@@ -477,6 +477,36 @@ INSERT INTO platform_settings (
 ),
 
 (
+    'footer_copyright_text',
+    JSON_QUOTE(''),
+    'string',
+    'general',
+    'Footer Copyright Text',
+    'Optional footer copyright text. Blank values use the platform fallback.',
+    0
+),
+
+(
+    'platform_logo_path',
+    JSON_QUOTE(''),
+    'string',
+    'general',
+    'Platform Logo Path',
+    'Controlled relative path for the uploaded platform logo.',
+    0
+),
+
+(
+    'platform_favicon_path',
+    JSON_QUOTE(''),
+    'string',
+    'general',
+    'Platform Favicon Path',
+    'Controlled relative path for the uploaded platform favicon.',
+    0
+),
+
+(
     'default_timezone',
     JSON_QUOTE('Asia/Kolkata'),
     'string',

@@ -55,6 +55,20 @@ function getPlatformSettingDefinitions(): array
             "label" => "Footer Copyright Text",
             "description" => "Optional footer copyright text. Blank values use the platform fallback."
         ],
+        "platform_logo_path" => [
+            "value" => "",
+            "type" => "string",
+            "category" => "general",
+            "label" => "Platform Logo Path",
+            "description" => "Controlled relative path for the uploaded platform logo."
+        ],
+        "platform_favicon_path" => [
+            "value" => "",
+            "type" => "string",
+            "category" => "general",
+            "label" => "Platform Favicon Path",
+            "description" => "Controlled relative path for the uploaded platform favicon."
+        ],
         "default_timezone" => [
             "value" => "Asia/Kolkata",
             "type" => "string",
@@ -535,6 +549,143 @@ function getPlatformPageTitle(PDO $pdo, string $pageTitle = ""): string
     }
 
     return $pageTitle . " | " . $platformName;
+
+}
+
+
+function getPlatformConfiguredBaseUrl(): string
+{
+
+    static $baseUrl = null;
+
+    if ($baseUrl !== null) {
+        return $baseUrl;
+    }
+
+    $configPath = dirname(__DIR__, 2) . DIRECTORY_SEPARATOR . "config" . DIRECTORY_SEPARATOR . "app.php";
+    $config = is_file($configPath) ? require $configPath : [];
+    $baseUrl = rtrim((string) ($config["base_url"] ?? "/"), "/") . "/";
+
+    return $baseUrl;
+
+}
+
+
+function normalizePlatformBrandingSettingPath(string $path): string
+{
+
+    $path = trim(str_replace("\\", "/", $path));
+    $path = ltrim($path, "/");
+
+    if ($path === "" || strpos($path, "../") !== false || strpos($path, "/..") !== false) {
+        return "";
+    }
+
+    if (strpos($path, "uploads/platform/branding/") !== 0) {
+        return "";
+    }
+
+    if (basename($path) !== substr($path, strlen("uploads/platform/branding/"))) {
+        return "";
+    }
+
+    return $path;
+
+}
+
+
+function getPlatformBrandingSettingPath(PDO $pdo, string $key, array $allowedExtensions): string
+{
+
+    $path = normalizePlatformBrandingSettingPath(
+        getPlatformStringSettingSafe($pdo, $key, "")
+    );
+
+    if ($path === "") {
+        return "";
+    }
+
+    $extension = strtolower(pathinfo($path, PATHINFO_EXTENSION));
+
+    if (!in_array($extension, $allowedExtensions, true)) {
+        return "";
+    }
+
+    $absolutePath = dirname(__DIR__, 2) . DIRECTORY_SEPARATOR . str_replace("/", DIRECTORY_SEPARATOR, $path);
+
+    return is_file($absolutePath) ? $path : "";
+
+}
+
+
+function getPlatformLogoPath(PDO $pdo): string
+{
+
+    return getPlatformBrandingSettingPath($pdo, "platform_logo_path", [
+        "jpg",
+        "jpeg",
+        "png",
+        "webp"
+    ]);
+
+}
+
+
+function getPlatformFaviconPath(PDO $pdo): string
+{
+
+    return getPlatformBrandingSettingPath($pdo, "platform_favicon_path", [
+        "ico",
+        "png",
+        "jpg",
+        "jpeg",
+        "webp"
+    ]);
+
+}
+
+
+function hasPlatformLogo(PDO $pdo): bool
+{
+
+    return getPlatformLogoPath($pdo) !== "";
+
+}
+
+
+function hasPlatformFavicon(PDO $pdo): bool
+{
+
+    return getPlatformFaviconPath($pdo) !== "";
+
+}
+
+
+function getPlatformBrandingAssetUrl(string $type): string
+{
+
+    return getPlatformConfiguredBaseUrl()
+        . "platform-branding-asset.php?"
+        . http_build_query([
+            "type" => $type,
+            "v" => time()
+        ]);
+
+}
+
+
+function getPlatformLogoUrl(PDO $pdo): string
+{
+
+    return hasPlatformLogo($pdo) ? getPlatformBrandingAssetUrl("logo") : "";
+
+}
+
+
+function getPlatformFaviconUrl(PDO $pdo): string
+{
+
+    return hasPlatformFavicon($pdo) ? getPlatformBrandingAssetUrl("favicon") : "";
 
 }
 

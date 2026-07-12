@@ -49,6 +49,8 @@ $page_description = "Manage visitor conversations in real time.";
 
     <title><?php echo htmlspecialchars($page_title); ?></title>
 
+    <?php require_once 'includes/head-branding.php'; ?>
+
     <link rel="stylesheet" href="../assets/css/01-reset.css">
     <link rel="stylesheet" href="../assets/css/02-variables.css">
     <link rel="stylesheet" href="../assets/css/03-base.css">

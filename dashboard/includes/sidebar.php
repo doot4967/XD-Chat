@@ -10,6 +10,10 @@ $dashboardPlatformName = isset($pdo) && $pdo instanceof PDO
 $dashboardPlatformTagline = isset($pdo) && $pdo instanceof PDO
     ? getPlatformTagline($pdo)
     : "Live Chat Platform";
+
+$dashboardPlatformLogoUrl = isset($pdo) && $pdo instanceof PDO
+    ? getPlatformLogoUrl($pdo)
+    : "";
 ?>
 
 <aside class="xd-dashboard-sidebar">
@@ -19,7 +23,12 @@ $dashboardPlatformTagline = isset($pdo) && $pdo instanceof PDO
         <div class="xd-dashboard-logo">
 
             <div class="xd-logo-mark">
-                <i class="fa-regular fa-comments"></i>
+                <?php if ($dashboardPlatformLogoUrl !== "") { ?>
+                    <img src="<?php echo htmlspecialchars($dashboardPlatformLogoUrl); ?>"
+                         alt="<?php echo htmlspecialchars($dashboardPlatformName); ?> logo">
+                <?php } else { ?>
+                    <i class="fa-regular fa-comments"></i>
+                <?php } ?>
             </div>
 
             <div>

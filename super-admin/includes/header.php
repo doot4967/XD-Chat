@@ -10,6 +10,10 @@ Author  : Umesh + ChatGPT
 Created : 10 July 2026
 ==================================================
 */
+
+if (!function_exists("getPlatformFaviconUrl")) {
+    require_once dirname(__DIR__, 2) . "/includes/functions/platform-settings.php";
+}
 ?>
 
 <!DOCTYPE html>
@@ -23,6 +27,16 @@ Created : 10 July 2026
           content="width=device-width, initial-scale=1.0">
 
     <title><?php echo htmlspecialchars($page_title); ?></title>
+
+    <?php
+    $superAdminFaviconUrl = isset($pdo) && $pdo instanceof PDO
+        ? getPlatformFaviconUrl($pdo)
+        : "";
+    ?>
+
+    <?php if ($superAdminFaviconUrl !== "") { ?>
+        <link rel="icon" href="<?php echo htmlspecialchars($superAdminFaviconUrl); ?>">
+    <?php } ?>
 
     <link rel="stylesheet" href="../assets/css/01-reset.css">
     <link rel="stylesheet" href="../assets/css/02-variables.css">

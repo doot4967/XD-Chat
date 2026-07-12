@@ -24,6 +24,8 @@ require_once '../includes/functions/audit.php';
 
 require_once '../includes/functions/platform-settings.php';
 
+require_once '../includes/functions/platform-branding.php';
+
 requireRole([
     "super_admin"
 ]);
@@ -332,6 +334,117 @@ $requestMethod = $_SERVER["REQUEST_METHOD"] ?? "GET";
 
 if ($requestMethod === "POST") {
 
+    $brandingAction = $_POST["branding_action"] ?? "";
+
+    if (in_array($brandingAction, [
+        "upload_platform_logo",
+        "remove_platform_logo",
+        "upload_platform_favicon",
+        "remove_platform_favicon"
+    ], true)) {
+
+        $csrfToken = $_POST["csrf_token"] ?? "";
+
+        if (!verifyCsrfToken($csrfToken)) {
+
+            header("Location: " . getPlatformSettingsRedirect("Invalid request. Please try again.", "error", "general"));
+
+            exit;
+
+        }
+
+        $type = in_array($brandingAction, [
+            "upload_platform_logo",
+            "remove_platform_logo"
+        ], true) ? "logo" : "favicon";
+
+        $settingKey = $type === "logo" ? "platform_logo_path" : "platform_favicon_path";
+        $fileKey = $type === "logo" ? "platform_logo" : "platform_favicon";
+        $oldPath = $type === "logo" ? getPlatformLogoPath($pdo) : getPlatformFaviconPath($pdo);
+        $label = $type === "logo" ? "Logo" : "Favicon";
+
+        try {
+
+            if (strpos($brandingAction, "upload_") === 0) {
+
+                $upload = savePlatformBrandingUpload($_FILES[$fileKey] ?? [], $type);
+
+                if (empty($upload["success"]) || empty($upload["relative_path"])) {
+
+                    header("Location: " . getPlatformSettingsRedirect($upload["message"] ?? "Unable to save uploaded file.", "error", "general"));
+
+                    exit;
+
+                }
+
+                $newPath = $upload["relative_path"];
+
+                if (!updatePlatformSetting($pdo, $settingKey, $newPath, (int) ($_SESSION["user_id"] ?? 0))) {
+
+                    removePlatformBrandingFile($newPath);
+
+                    header("Location: " . getPlatformSettingsRedirect("Unable to save " . strtolower($label) . " setting.", "error", "general"));
+
+                    exit;
+
+                }
+
+                if ($oldPath !== "" && $oldPath !== $newPath) {
+                    removePlatformBrandingFile($oldPath);
+                }
+
+                createAuditLog($pdo, [
+                    "actor_user_id" => (int) ($_SESSION["user_id"] ?? 0),
+                    "actor_name" => $_SESSION["user_name"] ?? "Super Admin",
+                    "action" => "platform_settings_updated",
+                    "target_type" => "platform_settings",
+                    "target_id" => 0,
+                    "target_name" => "General Settings",
+                    "description" => "Updated general settings: " . $settingKey
+                ]);
+
+                header("Location: " . getPlatformSettingsRedirect($label . " uploaded successfully.", "success", "general"));
+
+                exit;
+
+            }
+
+            if (!updatePlatformSetting($pdo, $settingKey, "", (int) ($_SESSION["user_id"] ?? 0))) {
+
+                header("Location: " . getPlatformSettingsRedirect("Unable to remove " . strtolower($label) . ".", "error", "general"));
+
+                exit;
+
+            }
+
+            if ($oldPath !== "") {
+                removePlatformBrandingFile($oldPath);
+            }
+
+            createAuditLog($pdo, [
+                "actor_user_id" => (int) ($_SESSION["user_id"] ?? 0),
+                "actor_name" => $_SESSION["user_name"] ?? "Super Admin",
+                "action" => "platform_settings_updated",
+                "target_type" => "platform_settings",
+                "target_id" => 0,
+                "target_name" => "General Settings",
+                "description" => "Updated general settings: " . $settingKey
+            ]);
+
+            header("Location: " . getPlatformSettingsRedirect($label . " reset successfully.", "success", "general"));
+
+            exit;
+
+        } catch (Throwable $exception) {
+
+            header("Location: " . getPlatformSettingsRedirect("Unable to update branding asset. Please try again.", "error", "general"));
+
+            exit;
+
+        }
+
+    }
+
     $category = $_POST["category"] ?? "";
 
     $csrfToken = $_POST["csrf_token"] ?? "";
@@ -451,6 +564,10 @@ if (!in_array($settingsType, [
 
 $options = getPlatformSettingsAllowedOptions();
 
+$platformLogoUrl = getPlatformLogoUrl($pdo);
+
+$platformFaviconUrl = getPlatformFaviconUrl($pdo);
+
 require_once 'includes/header.php';
 ?>
 
@@ -475,6 +592,106 @@ require_once 'includes/header.php';
         </a>
     <?php } ?>
 </section>
+
+<?php if ($activeCategory === "general") { ?>
+
+<section class="xd-sa-branding-grid">
+
+    <article class="xd-sa-branding-card">
+        <div>
+            <h3>Platform Logo</h3>
+            <p>JPG, PNG or WEBP, maximum 2 MB.</p>
+        </div>
+
+        <div class="xd-sa-branding-preview xd-sa-branding-logo-preview">
+            <?php if ($platformLogoUrl !== "") { ?>
+                <img src="<?php echo htmlspecialchars($platformLogoUrl); ?>"
+                     alt="<?php echo htmlspecialchars(getPlatformName($pdo)); ?> logo">
+            <?php } else { ?>
+                <i class="fa-regular fa-comments"></i>
+            <?php } ?>
+        </div>
+
+        <form method="POST"
+              enctype="multipart/form-data"
+              class="xd-sa-branding-form">
+            <input type="hidden"
+                   name="csrf_token"
+                   value="<?php echo htmlspecialchars(getCsrfToken()); ?>">
+            <input type="hidden"
+                   name="branding_action"
+                   value="upload_platform_logo">
+            <input type="file"
+                   name="platform_logo"
+                   accept=".jpg,.jpeg,.png,.webp"
+                   required>
+            <button type="submit">Upload / Replace Logo</button>
+        </form>
+
+        <?php if ($platformLogoUrl !== "") { ?>
+            <form method="POST"
+                  class="xd-sa-branding-remove"
+                  onsubmit="return confirm('Remove platform logo?');">
+                <input type="hidden"
+                       name="csrf_token"
+                       value="<?php echo htmlspecialchars(getCsrfToken()); ?>">
+                <input type="hidden"
+                       name="branding_action"
+                       value="remove_platform_logo">
+                <button type="submit">Remove / Reset Logo</button>
+            </form>
+        <?php } ?>
+    </article>
+
+    <article class="xd-sa-branding-card">
+        <div>
+            <h3>Favicon</h3>
+            <p>ICO, PNG, JPG or WEBP, maximum 1 MB.</p>
+        </div>
+
+        <div class="xd-sa-branding-preview xd-sa-branding-favicon-preview">
+            <?php if ($platformFaviconUrl !== "") { ?>
+                <img src="<?php echo htmlspecialchars($platformFaviconUrl); ?>"
+                     alt="<?php echo htmlspecialchars(getPlatformName($pdo)); ?> favicon">
+            <?php } else { ?>
+                <i class="fa-regular fa-comments"></i>
+            <?php } ?>
+        </div>
+
+        <form method="POST"
+              enctype="multipart/form-data"
+              class="xd-sa-branding-form">
+            <input type="hidden"
+                   name="csrf_token"
+                   value="<?php echo htmlspecialchars(getCsrfToken()); ?>">
+            <input type="hidden"
+                   name="branding_action"
+                   value="upload_platform_favicon">
+            <input type="file"
+                   name="platform_favicon"
+                   accept=".ico,.png,.jpg,.jpeg,.webp"
+                   required>
+            <button type="submit">Upload / Replace Favicon</button>
+        </form>
+
+        <?php if ($platformFaviconUrl !== "") { ?>
+            <form method="POST"
+                  class="xd-sa-branding-remove"
+                  onsubmit="return confirm('Remove platform favicon?');">
+                <input type="hidden"
+                       name="csrf_token"
+                       value="<?php echo htmlspecialchars(getCsrfToken()); ?>">
+                <input type="hidden"
+                       name="branding_action"
+                       value="remove_platform_favicon">
+                <button type="submit">Remove / Reset Favicon</button>
+            </form>
+        <?php } ?>
+    </article>
+
+</section>
+
+<?php } ?>
 
 <section class="xd-sa-settings-card xd-sa-platform-card">
 
