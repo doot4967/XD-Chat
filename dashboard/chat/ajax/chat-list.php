@@ -22,6 +22,11 @@ require_once '../../../includes/functions/session.php';
 
 requireLogin();
 
+header("Content-Type: text/html; charset=UTF-8");
+header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
+header("Pragma: no-cache");
+header("Expires: 0");
+
 
 /* ==========================================
    02. GET FILTER

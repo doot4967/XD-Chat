@@ -114,6 +114,24 @@ let chatMobileNeedsSeenSync = false;
 
 let chatMarkSeenController = null;
 
+let chatListController = null;
+
+let chatListRequestId = 0;
+
+let isChatListRequestPending = false;
+
+let chatLoadController = null;
+
+let chatLoadRequestId = 0;
+
+let isChatLoadRequestPending = false;
+
+let chatPresenceController = null;
+
+let chatPresenceRequestId = 0;
+
+let isChatPresenceRequestPending = false;
+
 let dashboardMessageActionState = null;
 
 let dashboardMessageActionPendingFocusId = "";
@@ -159,6 +177,42 @@ document.addEventListener("DOMContentLoaded", function () {
 function appendDashboardCsrfToken(formData) {
 
     formData.append("csrf_token", dashboardCsrfToken);
+
+}
+
+
+function parseDashboardResponse(response, expectedType) {
+
+    if (
+        response.redirected &&
+        /\/auth\/login\.php(?:[?#]|$)/i.test(response.url)
+    ) {
+        window.location.assign(response.url);
+        throw new Error("Your session has expired.");
+    }
+
+    if (!response.ok) {
+        throw new Error("Request failed with status " + response.status + ".");
+    }
+
+    if (expectedType === "json") {
+        const contentType = response.headers.get("content-type") || "";
+
+        if (!contentType.toLowerCase().includes("application/json")) {
+            throw new Error("The server returned an unexpected response.");
+        }
+
+        return response.json();
+    }
+
+    return response.text();
+
+}
+
+
+function isAbortedDashboardRequest(error) {
+
+    return Boolean(error && error.name === "AbortError");
 
 }
 
@@ -226,20 +280,44 @@ function playNotificationSound() {
    03. LOAD CHAT LIST
 ========================================== */
 
-function loadChatList() {
+function loadChatList(loadReason) {
+
+    if (loadReason === "poll" && isChatListRequestPending) {
+        return;
+    }
+
+    const requestId = ++chatListRequestId;
+
+    if (chatListController) {
+        chatListController.abort();
+    }
+
+    chatListController = window.AbortController
+        ? new AbortController()
+        : null;
 
     const params = new URLSearchParams();
 
     params.append("status", chatListStatusFilter);
     params.append("search", chatListSearchQuery);
 
-    fetch("chat/ajax/chat-list.php?" + params.toString())
+    const requestOptions = chatListController
+        ? { signal: chatListController.signal }
+        : {};
+
+    isChatListRequestPending = true;
+
+    fetch("chat/ajax/chat-list.php?" + params.toString(), requestOptions)
 
         .then(function (response) {
-            return response.text();
+            return parseDashboardResponse(response, "html");
         })
 
         .then(function (html) {
+
+            if (requestId !== chatListRequestId) {
+                return;
+            }
 
             const focusedChatItem = document.activeElement
                 && document.activeElement.classList.contains("xd-chat-list-item")
@@ -284,7 +362,18 @@ function loadChatList() {
         })
 
         .catch(function (error) {
+            if (isAbortedDashboardRequest(error)) {
+                return;
+            }
+
             console.error(error);
+        })
+
+        .finally(function () {
+            if (requestId === chatListRequestId) {
+                chatListController = null;
+                isChatListRequestPending = false;
+            }
         });
 
 }
@@ -736,19 +825,47 @@ function updateChatFilterToggleLabel() {
 
 function loadChat(chatId, loadReason) {
 
+    if (loadReason === "poll" && isChatLoadRequestPending) {
+        return;
+    }
+
+    const requestedChatId = String(chatId);
+    const requestId = ++chatLoadRequestId;
+
+    if (chatLoadController) {
+        chatLoadController.abort();
+    }
+
+    chatLoadController = window.AbortController
+        ? new AbortController()
+        : null;
+
     const messageBox = document.getElementById("xdChatMessages");
 
     const wasAtBottom = isMessageBoxAtBottom(messageBox);
 
     const previousScrollTop = messageBox.scrollTop;
 
-    fetch("chat/ajax/load-chat.php?chat_id=" + chatId)
+    const requestOptions = chatLoadController
+        ? { signal: chatLoadController.signal }
+        : {};
+
+    isChatLoadRequestPending = true;
+
+    fetch("chat/ajax/load-chat.php?chat_id=" + encodeURIComponent(chatId), requestOptions)
 
         .then(function (response) {
-            return response.text();
+            return parseDashboardResponse(response, "html");
         })
 
         .then(function (html) {
+
+            if (
+                requestId !== chatLoadRequestId ||
+                requestedChatId !== String(activeChatId)
+            ) {
+                return;
+            }
 
             const currentMessageSignature = getMessageSignature(html);
 
@@ -768,7 +885,7 @@ function loadChat(chatId, loadReason) {
                 updateChatControls(activeChatStatus);
                 isChatMessageNotificationReady = true;
                 isFirstChatLoad = false;
-                updateDashboardPresence();
+                updateDashboardPresence(false, "poll");
 
                 if (chatMobileNeedsSeenSync && shouldMarkChatSeen(chatId)) {
                     markChatSeen(chatId);
@@ -825,12 +942,23 @@ function loadChat(chatId, loadReason) {
                 chatMobileNeedsSeenSync = false;
             }
 
-            updateDashboardPresence();
+            updateDashboardPresence(false, "poll");
 
         })
 
         .catch(function (error) {
+            if (isAbortedDashboardRequest(error)) {
+                return;
+            }
+
             console.error(error);
+        })
+
+        .finally(function () {
+            if (requestId === chatLoadRequestId) {
+                chatLoadController = null;
+                isChatLoadRequestPending = false;
+            }
         });
 
 }
@@ -1060,6 +1188,10 @@ function openVisitorInfoBox(trigger) {
     chatMobileDetailsTrigger = trigger || detailsButton;
     visitorInfoBox.classList.add("active");
     visitorInfoBox.setAttribute("aria-hidden", "false");
+    visitorInfoBox.setAttribute(
+        "aria-modal",
+        chatMobileQuery.matches ? "true" : "false"
+    );
 
     if (detailsButton) {
         detailsButton.setAttribute("aria-expanded", "true");
@@ -1087,6 +1219,7 @@ function closeVisitorInfoBox(restoreFocus) {
     if (visitorInfoBox) {
         visitorInfoBox.classList.remove("active");
         visitorInfoBox.setAttribute("aria-hidden", "true");
+        visitorInfoBox.setAttribute("aria-modal", "false");
     }
 
     if (detailsButton) {
@@ -1343,7 +1476,7 @@ function closeActiveChat() {
     })
 
         .then(function (response) {
-            return response.json();
+            return parseDashboardResponse(response, "json");
         })
 
         .then(function (data) {
@@ -1430,7 +1563,7 @@ function markChatSeen(chatId) {
     fetch("chat/ajax/mark-seen.php", markSeenRequestOptions)
 
         .then(function (response) {
-            return response.json();
+            return parseDashboardResponse(response, "json");
         })
 
         .then(function (data) {
@@ -1478,29 +1611,61 @@ function resetChatWindow() {
 }
 
 
-function updateDashboardPresence(isTyping) {
+function updateDashboardPresence(isTyping, requestReason) {
 
     if (activeChatId <= 0 || activeChatStatus === "closed") {
         return;
     }
 
+    if (requestReason === "poll" && isChatPresenceRequestPending) {
+        return;
+    }
+
+    const requestId = ++chatPresenceRequestId;
+
     const formData = new FormData();
 
     formData.append("chat_id", activeChatId);
     formData.append("is_typing", isTyping ? "1" : "0");
+    appendDashboardCsrfToken(formData);
 
-    fetch("chat/ajax/presence.php", {
+    if (chatPresenceController) {
+        chatPresenceController.abort();
+    }
+
+    const presenceController = window.AbortController
+        ? new AbortController()
+        : null;
+
+    chatPresenceController = presenceController;
+
+    const requestedChatId = String(activeChatId);
+
+    const requestOptions = {
         method: "POST",
         body: formData
-    })
+    };
+
+    if (presenceController) {
+        requestOptions.signal = presenceController.signal;
+    }
+
+    isChatPresenceRequestPending = true;
+
+    fetch("chat/ajax/presence.php", requestOptions)
 
         .then(function (response) {
-            return response.json();
+            return parseDashboardResponse(response, "json");
         })
 
         .then(function (data) {
 
-            if (!data.success || activeChatStatus === "closed") {
+            if (
+                requestId !== chatPresenceRequestId ||
+                !data.success ||
+                activeChatStatus === "closed" ||
+                requestedChatId !== String(activeChatId)
+            ) {
                 return;
             }
 
@@ -1509,7 +1674,18 @@ function updateDashboardPresence(isTyping) {
         })
 
         .catch(function (error) {
+            if (isAbortedDashboardRequest(error)) {
+                return;
+            }
+
             console.error(error);
+        })
+
+        .finally(function () {
+            if (requestId === chatPresenceRequestId) {
+                chatPresenceController = null;
+                isChatPresenceRequestPending = false;
+            }
         });
 
 }
@@ -2219,7 +2395,7 @@ function sendAgentMessage() {
     })
 
         .then(function (response) {
-            return response.json();
+            return parseDashboardResponse(response, "json");
         })
 
         .then(function (data) {
@@ -2279,7 +2455,7 @@ function sendAgentFile(file) {
     })
 
         .then(function (response) {
-            return response.json();
+            return parseDashboardResponse(response, "json");
         })
 
         .then(function (data) {
@@ -2568,7 +2744,7 @@ function deleteDashboardMessage(messageItem) {
     })
 
         .then(function (response) {
-            return response.json();
+            return parseDashboardResponse(response, "json");
         })
 
         .then(function (data) {
@@ -3853,7 +4029,7 @@ function updateChatBottomStackHeight() {
 
 setInterval(function () {
 
-    loadChatList();
+    loadChatList("poll");
 
 }, 3000);
 
@@ -3862,7 +4038,7 @@ setInterval(function () {
 
     if (activeChatId > 0) {
 
-        loadChat(activeChatId);
+        loadChat(activeChatId, "poll");
 
     }
 
@@ -3871,6 +4047,6 @@ setInterval(function () {
 
 setInterval(function () {
 
-    updateDashboardPresence();
+    updateDashboardPresence(false, "poll");
 
 }, 1000);
