@@ -98,6 +98,7 @@ $query = "
         chat_data.created_at,
         chat_data.website_name,
         chat_data.last_message,
+        chat_data.last_message_type,
         chat_data.last_message_time,
         chat_data.unread_count
     FROM (
@@ -117,6 +118,14 @@ $query = "
                 ORDER BY messages.id DESC
                 LIMIT 1
             ) AS last_message,
+
+            (
+                SELECT messages.message_type
+                FROM messages
+                WHERE messages.chat_id = chats.id
+                ORDER BY messages.id DESC
+                LIMIT 1
+            ) AS last_message_type,
 
             (
                 SELECT messages.created_at
@@ -180,9 +189,13 @@ foreach ($chats as $chat) {
         ? $chat["visitor_name"]
         : "Guest Visitor";
 
-    $lastMessage = !empty($chat["last_message"])
-        ? $chat["last_message"]
-        : "No message yet.";
+    $lastMessage = ($chat["last_message_type"] ?? "") === "audio"
+        ? "Voice message"
+        : (
+            !empty($chat["last_message"])
+                ? $chat["last_message"]
+                : "No message yet."
+        );
 
     $messageTime = !empty($chat["last_message_time"])
         ? $chat["last_message_time"]

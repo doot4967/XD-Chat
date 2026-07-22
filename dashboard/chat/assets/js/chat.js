@@ -82,12 +82,50 @@ let recordingStartedAt = 0;
 
 let recordingTimerInterval = null;
 
+let discardStoppedVoicePreview = false;
+
+let voiceRecordingRequestId = 0;
+
+let isVoiceRecordingRequestPending = false;
+
+let chatVoiceFeedbackTimer = null;
+
+const chatMobileQuery = window.matchMedia("(max-width: 992px)");
+
+const chatMobileHistoryKey = "xdChatMobileView";
+
+const chatFilterFocusableTabindex = new Map();
+
+let isChatFilterPopoverOpen = false;
+
+let chatMobileView = "list";
+
+let chatMobileHistoryOwned = false;
+
+let chatMobileViewportFrame = null;
+
+let chatMobileDetailsTrigger = null;
+
+let chatCloseDialogTrigger = null;
+
+let chatBottomStackObserver = null;
+
+let chatMobileNeedsSeenSync = false;
+
+let chatMarkSeenController = null;
+
+let dashboardMessageActionState = null;
+
+let dashboardMessageActionPendingFocusId = "";
+
 
 /* ==========================================
    02. DOCUMENT READY
 ========================================== */
 
 document.addEventListener("DOMContentLoaded", function () {
+
+    registerChatMobileLayout();
 
     loadChatList();
 
@@ -203,6 +241,11 @@ function loadChatList() {
 
         .then(function (html) {
 
+            const focusedChatItem = document.activeElement
+                && document.activeElement.classList.contains("xd-chat-list-item")
+                ? document.activeElement.dataset.chatId
+                : "";
+
             const currentUnreadCounts = getUnreadCountsFromChatList(html);
 
             if (
@@ -228,6 +271,16 @@ function loadChatList() {
 
             keepActiveChatSelected();
 
+            if (focusedChatItem && chatMobileView === "list") {
+                const refreshedFocusedItem = document.querySelector(
+                    '.xd-chat-list-item[data-chat-id="' + focusedChatItem + '"]'
+                );
+
+                if (refreshedFocusedItem) {
+                    refreshedFocusedItem.focus({ preventScroll: true });
+                }
+            }
+
         })
 
         .catch(function (error) {
@@ -250,6 +303,7 @@ function registerChatEvents() {
         item.addEventListener("click", function () {
 
             enableNotificationHelper();
+            closeChatFilterPopover(false);
 
             items.forEach(function (chat) {
                 chat.classList.remove("active");
@@ -257,7 +311,13 @@ function registerChatEvents() {
 
             this.classList.add("active");
 
-            activeChatId = this.dataset.chatId;
+            const nextChatId = this.dataset.chatId;
+
+            if (String(activeChatId) !== String(nextChatId)) {
+                resetComposerForChatSwitch();
+            }
+
+            activeChatId = nextChatId;
 
             activeChatStatus = this.dataset.chatStatus || "open";
 
@@ -289,6 +349,8 @@ function registerChatEvents() {
                 "Loading conversation...";
 
             updateChatControls(activeChatStatus);
+
+            openChatMobileConversation();
 
             loadChat(activeChatId, "open");
 
@@ -408,7 +470,10 @@ function registerFilterEvents() {
 
             resetChatWindow();
 
+            resetChatMobileListHistory();
+
             loadChatList();
+            closeChatFilterPopover(true);
 
         });
 
@@ -422,11 +487,13 @@ function updateChatFilterActiveState() {
     const filterButtons = document.querySelectorAll(".xd-chat-filter");
 
     filterButtons.forEach(function (item) {
-        item.classList.toggle(
-            "active",
-            (item.dataset.status || "open") === chatListStatusFilter
-        );
+        const isActive = (item.dataset.status || "open") === chatListStatusFilter;
+
+        item.classList.toggle("active", isActive);
+        item.setAttribute("aria-pressed", isActive ? "true" : "false");
     });
+
+    updateChatFilterToggleLabel();
 
 }
 
@@ -471,6 +538,7 @@ function registerSearchEvents() {
     searchInput.addEventListener("input", function () {
 
         clearTimeout(chatSearchDebounceTimer);
+        updateChatFilterToggleLabel();
 
         chatSearchDebounceTimer = setTimeout(function () {
 
@@ -481,6 +549,183 @@ function registerSearchEvents() {
         }, 300);
 
     });
+
+}
+
+
+function registerChatFilterPopover() {
+
+    const toggleButton = document.getElementById("xdChatFilterToggle");
+    const closeButton = document.getElementById("xdChatFilterClose");
+    const popover = document.getElementById("xdChatFilterPopover");
+
+    if (!toggleButton || !closeButton || !popover) {
+        return;
+    }
+
+    popover.querySelectorAll("input, button").forEach(function (element) {
+        chatFilterFocusableTabindex.set(
+            element,
+            element.hasAttribute("tabindex") ? element.getAttribute("tabindex") : null
+        );
+    });
+
+    toggleButton.addEventListener("click", function () {
+        if (isChatFilterPopoverOpen) {
+            closeChatFilterPopover(true);
+            return;
+        }
+
+        openChatFilterPopover();
+    });
+
+    closeButton.addEventListener("click", function () {
+        closeChatFilterPopover(true);
+    });
+
+    document.addEventListener("click", function (event) {
+        if (
+            !isChatFilterPopoverOpen ||
+            popover.contains(event.target) ||
+            toggleButton.contains(event.target)
+        ) {
+            return;
+        }
+
+        closeChatFilterPopover(true);
+    });
+
+    syncChatFilterPopoverForViewport();
+    updateChatFilterToggleLabel();
+
+}
+
+
+function openChatFilterPopover() {
+
+    if (!chatMobileQuery.matches || chatMobileView !== "list") {
+        return;
+    }
+
+    const toggleButton = document.getElementById("xdChatFilterToggle");
+    const popover = document.getElementById("xdChatFilterPopover");
+    const searchInput = document.getElementById("xdChatSearch");
+
+    if (!toggleButton || !popover || !searchInput) {
+        return;
+    }
+
+    isChatFilterPopoverOpen = true;
+    popover.hidden = false;
+    popover.classList.add("is-open");
+    popover.setAttribute("aria-hidden", "false");
+    toggleButton.setAttribute("aria-expanded", "true");
+    setChatFilterPopoverFocusability(true);
+    searchInput.focus({ preventScroll: true });
+
+}
+
+
+function closeChatFilterPopover(restoreFocus) {
+
+    const toggleButton = document.getElementById("xdChatFilterToggle");
+    const popover = document.getElementById("xdChatFilterPopover");
+
+    if (!toggleButton || !popover) {
+        return;
+    }
+
+    const wasOpen = isChatFilterPopoverOpen;
+    const shouldRestoreFocus = restoreFocus && wasOpen && chatMobileQuery.matches;
+
+    if (shouldRestoreFocus) {
+        toggleButton.focus({ preventScroll: true });
+    }
+
+    isChatFilterPopoverOpen = false;
+    popover.classList.remove("is-open");
+    toggleButton.setAttribute("aria-expanded", "false");
+
+    if (chatMobileQuery.matches) {
+        popover.setAttribute("aria-hidden", "true");
+        setChatFilterPopoverFocusability(false);
+        popover.hidden = true;
+    } else {
+        popover.hidden = false;
+        popover.setAttribute("aria-hidden", "false");
+        setChatFilterPopoverFocusability(true);
+    }
+
+}
+
+
+function syncChatFilterPopoverForViewport() {
+
+    if (chatMobileQuery.matches) {
+        closeChatFilterPopover(false);
+        return;
+    }
+
+    isChatFilterPopoverOpen = false;
+
+    const toggleButton = document.getElementById("xdChatFilterToggle");
+    const popover = document.getElementById("xdChatFilterPopover");
+
+    if (toggleButton) {
+        toggleButton.setAttribute("aria-expanded", "false");
+    }
+
+    if (popover) {
+        popover.hidden = false;
+        popover.classList.remove("is-open");
+        popover.setAttribute("aria-hidden", "false");
+    }
+
+    setChatFilterPopoverFocusability(true);
+
+}
+
+
+function setChatFilterPopoverFocusability(isEnabled) {
+
+    chatFilterFocusableTabindex.forEach(function (originalTabindex, element) {
+        if (isEnabled) {
+            if (originalTabindex === null) {
+                element.removeAttribute("tabindex");
+            } else {
+                element.setAttribute("tabindex", originalTabindex);
+            }
+            return;
+        }
+
+        element.setAttribute("tabindex", "-1");
+    });
+
+}
+
+
+function updateChatFilterToggleLabel() {
+
+    const label = document.getElementById("xdChatFilterToggleLabel");
+    const toggleButton = document.getElementById("xdChatFilterToggle");
+    const searchInput = document.getElementById("xdChatSearch");
+    const statusLabel = chatListStatusFilter.charAt(0).toUpperCase()
+        + chatListStatusFilter.slice(1);
+
+    if (label) {
+        label.textContent = "Filter \u00B7 " + statusLabel;
+    }
+
+    if (toggleButton) {
+        toggleButton.setAttribute(
+            "aria-label",
+            "Filter conversations: " + statusLabel
+        );
+        toggleButton.classList.toggle(
+            "has-search",
+            Boolean(searchInput && searchInput.value.trim() !== "")
+        );
+    }
 
 }
 
@@ -524,10 +769,16 @@ function loadChat(chatId, loadReason) {
                 isChatMessageNotificationReady = true;
                 isFirstChatLoad = false;
                 updateDashboardPresence();
+
+                if (chatMobileNeedsSeenSync && shouldMarkChatSeen(chatId)) {
+                    markChatSeen(chatId);
+                    chatMobileNeedsSeenSync = false;
+                }
+
                 return;
             }
 
-            closeDashboardMessageActionMenus();
+            closeDashboardMessageActionMenus({ deferFocus: true });
 
             if (shouldPreserveMedia && previousMessageSignature !== "") {
                 appendNewChatMessages(messageBox, html);
@@ -565,9 +816,14 @@ function loadChat(chatId, loadReason) {
                 previousScrollTop
             );
 
+            restoreDashboardMessageActionFocus(messageBox);
+
             isFirstChatLoad = false;
 
-            markChatSeen(chatId);
+            if (shouldMarkChatSeen(chatId)) {
+                markChatSeen(chatId);
+                chatMobileNeedsSeenSync = false;
+            }
 
             updateDashboardPresence();
 
@@ -586,7 +842,7 @@ function loadChat(chatId, loadReason) {
 
 function updateVisitorInfoBox(messageBox) {
 
-    const visitorInfoBox = document.getElementById("xdChatVisitorInfo");
+    const visitorInfoBox = document.getElementById("xdChatVisitorInfoContent");
 
     const visitorPayload = messageBox.querySelector(".xd-chat-visitor-payload");
 
@@ -755,26 +1011,101 @@ function registerVisitorInfoToggle() {
 
     const visitorInfoBox = document.getElementById("xdChatVisitorInfo");
 
+    const detailsCloseButton = document.getElementById("xdChatDetailsClose");
+
+    const detailsBackdrop = document.getElementById("xdChatDetailsBackdrop");
+
     if (!detailsButton || !visitorInfoBox) {
         return;
     }
 
     detailsButton.addEventListener("click", function () {
 
-        visitorInfoBox.classList.toggle("active");
+        if (visitorInfoBox.classList.contains("active")) {
+            closeVisitorInfoBox(true);
+            return;
+        }
+
+        openVisitorInfoBox(detailsButton);
 
     });
+
+    if (detailsCloseButton) {
+        detailsCloseButton.addEventListener("click", function () {
+            closeVisitorInfoBox(true);
+        });
+    }
+
+    if (detailsBackdrop) {
+        detailsBackdrop.addEventListener("click", function () {
+            closeVisitorInfoBox(true);
+        });
+    }
 
 }
 
 
-function closeVisitorInfoBox() {
+function openVisitorInfoBox(trigger) {
+
+    const visitorInfoBox = document.getElementById("xdChatVisitorInfo");
+    const detailsButton = document.getElementById("xdChatDetailsToggle");
+    const detailsBackdrop = document.getElementById("xdChatDetailsBackdrop");
+    const detailsCloseButton = document.getElementById("xdChatDetailsClose");
+
+    if (!visitorInfoBox) {
+        return;
+    }
+
+    closeChatMobileActions();
+    chatMobileDetailsTrigger = trigger || detailsButton;
+    visitorInfoBox.classList.add("active");
+    visitorInfoBox.setAttribute("aria-hidden", "false");
+
+    if (detailsButton) {
+        detailsButton.setAttribute("aria-expanded", "true");
+    }
+
+    if (chatMobileQuery.matches && detailsBackdrop) {
+        detailsBackdrop.classList.add("active");
+    }
+
+    if (chatMobileQuery.matches && detailsCloseButton) {
+        detailsCloseButton.focus();
+    }
+
+}
+
+
+function closeVisitorInfoBox(restoreFocus) {
 
     const visitorInfoBox = document.getElementById("xdChatVisitorInfo");
 
+    const detailsButton = document.getElementById("xdChatDetailsToggle");
+
+    const detailsBackdrop = document.getElementById("xdChatDetailsBackdrop");
+
     if (visitorInfoBox) {
         visitorInfoBox.classList.remove("active");
+        visitorInfoBox.setAttribute("aria-hidden", "true");
     }
+
+    if (detailsButton) {
+        detailsButton.setAttribute("aria-expanded", "false");
+    }
+
+    if (detailsBackdrop) {
+        detailsBackdrop.classList.remove("active");
+    }
+
+    if (
+        restoreFocus &&
+        chatMobileDetailsTrigger &&
+        document.contains(chatMobileDetailsTrigger)
+    ) {
+        chatMobileDetailsTrigger.focus();
+    }
+
+    chatMobileDetailsTrigger = null;
 
 }
 
@@ -806,9 +1137,90 @@ function registerCloseChatEvent() {
 
         enableNotificationHelper();
 
-        closeActiveChat();
+        closeChatMobileActions();
+
+        if (activeChatStatus === "closed") {
+            closeActiveChat();
+            return;
+        }
+
+        openChatCloseDialog(closeButton);
 
     });
+
+    registerChatCloseDialogEvents();
+
+}
+
+
+function registerChatCloseDialogEvents() {
+
+    const dialog = document.getElementById("xdChatCloseDialog");
+    const cancelButton = document.getElementById("xdChatCloseDialogCancel");
+    const confirmButton = document.getElementById("xdChatCloseDialogConfirm");
+
+    if (!dialog || !cancelButton || !confirmButton) {
+        return;
+    }
+
+    cancelButton.addEventListener("click", function () {
+        closeChatCloseDialog(true);
+    });
+
+    confirmButton.addEventListener("click", function () {
+        closeChatCloseDialog(false);
+        closeActiveChat();
+    });
+
+    dialog.addEventListener("click", function (event) {
+        if (event.target === dialog) {
+            closeChatCloseDialog(true);
+        }
+    });
+
+}
+
+
+function openChatCloseDialog(trigger) {
+
+    const dialog = document.getElementById("xdChatCloseDialog");
+    const cancelButton = document.getElementById("xdChatCloseDialogCancel");
+
+    if (!dialog || !cancelButton || activeChatId <= 0) {
+        return;
+    }
+
+    closeVisitorInfoBox(false);
+    chatCloseDialogTrigger = trigger || document.getElementById("xdChatCloseButton");
+    dialog.classList.add("active");
+    dialog.setAttribute("aria-hidden", "false");
+    document.body.classList.add("xd-chat-dialog-open");
+    cancelButton.focus();
+
+}
+
+
+function closeChatCloseDialog(restoreFocus) {
+
+    const dialog = document.getElementById("xdChatCloseDialog");
+
+    if (!dialog) {
+        return;
+    }
+
+    dialog.classList.remove("active");
+    dialog.setAttribute("aria-hidden", "true");
+    document.body.classList.remove("xd-chat-dialog-open");
+
+    if (
+        restoreFocus &&
+        chatCloseDialogTrigger &&
+        document.contains(chatCloseDialogTrigger)
+    ) {
+        chatCloseDialogTrigger.focus();
+    }
+
+    chatCloseDialogTrigger = null;
 
 }
 
@@ -839,7 +1251,7 @@ function updateChatControls(chatStatus) {
 
     emojiButton.disabled = !hasActiveChat || isClosed;
 
-    recordButton.disabled = !hasActiveChat || isClosed;
+    recordButton.disabled = !hasActiveChat || isClosed || isVoiceRecordingRequestPending;
 
     closeButton.disabled = !hasActiveChat || isChatStatusUpdating;
 
@@ -858,6 +1270,22 @@ function updateChatControls(chatStatus) {
     if (!hasActiveChat || isClosed) {
         closeChatComposerPanels();
     }
+
+    updateChatComposerPrimaryAction();
+
+}
+
+
+function updateChatComposerPrimaryAction() {
+
+    const composer = document.querySelector(".xd-live-chat-composer");
+    const input = document.getElementById("xdChatInput");
+
+    if (!composer || !input) {
+        return;
+    }
+
+    composer.classList.toggle("has-message", input.value.trim() !== "");
 
 }
 
@@ -951,6 +1379,28 @@ function closeActiveChat() {
 }
 
 
+function shouldMarkChatSeen(chatId) {
+
+    if (
+        parseInt(chatId, 10) !== parseInt(activeChatId, 10) ||
+        document.visibilityState !== "visible"
+    ) {
+        return false;
+    }
+
+    if (!chatMobileQuery.matches) {
+        return true;
+    }
+
+    const conversationPanel = document.getElementById("xdChatConversationPanel");
+
+    return chatMobileView === "conversation"
+        && conversationPanel
+        && !conversationPanel.hidden;
+
+}
+
+
 function markChatSeen(chatId) {
 
     const formData = new FormData();
@@ -958,10 +1408,26 @@ function markChatSeen(chatId) {
     formData.append("chat_id", chatId);
     appendDashboardCsrfToken(formData);
 
-    fetch("chat/ajax/mark-seen.php", {
+    if (chatMarkSeenController) {
+        chatMarkSeenController.abort();
+    }
+
+    const markSeenController = window.AbortController
+        ? new AbortController()
+        : null;
+
+    chatMarkSeenController = markSeenController;
+
+    const markSeenRequestOptions = {
         method: "POST",
         body: formData
-    })
+    };
+
+    if (markSeenController) {
+        markSeenRequestOptions.signal = markSeenController.signal;
+    }
+
+    fetch("chat/ajax/mark-seen.php", markSeenRequestOptions)
 
         .then(function (response) {
             return response.json();
@@ -976,7 +1442,17 @@ function markChatSeen(chatId) {
         })
 
         .catch(function (error) {
+            if (error && error.name === "AbortError") {
+                return;
+            }
+
             console.error(error);
+        })
+
+        .finally(function () {
+            if (chatMarkSeenController === markSeenController) {
+                chatMarkSeenController = null;
+            }
         });
 
 }
@@ -995,7 +1471,7 @@ function resetChatWindow() {
 
     document.getElementById("xdChatMessages").innerHTML = `
         <div class="xd-chat-empty-state large">
-            Select a visitor from the left side to start chatting.
+            Select a conversation to start chatting.
         </div>
     `;
 
@@ -1214,6 +1690,7 @@ function insertChatEmojiAtCursor(emoji) {
     input.focus();
     input.selectionStart = start + emoji.length;
     input.selectionEnd = start + emoji.length;
+    updateChatComposerPrimaryAction();
 
     saveChatRecentEmoji(emoji);
     renderChatEmojiPicker(document.getElementById("xdChatEmojiSearch").value);
@@ -1253,21 +1730,53 @@ function getChatVoiceFileExtension(mimeType) {
 
 function startChatVoiceRecording() {
 
-    if (
-        activeChatId <= 0 ||
-        activeChatStatus === "closed" ||
-        !navigator.mediaDevices ||
-        !window.MediaRecorder
-    ) {
+    if (activeChatId <= 0 || activeChatStatus === "closed") {
         return;
     }
+
+    if (!window.isSecureContext || !navigator.mediaDevices) {
+        showChatVoiceFeedback(
+            "Microphone access requires HTTPS or localhost. Open this dashboard over a secure connection.",
+            "error"
+        );
+        return;
+    }
+
+    if (!window.MediaRecorder) {
+        showChatVoiceFeedback(
+            "Voice recording is not supported by this browser.",
+            "error"
+        );
+        return;
+    }
+
+    const recordingRequestId = ++voiceRecordingRequestId;
+    const recordButton = document.getElementById("xdChatRecord");
+
+    isVoiceRecordingRequestPending = true;
+    recordButton.disabled = true;
+    recordButton.setAttribute("aria-busy", "true");
+    showChatVoiceFeedback("Waiting for microphone permission...", "info", false);
 
     navigator.mediaDevices.getUserMedia({ audio: true })
         .then(function (stream) {
 
+            if (
+                recordingRequestId !== voiceRecordingRequestId ||
+                (chatMobileQuery.matches && chatMobileView !== "conversation")
+            ) {
+                stream.getTracks().forEach(function (track) {
+                    track.stop();
+                });
+                return;
+            }
+
+            isVoiceRecordingRequestPending = false;
+            recordButton.removeAttribute("aria-busy");
+            updateChatControls(activeChatStatus);
+
             const mimeType = getChatVoiceMimeType();
             const recorderOptions = mimeType ? { mimeType: mimeType } : {};
-            const recordButton = document.getElementById("xdChatRecord");
 
             recordingChunks = [];
             recordedVoiceBlob = null;
@@ -1284,6 +1793,14 @@ function startChatVoiceRecording() {
                     track.stop();
                 });
 
+                if (discardStoppedVoicePreview) {
+                    discardStoppedVoicePreview = false;
+                    recordingChunks = [];
+                    recordedVoiceBlob = null;
+                    cancelChatVoiceRecording();
+                    return;
+                }
+
                 recordedVoiceBlob = new Blob(recordingChunks, {
                     type: mediaRecorder.mimeType || "audio/webm"
                 });
@@ -1296,12 +1813,22 @@ function startChatVoiceRecording() {
             document.getElementById("xdChatRecordPanel").classList.add("active");
             document.getElementById("xdChatRecordPreview").classList.remove("active");
             recordButton.classList.add("recording");
+            recordButton.setAttribute("aria-pressed", "true");
             recordButton.innerHTML = chatStopIconSvg;
+            hideChatVoiceFeedback();
             startChatRecordingTimer();
 
         })
         .catch(function (error) {
-            console.error(error);
+            if (recordingRequestId !== voiceRecordingRequestId) {
+                return;
+            }
+
+            isVoiceRecordingRequestPending = false;
+            recordButton.removeAttribute("aria-busy");
+            updateChatControls(activeChatStatus);
+            showChatVoiceFeedback(getChatVoiceErrorMessage(error), "error");
+            console.error("Voice recording could not start.", error);
         });
 
 }
@@ -1318,7 +1845,71 @@ function stopChatVoiceRecording() {
     stopChatRecordingTimer();
     document.getElementById("xdChatRecordPanel").classList.remove("active");
     recordButton.classList.remove("recording");
+    recordButton.setAttribute("aria-pressed", "false");
     recordButton.innerHTML = chatMicIconSvg;
+
+}
+
+
+function getChatVoiceErrorMessage(error) {
+
+    if (!error || !error.name) {
+        return "Voice recording could not start. Please try again.";
+    }
+
+    if (error.name === "NotAllowedError" || error.name === "SecurityError") {
+        return "Microphone permission is blocked. Allow microphone access in your browser settings.";
+    }
+
+    if (error.name === "NotFoundError") {
+        return "No microphone was found on this device.";
+    }
+
+    if (error.name === "NotReadableError" || error.name === "AbortError") {
+        return "The microphone is unavailable or being used by another application.";
+    }
+
+    return "Voice recording could not start. Please try again.";
+
+}
+
+
+function showChatVoiceFeedback(message, type, autoHide) {
+
+    const feedback = document.getElementById("xdChatVoiceFeedback");
+
+    if (!feedback) {
+        return;
+    }
+
+    window.clearTimeout(chatVoiceFeedbackTimer);
+    feedback.textContent = message;
+    feedback.hidden = false;
+    feedback.classList.toggle("is-info", type === "info");
+
+    if (autoHide !== false) {
+        chatVoiceFeedbackTimer = window.setTimeout(hideChatVoiceFeedback, 7000);
+    }
+
+    updateChatBottomStackHeight();
+
+}
+
+
+function hideChatVoiceFeedback() {
+
+    const feedback = document.getElementById("xdChatVoiceFeedback");
+
+    window.clearTimeout(chatVoiceFeedbackTimer);
+    chatVoiceFeedbackTimer = null;
+
+    if (feedback) {
+        feedback.hidden = true;
+        feedback.textContent = "";
+        feedback.classList.remove("is-info");
+    }
+
+    updateChatBottomStackHeight();
 
 }
 
@@ -1382,6 +1973,7 @@ function cancelChatVoiceRecording() {
     recordedVoiceBlob = null;
     previewAudio.removeAttribute("src");
     previewBox.classList.remove("active");
+    hideChatVoiceFeedback();
 
 }
 
@@ -1465,6 +2057,7 @@ function registerSendEvents() {
     input.addEventListener("input", function () {
 
         enableNotificationHelper();
+        updateChatComposerPrimaryAction();
 
         if (
             activeChatId > 0 &&
@@ -1618,6 +2211,7 @@ function sendAgentMessage() {
     appendDashboardCsrfToken(formData);
 
     input.value = "";
+    updateChatComposerPrimaryAction();
 
     fetch("chat/ajax/send-message.php", {
         method: "POST",
@@ -1721,7 +2315,7 @@ function registerMessageActions() {
         return;
     }
 
-    messageBox.addEventListener("click", function (event) {
+    document.addEventListener("click", function (event) {
 
         const actionButton = event.target.closest(".xd-message-actions button");
 
@@ -1729,7 +2323,8 @@ function registerMessageActions() {
             return;
         }
 
-        const messageItem = actionButton.closest(".xd-admin-message");
+        const messageItem = actionButton.closest(".xd-admin-message")
+            || (dashboardMessageActionState && dashboardMessageActionState.messageItem);
 
         if (!messageItem) {
             return;
@@ -1744,6 +2339,12 @@ function registerMessageActions() {
         if (actionButton.dataset.action === "copy") {
             closeDashboardMessageActionMenus();
             copyMessageText(messageItem);
+            return;
+        }
+
+        if (actionButton.dataset.action === "download") {
+            closeDashboardMessageActionMenus();
+            downloadDashboardVoiceMessage(actionButton);
             return;
         }
 
@@ -1810,6 +2411,10 @@ function registerMessageActions() {
 
     document.addEventListener("click", function (event) {
 
+        if (event.target.closest(".xd-message-actions")) {
+            return;
+        }
+
         if (
             !document.getElementById("xdChatMessages").contains(event.target) ||
             (
@@ -1829,6 +2434,11 @@ function registerMessageActions() {
         }
 
     });
+
+    /* Close the fixed-position portal before any scroll can detach it from its trigger. */
+    document.addEventListener("scroll", function () {
+        closeDashboardMessageActionMenus();
+    }, true);
 
     let messageLongPressTimer = null;
     let shouldSkipMessageClick = false;
@@ -1860,6 +2470,34 @@ function registerMessageActions() {
         });
 
     });
+
+}
+
+
+function downloadDashboardVoiceMessage(actionButton) {
+
+    const downloadUrl = actionButton.dataset.downloadUrl || "";
+
+    if (downloadUrl === "") {
+        return;
+    }
+
+    const resolvedUrl = new URL(downloadUrl, window.location.href);
+
+    if (
+        resolvedUrl.origin !== window.location.origin ||
+        !resolvedUrl.pathname.endsWith("/dashboard/chat/ajax/download-file.php")
+    ) {
+        return;
+    }
+
+    const downloadLink = document.createElement("a");
+    downloadLink.href = resolvedUrl.href;
+    downloadLink.download = actionButton.dataset.downloadName || "voice-message";
+    downloadLink.hidden = true;
+    document.body.appendChild(downloadLink);
+    downloadLink.click();
+    downloadLink.remove();
 
 }
 
@@ -2074,14 +2712,45 @@ function showCopyFeedback(messageItem) {
 }
 
 
-function closeDashboardMessageActionMenus() {
+function closeDashboardMessageActionMenus(options) {
+
+    const settings = options || {};
+    const shouldRestoreFocus = settings.restoreFocus !== false;
+    const currentState = dashboardMessageActionState;
+
+    if (currentState) {
+        const messageItem = currentState.messageItem;
+        const menu = currentState.menu;
+        const originalParent = currentState.originalParent;
+
+        messageItem.classList.remove("actions-open", "actions-up", "actions-left");
+        menu.classList.remove("is-portal-open");
+        menu.removeAttribute("data-placement");
+        menu.removeAttribute("style");
+        menu.setAttribute("aria-hidden", "true");
+
+        if (originalParent && document.contains(originalParent)) {
+            originalParent.appendChild(menu);
+        }
+
+        if (shouldRestoreFocus) {
+            if (settings.deferFocus) {
+                dashboardMessageActionPendingFocusId = currentState.messageId;
+            } else if (
+                currentState.trigger &&
+                document.contains(currentState.trigger)
+            ) {
+                currentState.trigger.focus({ preventScroll: true });
+            }
+        }
+
+        dashboardMessageActionState = null;
+    }
 
     document
         .querySelectorAll(".xd-admin-message.actions-open")
         .forEach(function (messageItem) {
-            messageItem.classList.remove("actions-open");
-            messageItem.classList.remove("actions-up");
-            messageItem.classList.remove("actions-left");
+            messageItem.classList.remove("actions-open", "actions-up", "actions-left");
 
             const menu = messageItem.querySelector(".xd-message-actions");
 
@@ -2095,41 +2764,129 @@ function closeDashboardMessageActionMenus() {
 
 function openDashboardMessageActionMenu(messageItem, messageBox) {
 
-    closeDashboardMessageActionMenus();
-    messageItem.classList.add("actions-open");
+    closeDashboardMessageActionMenus({ restoreFocus: false });
 
     const menu = messageItem.querySelector(".xd-message-actions");
+    const trigger = messageItem.querySelector(".xd-message-menu-trigger");
 
-    if (menu) {
-        menu.setAttribute("aria-hidden", "false");
+    if (!menu || !trigger) {
+        return;
     }
 
+    dashboardMessageActionPendingFocusId = "";
+    dashboardMessageActionState = {
+        messageItem: messageItem,
+        messageId: messageItem.dataset.messageId || "",
+        menu: menu,
+        originalParent: menu.parentElement,
+        trigger: trigger
+    };
+
+    messageItem.classList.add("actions-open");
+    menu.setAttribute("aria-hidden", "false");
+    menu.classList.add("is-portal-open");
+    menu.style.visibility = "hidden";
+    document.body.appendChild(menu);
+
     positionDashboardMessageActionMenu(messageItem, messageBox);
+    menu.style.removeProperty("visibility");
+
+    const firstAction = menu.querySelector("button:not(:disabled)");
+
+    if (firstAction) {
+        firstAction.focus({ preventScroll: true });
+    }
 
 }
 
 
 function positionDashboardMessageActionMenu(messageItem, messageBox) {
 
-    const messageRect = messageItem.getBoundingClientRect();
-    const boxRect = messageBox.getBoundingClientRect();
-    const menu = messageItem.querySelector(".xd-message-actions");
-    const menuWidth = menu ? menu.offsetWidth : 150;
-    const menuHeight = menu ? menu.offsetHeight : 150;
-    const safeBottom = Math.min(
-        boxRect.bottom,
-        window.innerHeight - 16
-    );
-
-    messageItem.classList.remove("actions-up");
-    messageItem.classList.remove("actions-left");
-
-    if (safeBottom - messageRect.bottom < menuHeight + 12) {
-        messageItem.classList.add("actions-up");
+    if (!dashboardMessageActionState) {
+        return;
     }
 
-    if (messageRect.right - menuWidth < boxRect.left + 8) {
-        messageItem.classList.add("actions-left");
+    const menu = dashboardMessageActionState.menu;
+    const trigger = dashboardMessageActionState.trigger;
+    const triggerRect = trigger.getBoundingClientRect();
+    const boxRect = messageBox.getBoundingClientRect();
+    const composer = document.querySelector(".xd-live-chat-composer");
+    const composerRect = composer && composer.getClientRects().length > 0
+        ? composer.getBoundingClientRect()
+        : null;
+    const viewport = window.visualViewport;
+    const viewportTop = viewport ? viewport.offsetTop : 0;
+    const viewportLeft = viewport ? viewport.offsetLeft : 0;
+    const viewportWidth = viewport ? viewport.width : window.innerWidth;
+    const viewportHeight = viewport ? viewport.height : window.innerHeight;
+    const safeGap = 8;
+    const safeTop = Math.max(viewportTop + safeGap, boxRect.top + safeGap);
+    let safeBottom = Math.min(
+        viewportTop + viewportHeight - safeGap,
+        boxRect.bottom - safeGap
+    );
+
+    if (composerRect) {
+        safeBottom = Math.min(safeBottom, composerRect.top - safeGap);
+    }
+
+    if (safeBottom <= safeTop) {
+        safeBottom = viewportTop + viewportHeight - safeGap;
+    }
+
+    const availableHeight = Math.max(44, safeBottom - safeTop);
+    menu.style.maxHeight = Math.floor(availableHeight) + "px";
+    menu.style.overflowY = "auto";
+
+    const menuWidth = menu.offsetWidth || 150;
+    const menuHeight = Math.min(menu.offsetHeight || 150, availableHeight);
+    const spaceBelow = safeBottom - triggerRect.bottom;
+    const spaceAbove = triggerRect.top - safeTop;
+    const shouldOpenUp =
+        spaceBelow < menuHeight + safeGap &&
+        spaceAbove > spaceBelow;
+    const maximumTop = Math.max(safeTop, safeBottom - menuHeight);
+    const desiredTop = shouldOpenUp
+        ? triggerRect.top - menuHeight - safeGap
+        : triggerRect.bottom + safeGap;
+    const menuTop = Math.min(Math.max(desiredTop, safeTop), maximumTop);
+    const safeLeft = viewportLeft + safeGap;
+    const safeRight = viewportLeft + viewportWidth - safeGap;
+    const maximumLeft = Math.max(safeLeft, safeRight - menuWidth);
+    const desiredLeft = triggerRect.right - menuWidth;
+    const menuLeft = Math.min(Math.max(desiredLeft, safeLeft), maximumLeft);
+
+    messageItem.classList.toggle("actions-up", shouldOpenUp);
+    menu.dataset.placement = shouldOpenUp ? "up" : "down";
+    menu.style.top = Math.round(menuTop) + "px";
+    menu.style.right = "auto";
+    menu.style.bottom = "auto";
+    menu.style.left = Math.round(menuLeft) + "px";
+
+}
+
+
+function restoreDashboardMessageActionFocus(messageBox) {
+
+    if (!dashboardMessageActionPendingFocusId || !messageBox) {
+        return;
+    }
+
+    const pendingMessageId = dashboardMessageActionPendingFocusId;
+    dashboardMessageActionPendingFocusId = "";
+
+    const messageItem = Array.from(
+        messageBox.querySelectorAll(".xd-admin-message[data-message-id]")
+    ).find(function (item) {
+        return String(item.dataset.messageId) === String(pendingMessageId);
+    });
+
+    const trigger = messageItem
+        ? messageItem.querySelector(".xd-message-menu-trigger")
+        : null;
+
+    if (trigger) {
+        trigger.focus({ preventScroll: true });
     }
 
 }
@@ -2403,7 +3160,695 @@ function hideNewMessagesButton() {
 
 
 /* ==========================================
-   12. AUTO REFRESH
+   12. MOBILE CHAT LAYOUT CONTROLLER
+========================================== */
+
+function registerChatMobileLayout() {
+
+    const root = document.getElementById("xdLiveChat");
+    const backButton = document.getElementById("xdChatMobileBack");
+    const moreButton = document.getElementById("xdChatMoreActions");
+    const closeDialog = document.getElementById("xdChatCloseDialog");
+
+    if (!root || !backButton || !moreButton) {
+        return;
+    }
+
+    document.body.classList.add("xd-chat-mobile-enhanced");
+    registerChatFilterPopover();
+
+    if (closeDialog && closeDialog.parentElement !== document.body) {
+        document.body.appendChild(closeDialog);
+    }
+
+    backButton.addEventListener("click", function () {
+        returnToChatMobileList();
+    });
+
+    moreButton.addEventListener("click", function () {
+        const actions = document.getElementById("xdChatHeaderActions");
+
+        if (actions && actions.classList.contains("active")) {
+            closeChatMobileActions(true);
+            return;
+        }
+
+        openChatMobileActions();
+    });
+
+    document.addEventListener("click", function (event) {
+        const actions = document.getElementById("xdChatHeaderActions");
+
+        if (
+            actions &&
+            actions.classList.contains("active") &&
+            !actions.contains(event.target) &&
+            !moreButton.contains(event.target)
+        ) {
+            closeChatMobileActions(false);
+        }
+    });
+
+    document.addEventListener("keydown", handleChatMobileOverlayKeydown);
+    window.addEventListener("popstate", handleChatMobileHistoryChange);
+
+    if (typeof chatMobileQuery.addEventListener === "function") {
+        chatMobileQuery.addEventListener("change", handleChatMobileBreakpointChange);
+    } else {
+        chatMobileQuery.addListener(handleChatMobileBreakpointChange);
+    }
+
+    if (window.visualViewport) {
+        window.visualViewport.addEventListener("resize", scheduleChatMobileViewportUpdate);
+        window.visualViewport.addEventListener("scroll", scheduleChatMobileViewportUpdate);
+    }
+
+    registerChatBottomStackObserver();
+
+    if (chatMobileQuery.matches) {
+        replaceChatMobileHistoryView("list");
+        showChatMobileList({ restoreFocus: false, replaceHistory: false });
+    } else {
+        showChatDesktopLayout();
+    }
+
+}
+
+
+function openChatMobileConversation() {
+
+    if (!chatMobileQuery.matches || activeChatId <= 0) {
+        return;
+    }
+
+    showChatMobileConversation({ pushHistory: true, focusBack: true });
+
+}
+
+
+function showChatMobileConversation(options) {
+
+    const settings = options || {};
+    const root = document.getElementById("xdLiveChat");
+    const listPanel = document.getElementById("xdChatConversationListPanel");
+    const conversationPanel = document.getElementById("xdChatConversationPanel");
+
+    if (!chatMobileQuery.matches || !root || !listPanel || !conversationPanel || activeChatId <= 0) {
+        return;
+    }
+
+    chatMobileView = "conversation";
+    chatMobileNeedsSeenSync = true;
+    root.dataset.mobileView = "conversation";
+    root.classList.remove("is-list-view");
+    root.classList.add("is-conversation-view");
+    conversationPanel.hidden = false;
+    conversationPanel.setAttribute("aria-hidden", "false");
+    document.body.classList.add("xd-chat-conversation-open");
+
+    let movedFocusToConversation = false;
+
+    if (settings.focusBack) {
+        const backButton = document.getElementById("xdChatMobileBack");
+
+        if (backButton) {
+            backButton.focus({ preventScroll: true });
+            movedFocusToConversation = true;
+        }
+    }
+
+    if (!movedFocusToConversation && listPanel.contains(document.activeElement)) {
+        document.activeElement.blur();
+    }
+
+    listPanel.hidden = true;
+    listPanel.setAttribute("aria-hidden", "true");
+
+    closeChatMobileActions(false);
+    scheduleChatMobileViewportUpdate();
+    updateChatBottomStackHeight();
+
+    if (settings.pushHistory && getChatMobileHistoryView() !== "conversation") {
+        pushChatMobileHistoryView("conversation");
+        chatMobileHistoryOwned = true;
+    }
+
+}
+
+
+function showChatMobileList(options) {
+
+    const settings = options || {};
+    const root = document.getElementById("xdLiveChat");
+    const listPanel = document.getElementById("xdChatConversationListPanel");
+    const conversationPanel = document.getElementById("xdChatConversationPanel");
+
+    if (!chatMobileQuery.matches || !root || !listPanel || !conversationPanel) {
+        return;
+    }
+
+    prepareChatMobileConversationExit();
+    chatMobileView = "list";
+    root.dataset.mobileView = "list";
+    root.classList.remove("is-conversation-view");
+    root.classList.add("is-list-view");
+    listPanel.hidden = false;
+    listPanel.setAttribute("aria-hidden", "false");
+
+    const movedFocusToList = settings.restoreFocus
+        ? focusActiveChatListItem({ immediate: true })
+        : false;
+
+    if (!movedFocusToList && conversationPanel.contains(document.activeElement)) {
+        document.activeElement.blur();
+    }
+
+    conversationPanel.hidden = true;
+    conversationPanel.setAttribute("aria-hidden", "true");
+    document.body.classList.remove("xd-chat-conversation-open");
+
+    if (settings.replaceHistory) {
+        replaceChatMobileHistoryView("list");
+        chatMobileHistoryOwned = false;
+    }
+
+    scheduleChatMobileViewportUpdate();
+
+}
+
+
+function returnToChatMobileList() {
+
+    if (!chatMobileQuery.matches || chatMobileView !== "conversation") {
+        return;
+    }
+
+    prepareChatMobileConversationExit();
+
+    if (
+        chatMobileHistoryOwned &&
+        getChatMobileHistoryView() === "conversation"
+    ) {
+        chatMobileHistoryOwned = false;
+        window.history.back();
+        return;
+    }
+
+    showChatMobileList({ restoreFocus: true, replaceHistory: true });
+
+}
+
+
+function resetChatMobileListHistory() {
+
+    if (!chatMobileQuery.matches) {
+        return;
+    }
+
+    showChatMobileList({ restoreFocus: false, replaceHistory: true });
+
+}
+
+
+function handleChatMobileHistoryChange(event) {
+
+    if (!chatMobileQuery.matches) {
+        removeChatMobileHistoryState();
+        return;
+    }
+
+    const historyView = getChatMobileHistoryView(event.state);
+
+    if (historyView === "conversation" && activeChatId > 0) {
+        chatMobileHistoryOwned = true;
+        showChatMobileConversation({ pushHistory: false, focusBack: true });
+        loadChat(activeChatId, "open");
+        return;
+    }
+
+    chatMobileHistoryOwned = false;
+    showChatMobileList({ restoreFocus: true, replaceHistory: false });
+
+}
+
+
+function handleChatMobileBreakpointChange(event) {
+
+    if (event.matches) {
+        syncChatFilterPopoverForViewport();
+        replaceChatMobileHistoryView("list");
+        chatMobileHistoryOwned = false;
+        showChatMobileList({ restoreFocus: false, replaceHistory: false });
+        return;
+    }
+
+    const shouldCollapseOwnedEntry =
+        chatMobileHistoryOwned &&
+        getChatMobileHistoryView() === "conversation";
+
+    chatMobileHistoryOwned = false;
+    syncChatFilterPopoverForViewport();
+    showChatDesktopLayout();
+
+    if (shouldCollapseOwnedEntry) {
+        window.history.back();
+    } else {
+        removeChatMobileHistoryState();
+    }
+
+}
+
+
+function showChatDesktopLayout() {
+
+    const root = document.getElementById("xdLiveChat");
+    const listPanel = document.getElementById("xdChatConversationListPanel");
+    const conversationPanel = document.getElementById("xdChatConversationPanel");
+
+    prepareChatMobileConversationExit();
+    syncChatFilterPopoverForViewport();
+    chatMobileView = "list";
+    document.body.classList.remove("xd-chat-conversation-open");
+
+    if (root) {
+        root.dataset.mobileView = "desktop";
+        root.classList.remove("is-list-view", "is-conversation-view");
+        root.style.removeProperty("--xd-chat-list-height");
+        root.style.removeProperty("--xd-chat-viewport-height");
+        root.style.removeProperty("--xd-chat-viewport-offset-top");
+    }
+
+    if (listPanel) {
+        listPanel.hidden = false;
+        listPanel.setAttribute("aria-hidden", "false");
+    }
+
+    if (conversationPanel) {
+        conversationPanel.hidden = false;
+        conversationPanel.setAttribute("aria-hidden", "false");
+    }
+
+}
+
+
+function prepareChatMobileConversationExit() {
+
+    if (chatMarkSeenController) {
+        chatMarkSeenController.abort();
+        chatMarkSeenController = null;
+    }
+
+    closeChatMobileActions(false);
+    closeVisitorInfoBox(false);
+    closeChatCloseDialog(false);
+    clearActiveReplyMessage();
+    discardChatVoiceRecordingForNavigation();
+
+    const attachMenu = document.getElementById("xdChatAttachMenu");
+    const emojiPicker = document.getElementById("xdChatEmojiPicker");
+
+    if (attachMenu) {
+        attachMenu.classList.remove("active");
+    }
+
+    if (emojiPicker) {
+        emojiPicker.classList.remove("active");
+    }
+
+}
+
+
+function resetComposerForChatSwitch() {
+
+    const input = document.getElementById("xdChatInput");
+
+    if (input) {
+        input.value = "";
+    }
+
+    updateChatComposerPrimaryAction();
+
+    prepareChatMobileConversationExit();
+
+}
+
+
+function discardChatVoiceRecordingForNavigation() {
+
+    voiceRecordingRequestId += 1;
+    isVoiceRecordingRequestPending = false;
+
+    const recordButton = document.getElementById("xdChatRecord");
+
+    if (recordButton) {
+        recordButton.removeAttribute("aria-busy");
+    }
+
+    if (mediaRecorder && mediaRecorder.state === "recording") {
+        discardStoppedVoicePreview = true;
+        stopChatVoiceRecording();
+        return;
+    }
+
+    cancelChatVoiceRecording();
+
+}
+
+
+function focusActiveChatListItem(options) {
+
+    const settings = options || {};
+    const focusItem = function () {
+        if (chatMobileView !== "list" || activeChatId <= 0) {
+            return false;
+        }
+
+        const activeItem = document.querySelector(
+            '.xd-chat-list-item[data-chat-id="' + activeChatId + '"]'
+        );
+
+        if (activeItem) {
+            activeItem.focus({ preventScroll: true });
+            return true;
+        }
+
+        return false;
+    };
+
+    if (settings.immediate) {
+        return focusItem();
+    }
+
+    window.setTimeout(focusItem, 0);
+    return true;
+
+}
+
+
+function getChatMobileHistoryState(view) {
+
+    const currentState = window.history.state;
+    const nextState = currentState && typeof currentState === "object"
+        ? Object.assign({}, currentState)
+        : {};
+
+    nextState[chatMobileHistoryKey] = view;
+
+    return nextState;
+
+}
+
+
+function getChatMobileHistoryView(state) {
+
+    const targetState = arguments.length > 0 ? state : window.history.state;
+
+    if (!targetState || typeof targetState !== "object") {
+        return "";
+    }
+
+    return targetState[chatMobileHistoryKey] || "";
+
+}
+
+
+function replaceChatMobileHistoryView(view) {
+
+    window.history.replaceState(
+        getChatMobileHistoryState(view),
+        document.title,
+        window.location.href
+    );
+
+}
+
+
+function pushChatMobileHistoryView(view) {
+
+    window.history.pushState(
+        getChatMobileHistoryState(view),
+        document.title,
+        window.location.href
+    );
+
+}
+
+
+function removeChatMobileHistoryState() {
+
+    const currentState = window.history.state;
+
+    if (!currentState || typeof currentState !== "object" || !(chatMobileHistoryKey in currentState)) {
+        return;
+    }
+
+    const nextState = Object.assign({}, currentState);
+    delete nextState[chatMobileHistoryKey];
+    window.history.replaceState(nextState, document.title, window.location.href);
+
+}
+
+
+function openChatMobileActions() {
+
+    const actions = document.getElementById("xdChatHeaderActions");
+    const moreButton = document.getElementById("xdChatMoreActions");
+
+    if (!chatMobileQuery.matches || !actions || !moreButton) {
+        return;
+    }
+
+    closeVisitorInfoBox(false);
+    actions.classList.add("active");
+    moreButton.setAttribute("aria-expanded", "true");
+
+    const firstAction = actions.querySelector("button:not(:disabled)");
+
+    if (firstAction) {
+        firstAction.focus();
+    }
+
+}
+
+
+function closeChatMobileActions(restoreFocus) {
+
+    const actions = document.getElementById("xdChatHeaderActions");
+    const moreButton = document.getElementById("xdChatMoreActions");
+
+    if (actions) {
+        actions.classList.remove("active");
+    }
+
+    if (moreButton) {
+        moreButton.setAttribute("aria-expanded", "false");
+    }
+
+    if (restoreFocus && moreButton && chatMobileQuery.matches) {
+        moreButton.focus();
+    }
+
+}
+
+
+function handleChatMobileOverlayKeydown(event) {
+
+    const closeDialog = document.getElementById("xdChatCloseDialog");
+    const detailsDialog = document.getElementById("xdChatVisitorInfo");
+    const actions = document.getElementById("xdChatHeaderActions");
+    const filterPopover = document.getElementById("xdChatFilterPopover");
+
+    if (closeDialog && closeDialog.classList.contains("active")) {
+        if (event.key === "Escape") {
+            event.preventDefault();
+            closeChatCloseDialog(true);
+            return;
+        }
+
+        trapChatOverlayFocus(closeDialog, event);
+        return;
+    }
+
+    if (
+        chatMobileQuery.matches &&
+        detailsDialog &&
+        detailsDialog.classList.contains("active")
+    ) {
+        if (event.key === "Escape") {
+            event.preventDefault();
+            closeVisitorInfoBox(true);
+            return;
+        }
+
+        trapChatOverlayFocus(detailsDialog, event);
+        return;
+    }
+
+    if (chatMobileQuery.matches && actions && actions.classList.contains("active")) {
+        if (event.key === "Escape") {
+            event.preventDefault();
+            closeChatMobileActions(true);
+        }
+        return;
+    }
+
+    if (
+        chatMobileQuery.matches &&
+        isChatFilterPopoverOpen &&
+        filterPopover
+    ) {
+        if (event.key === "Escape") {
+            event.preventDefault();
+            closeChatFilterPopover(true);
+            return;
+        }
+
+        trapChatOverlayFocus(filterPopover, event);
+        return;
+    }
+
+    if (
+        event.key === "Escape" &&
+        chatMobileQuery.matches &&
+        chatMobileView === "conversation"
+    ) {
+        event.preventDefault();
+        returnToChatMobileList();
+    }
+
+}
+
+
+function trapChatOverlayFocus(container, event) {
+
+    if (event.key !== "Tab") {
+        return;
+    }
+
+    const focusableItems = Array.from(container.querySelectorAll(
+        'button:not(:disabled), a[href], input:not(:disabled), select:not(:disabled), textarea:not(:disabled), [tabindex]:not([tabindex="-1"])'
+    )).filter(function (element) {
+        return element.getClientRects().length > 0;
+    });
+
+    if (focusableItems.length === 0) {
+        event.preventDefault();
+        return;
+    }
+
+    const firstItem = focusableItems[0];
+    const lastItem = focusableItems[focusableItems.length - 1];
+
+    if (event.shiftKey && document.activeElement === firstItem) {
+        event.preventDefault();
+        lastItem.focus();
+    } else if (!event.shiftKey && document.activeElement === lastItem) {
+        event.preventDefault();
+        firstItem.focus();
+    }
+
+}
+
+
+function scheduleChatMobileViewportUpdate() {
+
+    if (chatMobileViewportFrame !== null) {
+        return;
+    }
+
+    chatMobileViewportFrame = window.requestAnimationFrame(function () {
+        chatMobileViewportFrame = null;
+        updateChatMobileViewportMetrics();
+    });
+
+}
+
+
+function updateChatMobileViewportMetrics() {
+
+    if (!chatMobileQuery.matches) {
+        return;
+    }
+
+    const root = document.getElementById("xdLiveChat");
+
+    if (!root) {
+        return;
+    }
+
+    const viewport = window.visualViewport;
+    const viewportHeight = viewport ? viewport.height : window.innerHeight;
+    const viewportOffsetTop = viewport ? viewport.offsetTop : 0;
+
+    root.style.setProperty("--xd-chat-viewport-height", Math.round(viewportHeight) + "px");
+    root.style.setProperty("--xd-chat-viewport-offset-top", Math.round(viewportOffsetTop) + "px");
+
+    if (chatMobileView === "list") {
+        const rootTop = root.getBoundingClientRect().top;
+        const usedHeight = Math.max(0, rootTop - viewportOffsetTop);
+        const listHeight = Math.max(320, viewportHeight - usedHeight - 16);
+
+        root.style.setProperty("--xd-chat-list-height", Math.round(listHeight) + "px");
+    }
+
+}
+
+
+function registerChatBottomStackObserver() {
+
+    if (!window.ResizeObserver) {
+        updateChatBottomStackHeight();
+        return;
+    }
+
+    const stackItems = [
+        document.querySelector(".xd-live-chat-composer"),
+        document.getElementById("xdChatReplyPreview"),
+        document.getElementById("xdChatVoiceFeedback"),
+        document.getElementById("xdChatRecordPanel"),
+        document.getElementById("xdChatRecordPreview")
+    ].filter(Boolean);
+
+    chatBottomStackObserver = new ResizeObserver(function () {
+        updateChatBottomStackHeight();
+    });
+
+    stackItems.forEach(function (item) {
+        chatBottomStackObserver.observe(item);
+    });
+
+    updateChatBottomStackHeight();
+
+}
+
+
+function updateChatBottomStackHeight() {
+
+    const root = document.getElementById("xdLiveChat");
+
+    if (!root) {
+        return;
+    }
+
+    const stackItems = [
+        document.querySelector(".xd-live-chat-composer"),
+        document.getElementById("xdChatReplyPreview"),
+        document.getElementById("xdChatVoiceFeedback"),
+        document.getElementById("xdChatRecordPanel"),
+        document.getElementById("xdChatRecordPreview")
+    ].filter(Boolean);
+
+    const stackHeight = stackItems.reduce(function (total, item) {
+        return total + item.offsetHeight;
+    }, 0);
+
+    root.style.setProperty("--xd-chat-bottom-stack-height", Math.round(stackHeight) + "px");
+
+}
+
+
+/* ==========================================
+   13. AUTO REFRESH
 ========================================== */
 
 setInterval(function () {

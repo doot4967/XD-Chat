@@ -63,17 +63,17 @@ $page_description = "Manage visitor conversations in real time.";
 
 </head>
 
-<body>
+<body class="xd-chat-page">
 
 <div class="xd-dashboard">
 
     <?php require_once 'includes/sidebar.php'; ?>
 
-    <main class="xd-dashboard-main">
+    <main class="xd-dashboard-main xd-chat-page-main">
 
         <?php require_once 'includes/header.php'; ?>
 
-        <section class="xd-dashboard-panel">
+        <section class="xd-dashboard-panel xd-chat-page-panel">
 
             <div class="xd-chat-admin">
 

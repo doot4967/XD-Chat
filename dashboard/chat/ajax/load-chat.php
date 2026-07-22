@@ -197,11 +197,19 @@ foreach ($messages as $message) {
 
     $copyText = $message["message_type"] === "text"
         ? $message["message"]
-        : ($message["file_name"] ?: $message["message"]);
+        : (
+            $message["message_type"] === "audio"
+                ? "Voice message"
+                : ($message["file_name"] ?: $message["message"])
+        );
+
+    $voiceDownloadUrl = $message["message_type"] === "audio" && !$isDeleted
+        ? "chat/ajax/download-file.php?message_id=" . (int) $message["id"] . "&download=1"
+        : "";
 
     ?>
 
-    <div class="xd-admin-message <?php echo $messageClass; ?> <?php echo $isDeleted ? "deleted" : ""; ?>"
+    <div class="xd-admin-message <?php echo $messageClass; ?> <?php echo $isDeleted ? "deleted" : ""; ?><?php echo $voiceDownloadUrl !== "" ? " audio-message" : ""; ?>"
          data-message-id="<?php echo (int) $message["id"]; ?>"
          data-message-sender="<?php echo htmlspecialchars($message["sender"]); ?>"
          data-message-text="<?php echo htmlspecialchars($isDeleted ? "Deleted message" : $copyText); ?>"
@@ -230,6 +238,14 @@ foreach ($messages as $message) {
                         data-action="copy">
                     📋 Copy
                 </button>
+                <?php if ($voiceDownloadUrl !== "") { ?>
+                <button type="button"
+                        data-action="download"
+                        data-download-url="<?php echo htmlspecialchars($voiceDownloadUrl); ?>"
+                        data-download-name="<?php echo htmlspecialchars($message["file_name"] ?: "voice-message"); ?>">
+                    Download
+                </button>
+                <?php } ?>
                 <button type="button"
                         data-action="delete">
                     Delete
@@ -251,7 +267,11 @@ foreach ($messages as $message) {
                     : (
                         $message["reply_message_type"] === "text"
                             ? $message["reply_message"]
-                            : ($message["reply_file_name"] ?: ucfirst($message["reply_message_type"]))
+                            : (
+                                $message["reply_message_type"] === "audio"
+                                    ? "Voice message"
+                                    : ($message["reply_file_name"] ?: ucfirst($message["reply_message_type"]))
+                            )
                     );
 
                 ?>
@@ -333,7 +353,7 @@ foreach ($messages as $message) {
 
                 ?>
 
-                <div class="xd-chat-media-card">
+                <div class="xd-chat-media-card<?php echo $message["message_type"] === "audio" ? " xd-chat-audio-card" : ""; ?>">
 
                     <?php if ($message["message_type"] === "video") { ?>
 
@@ -348,6 +368,8 @@ foreach ($messages as $message) {
                         </audio>
 
                     <?php } ?>
+
+                    <?php if ($message["message_type"] === "video") { ?>
 
                     <div class="xd-chat-file-meta">
 
@@ -369,6 +391,8 @@ foreach ($messages as $message) {
                             <path d="M5 19h14v2H5z"></path>
                         </svg>
                     </a>
+
+                    <?php } ?>
 
                 </div>
 

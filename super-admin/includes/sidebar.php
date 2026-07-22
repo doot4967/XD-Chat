@@ -85,7 +85,13 @@ $superAdminMenus = [
 ];
 ?>
 
-<aside class="xd-sa-sidebar" id="xdSuperAdminSidebar">
+<script>
+document.body.classList.add("xd-sa-sidebar-enhanced");
+</script>
+
+<aside class="xd-sa-sidebar"
+       id="xdSuperAdminSidebar"
+       aria-label="Super Admin navigation">
 
     <div>
 
@@ -105,6 +111,13 @@ $superAdminMenus = [
                 <small><?php echo htmlspecialchars($superAdminPlatformTagline); ?></small>
             </div>
 
+            <button type="button"
+                    class="xd-sa-sidebar-close"
+                    id="xdSuperAdminSidebarClose"
+                    aria-label="Close navigation">
+                <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+            </button>
+
         </div>
 
         <div class="xd-sa-sidebar-label">
@@ -115,10 +128,13 @@ $superAdminMenus = [
 
             <?php foreach ($superAdminMenus as $menu) { ?>
 
+                <?php $isSuperAdminMenuActive = $active_menu === $menu["key"]; ?>
+
                 <a href="<?php echo htmlspecialchars($menu["href"]); ?>"
-                   class="<?php echo $active_menu === $menu["key"] ? "active" : ""; ?>"
+                   class="<?php echo $isSuperAdminMenuActive ? "active" : ""; ?>"
+                   <?php if ($isSuperAdminMenuActive) { ?>aria-current="page"<?php } ?>
                    <?php if ($menu["href"] === "#") { echo 'aria-disabled="true"'; } ?>>
-                    <i class="<?php echo htmlspecialchars($menu["icon"]); ?>"></i>
+                    <i class="<?php echo htmlspecialchars($menu["icon"]); ?>" aria-hidden="true"></i>
                     <span><?php echo htmlspecialchars($menu["label"]); ?></span>
                 </a>
 
@@ -152,3 +168,9 @@ $superAdminMenus = [
     </div>
 
 </aside>
+
+<button type="button"
+        class="xd-sa-sidebar-backdrop"
+        id="xdSuperAdminSidebarBackdrop"
+        aria-label="Close navigation"
+        tabindex="-1"></button>

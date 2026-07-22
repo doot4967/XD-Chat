@@ -16,14 +16,21 @@ Created : 10 July 2026
 
     <div class="xd-sa-topbar-left">
 
-        <button class="xd-sa-menu-toggle"
-                type="button"
-                id="xdSuperAdminMenuToggle"
-                aria-label="Toggle navigation">
-            <i class="fa-solid fa-bars"></i>
-        </button>
+        <div class="xd-sa-mobile-menu-toolbar">
 
-        <div>
+            <button class="xd-sa-menu-toggle"
+                    type="button"
+                    id="xdSuperAdminMenuToggle"
+                    aria-label="Open navigation"
+                    aria-controls="xdSuperAdminSidebar"
+                    aria-expanded="false">
+                <i class="fa-solid fa-bars" aria-hidden="true"></i>
+                <span>Menu</span>
+            </button>
+
+        </div>
+
+        <div class="xd-sa-topbar-heading">
             <h1><?php echo htmlspecialchars($page_heading); ?></h1>
             <p><?php echo htmlspecialchars($page_description); ?></p>
         </div>
@@ -43,10 +50,15 @@ Created : 10 July 2026
             <div class="xd-sa-avatar small">
                 <?php echo htmlspecialchars(strtoupper(substr($_SESSION["user_name"], 0, 1))); ?>
             </div>
-            <div>
+            <div class="xd-sa-topbar-profile-details">
                 <strong><?php echo htmlspecialchars($_SESSION["user_name"]); ?></strong>
                 <small>Super Admin</small>
             </div>
+
+            <span class="xd-sa-mobile-account-identity">
+                Super Admin &ndash;
+                <?php echo htmlspecialchars((string) ($_SESSION["user_name"] ?? "User"), ENT_QUOTES, "UTF-8"); ?>
+            </span>
         </div>
 
     </div>

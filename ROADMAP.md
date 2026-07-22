@@ -10,6 +10,11 @@ This roadmap records the next development direction after the current chat modul
 
 The main live chat flow is complete enough for real-user testing:
 
+- Core Chat MVP is approximately 85% complete.
+- The full SaaS vision is approximately 60-65% complete.
+- Super Admin is largely complete; remaining work is browser QA, workflow validation, and production hardening.
+- Current responsive dashboard/chat/settings changes are awaiting browser regression QA and bug-only stabilization before a clean commit.
+
 - Website owner can add website and widget.
 - Visitor can chat without login.
 - Admin can reply from dashboard.
@@ -44,6 +49,7 @@ Checkpoint rule:
 
 Goal: test the current completed chat system in real conditions.
 
+- Run browser regression QA for the current responsive UI and settings changes.
 - Run multi-user testing.
 - Test widget on different browsers.
 - Test mobile widget behavior.
@@ -55,34 +61,41 @@ Goal: test the current completed chat system in real conditions.
 - Test notification behavior after browser interaction.
 - Test delete-for-me from both widget and dashboard.
 - Fix only bugs found during testing.
+- Prepare a clean commit only after the regression pass is complete.
 
 ## Phase 2: Production Readiness
 
 Goal: prepare the current system for safer launch.
 
-- Add production environment configuration notes.
+- Maintain the existing production environment configuration notes.
 - Review upload storage permissions.
 - Review `.htaccess` protection in upload folders.
 - Review PHP error display/log settings.
-- Add deployment checklist.
-- Add backup/restore notes for database and uploads.
+- Validate the existing deployment checklist.
+- Validate the existing database/upload backup and restore notes.
 - Add stronger rate limit strategy if needed.
-- Add audit logging for important actions.
+- Expand production monitoring, operational alerting, and audit coverage where needed.
 
 ## Phase 3: Super Admin Panel
 
-Goal: add platform-level management without breaking user isolation.
+Status: largely complete.
 
-Planned modules:
+Implemented foundation:
 
 - Super admin login/role access.
 - Users list and status controls.
 - Website/widget overview.
-- Chat volume overview.
+- Chats overview and chat volume visibility.
 - Storage usage overview.
-- Basic platform analytics.
-- Abuse/spam monitoring.
+- Platform analytics.
 - Account suspension controls.
+- Audit logs, account settings, and platform settings.
+
+Remaining validation and hardening:
+
+- Cross-browser and responsive regression QA.
+- Abuse/spam monitoring workflow validation.
+- Production-scale performance and data-isolation review.
 
 Security focus:
 
@@ -150,15 +163,16 @@ Goal: make XD Chat ready as a SaaS product.
 
 ## Priority Order
 
-1. Stability checkpoint documentation.
-2. Real-user testing and bug fixes.
-3. Production readiness checklist.
-4. Super Admin Panel.
-5. Chat enhancements based on real feedback.
-6. Multi-agent support.
-7. AI and automation.
-8. Integrations.
-9. Subscription/SaaS packaging.
+1. Browser QA for the current responsive UI/settings changes and bug-only stabilization.
+2. Clean commit after the regression pass.
+3. Real-user and multi-user testing with verified bug fixes only.
+4. Production monitoring and final launch hardening.
+5. Chat enhancements based on real feedback: desktop notifications, message search, Quick Replies, and Delete for Everyone.
+6. Team accounts, assignment, transfer, and routing.
+7. WebSocket-based realtime transport.
+8. AI suggested replies and controlled automation.
+9. External integrations.
+10. Billing, plans, trials, limits, and SaaS packaging.
 
 ## Hold List
 
@@ -168,7 +182,8 @@ These should not be started until chat feature freeze is lifted:
 - Message text search.
 - Delete for Everyone.
 - Desktop notifications.
-- AI auto reply.
-- WhatsApp integration.
-- Multi-agent routing.
-- Subscription system.
+- Team accounts, assignment, transfer, and routing.
+- WebSocket transport.
+- AI suggested replies and auto reply.
+- WhatsApp and other external integrations.
+- Billing, plans, and subscription management.

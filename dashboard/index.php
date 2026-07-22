@@ -211,11 +211,12 @@ function xdDashboardInitial($value): string
              DASHBOARD CARDS
         =========================================== -->
 
-        <section class="xd-dashboard-cards">
+        <section class="xd-dashboard-cards xd-home-stats"
+                 aria-label="Dashboard summary">
 
-            <div class="xd-dashboard-card">
+            <div class="xd-dashboard-card xd-home-stat-card">
 
-                <div class="xd-card-icon blue">
+                <div class="xd-card-icon xd-home-stat-icon blue">
                     <i class="fa-solid fa-globe"></i>
                 </div>
 
@@ -233,9 +234,9 @@ function xdDashboardInitial($value): string
 
 
 
-            <div class="xd-dashboard-card">
+            <div class="xd-dashboard-card xd-home-stat-card">
 
-                <div class="xd-card-icon green">
+                <div class="xd-card-icon xd-home-stat-icon green">
                     <i class="fa-regular fa-comments"></i>
                 </div>
 
@@ -253,9 +254,9 @@ function xdDashboardInitial($value): string
 
 
 
-            <div class="xd-dashboard-card">
+            <div class="xd-dashboard-card xd-home-stat-card">
 
-                <div class="xd-card-icon purple">
+                <div class="xd-card-icon xd-home-stat-icon purple">
                     <i class="fa-solid fa-users"></i>
                 </div>
 
@@ -273,9 +274,9 @@ function xdDashboardInitial($value): string
 
 
 
-            <div class="xd-dashboard-card">
+            <div class="xd-dashboard-card xd-home-stat-card">
 
-                <div class="xd-card-icon orange">
+                <div class="xd-card-icon xd-home-stat-icon orange">
                     <i class="fa-regular fa-envelope"></i>
                 </div>
 
@@ -299,27 +300,27 @@ function xdDashboardInitial($value): string
              DASHBOARD PANELS
         =========================================== -->
 
-        <section class="xd-dashboard-grid">
+        <section class="xd-dashboard-grid xd-home-grid">
 
-            <div class="xd-dashboard-panel">
+            <section class="xd-dashboard-panel xd-home-panel xd-home-chats-panel">
 
-                <div class="xd-panel-header">
+                <div class="xd-panel-header xd-home-panel-header">
 
                     <h2>Recent Chats</h2>
 
-                    <a href="chats.php">View All</a>
+                    <a href="chats.php" class="xd-home-view-all">View All</a>
 
                 </div>
 
-                <div class="xd-chat-list">
+                <div class="xd-chat-list xd-home-chat-list">
 
                     <?php if (count($recentChats) === 0): ?>
 
-                        <div class="xd-chat-row">
+                        <div class="xd-chat-row xd-home-chat-row xd-home-empty-row">
 
-                            <div class="xd-chat-avatar green">-</div>
+                            <div class="xd-chat-avatar xd-home-chat-avatar green">-</div>
 
-                            <div class="xd-chat-info">
+                            <div class="xd-chat-info xd-home-chat-info">
 
                                 <strong>No recent chats yet.</strong>
 
@@ -343,13 +344,13 @@ function xdDashboardInitial($value): string
                             $activityTime = $chat["latest_message_time"] ?? $chat["created_at"] ?? "";
                             ?>
 
-                            <div class="xd-chat-row">
+                            <article class="xd-chat-row xd-home-chat-row">
 
-                                <div class="xd-chat-avatar green">
+                                <div class="xd-chat-avatar xd-home-chat-avatar green">
                                     <?php echo xdDashboardEscape(xdDashboardInitial($visitorName)); ?>
                                 </div>
 
-                                <div class="xd-chat-info">
+                                <div class="xd-chat-info xd-home-chat-info">
 
                                     <strong><?php echo xdDashboardEscape($visitorName); ?></strong>
 
@@ -363,7 +364,7 @@ function xdDashboardInitial($value): string
 
                                 </div>
 
-                                <div class="xd-chat-meta">
+                                <div class="xd-chat-meta xd-home-chat-meta">
 
                                     <small>
                                         <?php echo xdDashboardEscape(xdDashboardFormatDate($activityTime, $dashboardDateFormat, $dashboardTimezone)); ?>
@@ -377,7 +378,7 @@ function xdDashboardInitial($value): string
 
                                 </div>
 
-                            </div>
+                            </article>
 
                         <?php endforeach; ?>
 
@@ -385,27 +386,27 @@ function xdDashboardInitial($value): string
 
                 </div>
 
-            </div>
+            </section>
 
 
 
-            <div class="xd-dashboard-panel">
+            <section class="xd-dashboard-panel xd-home-panel xd-home-visitors-panel">
 
-                <div class="xd-panel-header">
+                <div class="xd-panel-header xd-home-panel-header">
 
                     <h2>Recent Visitors</h2>
 
-                    <a href="visitors.php">View All</a>
+                    <a href="visitors.php" class="xd-home-view-all">View All</a>
 
                 </div>
 
-                <div class="xd-visitor-list">
+                <div class="xd-visitor-list xd-home-visitor-list">
 
                     <?php if (count($recentVisitors) === 0): ?>
 
-                    <div class="xd-visitor-row">
+                    <div class="xd-visitor-row xd-home-visitor-row xd-home-empty-row">
 
-                        <span>-</span>
+                        <span class="xd-home-visitor-avatar" aria-hidden="true">-</span>
 
                         <div>
 
@@ -414,8 +415,6 @@ function xdDashboardInitial($value): string
                             <small>Visitor activity will appear here.</small>
 
                         </div>
-
-                        <em></em>
 
                     </div>
 
@@ -428,53 +427,97 @@ function xdDashboardInitial($value): string
                             $visitorId = xdDashboardText($visitor["visitor_id"] ?? "", $visitor["visitor_key"] ?? "Unknown visitor");
                             $websiteName = xdDashboardText($visitor["website_name"] ?? "", "Untitled website");
                             $domain = xdDashboardText($visitor["domain"] ?? "", "No domain");
-                            $pageUrl = xdDashboardShortText($visitor["visitor_page_url"] ?? "", 52);
+                            $pageUrl = trim((string) ($visitor["visitor_page_url"] ?? ""));
+                            $visitorEmail = xdDashboardText($visitor["visitor_email"] ?? "", "Not provided");
                             $browser = xdDashboardText($visitor["visitor_browser"] ?? "", "");
                             $device = xdDashboardText($visitor["visitor_device"] ?? "", "");
+                            $deviceSummary = trim($device . ($device !== "" && $browser !== "" ? " / " : "") . $browser);
                             $lastSeen = $visitor["last_seen"] ?? "";
                             $sessions = (int) ($visitor["total_sessions"] ?? 0);
-                            $hasOpenChat = (int) ($visitor["open_chat_count"] ?? 0) > 0;
+                            $openChats = (int) ($visitor["open_chat_count"] ?? 0);
+                            $closedChats = (int) ($visitor["closed_chat_count"] ?? 0);
+                            $hasOpenChat = $openChats > 0;
                             $statusText = $hasOpenChat ? "Open" : "Closed";
+                            $statusClass = $hasOpenChat ? "is-open" : "is-closed";
                             ?>
 
-                            <div class="xd-visitor-row">
+                            <article class="xd-visitor-row xd-home-visitor-row">
 
-                                <span><?php echo xdDashboardEscape(xdDashboardInitial($visitorName)); ?></span>
+                                <span class="xd-home-visitor-avatar" aria-hidden="true">
+                                    <?php echo xdDashboardEscape(xdDashboardInitial($visitorName)); ?>
+                                </span>
 
-                                <div>
+                                <div class="xd-home-visitor-content">
 
-                                    <strong><?php echo xdDashboardEscape($visitorName); ?></strong>
+                                    <div class="xd-home-visitor-heading">
 
-                                    <small>
+                                        <strong><?php echo xdDashboardEscape($visitorName); ?></strong>
+
+                                        <span class="xd-home-visitor-status <?php echo xdDashboardEscape($statusClass); ?>">
+                                            <em aria-hidden="true"></em>
+                                            <span><?php echo xdDashboardEscape($statusText); ?></span>
+                                        </span>
+
+                                    </div>
+
+                                    <small class="xd-home-visitor-website">
                                         <?php echo xdDashboardEscape($websiteName); ?>
                                         &middot;
                                         <?php echo xdDashboardEscape($domain); ?>
                                     </small>
 
-                                    <small>
-                                        <?php echo xdDashboardEscape($pageUrl !== "" ? $pageUrl : $visitorId); ?>
-                                    </small>
+                                    <?php if ($deviceSummary !== ""): ?>
 
-                                    <?php if ($browser !== "" || $device !== ""): ?>
-
-                                        <small>
-                                            <?php echo xdDashboardEscape(trim($browser . " " . $device)); ?>
+                                        <small class="xd-home-visitor-environment">
+                                            <?php echo xdDashboardEscape($deviceSummary); ?>
                                         </small>
 
                                     <?php endif; ?>
 
-                                    <small>
+                                    <small class="xd-home-visitor-activity">
+                                        Last active
                                         <?php echo xdDashboardEscape(xdDashboardFormatDate($lastSeen, $dashboardDateFormat, $dashboardTimezone)); ?>
-                                        &middot;
-                                        <?php echo xdDashboardEscape($sessions); ?>
-                                        <?php echo $sessions === 1 ? "session" : "sessions"; ?>
                                     </small>
+
+                                    <details class="xd-home-visitor-details">
+
+                                        <summary>View details</summary>
+
+                                        <div class="xd-home-visitor-detail-grid">
+
+                                            <div>
+                                                <span>Visitor ID</span>
+                                                <strong><?php echo xdDashboardEscape($visitorId); ?></strong>
+                                            </div>
+
+                                            <div>
+                                                <span>Email</span>
+                                                <strong><?php echo xdDashboardEscape($visitorEmail); ?></strong>
+                                            </div>
+
+                                            <div>
+                                                <span>Latest page</span>
+                                                <strong><?php echo xdDashboardEscape($pageUrl !== "" ? $pageUrl : "Not available"); ?></strong>
+                                            </div>
+
+                                            <div>
+                                                <span>Sessions</span>
+                                                <strong>
+                                                    <?php echo xdDashboardEscape($sessions); ?> total
+                                                    &middot;
+                                                    <?php echo xdDashboardEscape($openChats); ?> open
+                                                    &middot;
+                                                    <?php echo xdDashboardEscape($closedChats); ?> closed
+                                                </strong>
+                                            </div>
+
+                                        </div>
+
+                                    </details>
 
                                 </div>
 
-                                <em title="<?php echo xdDashboardEscape($statusText); ?>"></em>
-
-                            </div>
+                            </article>
 
                         <?php endforeach; ?>
 
@@ -482,7 +525,7 @@ function xdDashboardInitial($value): string
 
                 </div>
 
-            </div>
+            </section>
 
         </section>
 

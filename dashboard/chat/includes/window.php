@@ -47,53 +47,94 @@ $xd_chat_audio_accept = $xd_chat_format_accept($xd_chat_upload_config["audio"]["
      01. LIVE CHAT WINDOW
 ========================================== -->
 
-<div class="xd-live-chat">
+<div class="xd-live-chat"
+     id="xdLiveChat"
+     data-mobile-view="list">
 
     <!-- ==========================================
          02. CHAT SIDEBAR
     ========================================== -->
-    <aside class="xd-live-chat-sidebar">
+    <aside class="xd-live-chat-sidebar"
+           id="xdChatConversationListPanel"
+           aria-label="Conversations">
 
         <div class="xd-live-chat-sidebar-header">
 
-            <h3>Conversations</h3>
+            <div class="xd-chat-list-heading">
 
-           <span class="xd-live-chat-count" id="xdConversationCount">
-    0
-</span>
+                <h3>Conversations</h3>
+
+                <span class="xd-live-chat-count" id="xdConversationCount">
+                    0
+                </span>
+
+            </div>
+
+            <button class="xd-chat-filter-toggle"
+                    type="button"
+                    id="xdChatFilterToggle"
+                    aria-label="Filter conversations: Open"
+                    aria-controls="xdChatFilterPopover"
+                    aria-expanded="false">
+                <span id="xdChatFilterToggleLabel">Filter &middot; Open</span>
+            </button>
 
         </div>
 
         <!-- ==========================================
              03. CHAT FILTERS
         ========================================== -->
-        <div class="xd-chat-search-box">
+        <div class="xd-chat-filter-popover"
+             id="xdChatFilterPopover"
+             role="dialog"
+             aria-modal="false"
+             aria-labelledby="xdChatFilterPopoverTitle"
+             aria-hidden="false">
 
-            <input type="search"
-                   id="xdChatSearch"
-                   placeholder="Search visitors, email, website...">
+            <div class="xd-chat-filter-popover-header">
 
-        </div>
+                <strong id="xdChatFilterPopoverTitle">Filter conversations</strong>
 
-        <div class="xd-chat-filter-tabs">
+                <button type="button"
+                        id="xdChatFilterClose"
+                        aria-label="Close conversation filters">
+                    &times;
+                </button>
 
-            <button class="xd-chat-filter active"
-                    type="button"
-                    data-status="open">
-                Open
-            </button>
+            </div>
 
-            <button class="xd-chat-filter"
-                    type="button"
-                    data-status="closed">
-                Closed
-            </button>
+            <div class="xd-chat-search-box">
 
-            <button class="xd-chat-filter"
-                    type="button"
-                    data-status="unread">
-                Unread
-            </button>
+                <input type="search"
+                       id="xdChatSearch"
+                       placeholder="Search visitors, email, website...">
+
+            </div>
+
+            <div class="xd-chat-filter-tabs">
+
+                <button class="xd-chat-filter active"
+                        type="button"
+                        aria-pressed="true"
+                        data-status="open">
+                    Open
+                </button>
+
+                <button class="xd-chat-filter"
+                        type="button"
+                        aria-pressed="false"
+                        data-status="closed">
+                    Closed
+                </button>
+
+                <button class="xd-chat-filter"
+                        type="button"
+                        aria-pressed="false"
+                        data-status="unread">
+                    Unread
+                </button>
+
+            </div>
 
         </div>
 
@@ -113,11 +154,22 @@ $xd_chat_audio_accept = $xd_chat_format_accept($xd_chat_upload_config["audio"]["
     <!-- ==========================================
          04. CHAT CONVERSATION
     ========================================== -->
-    <section class="xd-live-chat-window">
+    <section class="xd-live-chat-window"
+             id="xdChatConversationPanel"
+             aria-label="Active conversation">
 
         <div class="xd-live-chat-header">
 
-            <div>
+            <button class="xd-chat-mobile-back"
+                    type="button"
+                    id="xdChatMobileBack"
+                    aria-label="Back to conversations">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M15 18l-6-6 6-6"></path>
+                </svg>
+            </button>
+
+            <div class="xd-live-chat-identity">
 
                 <h3 id="xdChatVisitorName">
                     Select a conversation
@@ -129,28 +181,72 @@ $xd_chat_audio_accept = $xd_chat_format_accept($xd_chat_upload_config["audio"]["
 
             </div>
 
-            <button class="xd-chat-details-toggle"
+            <button class="xd-chat-more-actions"
                     type="button"
-                    id="xdChatDetailsToggle">
-                Details
+                    id="xdChatMoreActions"
+                    aria-label="More actions"
+                    aria-controls="xdChatHeaderActions"
+                    aria-expanded="false">
+                <span aria-hidden="true">&#8942;</span>
             </button>
 
-            <button class="xd-chat-close-toggle"
-                    type="button"
-                    id="xdChatCloseButton"
-                    disabled>
-                Close Chat
-            </button>
+            <div class="xd-live-chat-actions"
+                 id="xdChatHeaderActions">
+
+                <button class="xd-chat-details-toggle"
+                        type="button"
+                        id="xdChatDetailsToggle"
+                        aria-controls="xdChatVisitorInfo"
+                        aria-expanded="false">
+                    Details
+                </button>
+
+                <button class="xd-chat-close-toggle"
+                        type="button"
+                        id="xdChatCloseButton"
+                        disabled>
+                    Close Chat
+                </button>
+
+            </div>
 
 
             <!-- ==========================================
                  05. VISITOR DETAILS
             ========================================== -->
-            <div class="xd-live-chat-visitor-info"
-                 id="xdChatVisitorInfo">
+            <button class="xd-chat-details-backdrop"
+                    type="button"
+                    id="xdChatDetailsBackdrop"
+                    aria-label="Close visitor details"
+                    tabindex="-1">
+            </button>
 
-                <div class="xd-chat-empty-state">
-                    Visitor details will appear after selecting a conversation.
+            <div class="xd-live-chat-visitor-info"
+                 id="xdChatVisitorInfo"
+                 role="dialog"
+                 aria-modal="true"
+                 aria-labelledby="xdChatVisitorInfoTitle"
+                 aria-hidden="true">
+
+                <div class="xd-chat-details-sheet-header">
+
+                    <h4 id="xdChatVisitorInfoTitle">Visitor details</h4>
+
+                    <button type="button"
+                            id="xdChatDetailsClose"
+                            aria-label="Close visitor details">
+                        &times;
+                    </button>
+
+                </div>
+
+                <div class="xd-chat-visitor-info-content"
+                     id="xdChatVisitorInfoContent">
+
+                    <div class="xd-chat-empty-state">
+                        Visitor details will appear after selecting a conversation.
+                    </div>
+
                 </div>
 
             </div>
@@ -162,7 +258,7 @@ $xd_chat_audio_accept = $xd_chat_format_accept($xd_chat_upload_config["audio"]["
 
             <div class="xd-chat-empty-state large">
 
-                Select a visitor from the left side to start chatting.
+                Select a conversation to start chatting.
 
             </div>
 
@@ -183,6 +279,13 @@ $xd_chat_audio_accept = $xd_chat_format_accept($xd_chat_upload_config["audio"]["
                 &times;
             </button>
 
+        </div>
+
+        <div class="xd-chat-voice-feedback"
+             id="xdChatVoiceFeedback"
+             role="status"
+             aria-live="polite"
+             hidden>
         </div>
 
         <div class="xd-live-chat-composer">
@@ -225,43 +328,48 @@ $xd_chat_audio_accept = $xd_chat_format_accept($xd_chat_upload_config["audio"]["
 
             </div>
 
-            <div class="xd-chat-emoji-wrap">
+            <div class="xd-chat-input-shell">
 
-                <button type="button"
-                        id="xdChatEmoji"
-                        class="xd-chat-emoji-button"
-                        aria-label="Emoji"
-                        disabled>
-                    😊
-                </button>
+                <div class="xd-chat-emoji-wrap">
 
-                <div class="xd-chat-emoji-picker"
-                     id="xdChatEmojiPicker">
+                    <button type="button"
+                            id="xdChatEmoji"
+                            class="xd-chat-emoji-button"
+                            aria-label="Emoji"
+                            disabled>
+                        😊
+                    </button>
 
-                    <input type="text"
-                           id="xdChatEmojiSearch"
-                           placeholder="Search emoji...">
+                    <div class="xd-chat-emoji-picker"
+                         id="xdChatEmojiPicker">
 
-                    <div class="xd-chat-emoji-tabs"
-                         id="xdChatEmojiTabs"></div>
+                        <input type="text"
+                               id="xdChatEmojiSearch"
+                               placeholder="Search emoji...">
 
-                    <div class="xd-chat-emoji-grid"
-                         id="xdChatEmojiGrid"></div>
+                        <div class="xd-chat-emoji-tabs"
+                             id="xdChatEmojiTabs"></div>
+
+                        <div class="xd-chat-emoji-grid"
+                             id="xdChatEmojiGrid"></div>
+
+                    </div>
 
                 </div>
 
-            </div>
+                <input type="text"
+                       id="xdChatInput"
+                       maxlength="<?php echo (int) $xd_chat_message_max_length; ?>"
+                       placeholder="Type your reply..."
+                       disabled>
 
-            <input type="text"
-                   id="xdChatInput"
-                   maxlength="<?php echo (int) $xd_chat_message_max_length; ?>"
-                   placeholder="Type your reply..."
-                   disabled>
+            </div>
 
             <button type="button"
                     id="xdChatRecord"
                     class="xd-chat-record-button"
                     aria-label="Record voice"
+                    aria-pressed="false"
                     disabled>
                 <svg viewBox="0 0 24 24" aria-hidden="true">
                     <path d="M12 14c1.7 0 3-1.3 3-3V6c0-1.7-1.3-3-3-3S9 4.3 9 6v5c0 1.7 1.3 3 3 3z"></path>
@@ -298,6 +406,41 @@ $xd_chat_audio_accept = $xd_chat_format_accept($xd_chat_upload_config["audio"]["
                     id="xdChatRecordSend">
                 Send
             </button>
+        </div>
+
+        <!-- ==========================================
+             06. CLOSE CHAT CONFIRMATION
+        =========================================== -->
+        <div class="xd-chat-close-dialog"
+             id="xdChatCloseDialog"
+             role="dialog"
+             aria-modal="true"
+             aria-labelledby="xdChatCloseDialogTitle"
+             aria-describedby="xdChatCloseDialogDescription"
+             aria-hidden="true">
+
+            <div class="xd-chat-close-dialog-card">
+
+                <h4 id="xdChatCloseDialogTitle">Close this chat?</h4>
+
+                <p id="xdChatCloseDialogDescription">
+                    The visitor will no longer be able to continue this conversation.
+                </p>
+
+                <div>
+                    <button type="button"
+                            id="xdChatCloseDialogCancel">
+                        Cancel
+                    </button>
+
+                    <button type="button"
+                            id="xdChatCloseDialogConfirm">
+                        Close Chat
+                    </button>
+                </div>
+
+            </div>
+
         </div>
 
     </section>

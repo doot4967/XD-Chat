@@ -48,6 +48,8 @@ Created : 05 July 2026
 
     width:280px;
 
+    pointer-events:auto;
+
     background:#0f172a;
 
     color:#ffffff;
@@ -208,16 +210,6 @@ Created : 05 July 2026
 
 }
 
-.xd-dashboard-nav a:hover{
-
-    background:#1e293b;
-
-    color:#ffffff;
-
-    transform:translateX(5px);
-
-}
-
 .xd-dashboard-nav a.active{
 
     background:#2563eb;
@@ -362,6 +354,18 @@ Created : 05 July 2026
     box-shadow:0 8px 20px rgba(15,23,42,.08);
 
     transition:.25s;
+
+}
+
+.xd-sidebar-toggle-label{
+
+    display:none;
+
+}
+
+.xd-mobile-menu-toolbar{
+
+    display:contents;
 
 }
 
@@ -866,6 +870,43 @@ Created : 05 July 2026
 
 }
 
+@media(hover:hover) and (pointer:fine){
+
+    .xd-dashboard-nav a:hover{
+
+        background:#1e293b;
+
+        color:#ffffff;
+
+        transform:translateX(5px);
+
+    }
+
+}
+
+.xd-dashboard-nav a:focus-visible{
+
+    outline:3px solid rgba(147,197,253,.85);
+
+    outline-offset:2px;
+
+}
+
+.xd-sidebar-close,
+.xd-sidebar-backdrop{
+
+    display:none;
+
+}
+
+.xd-sidebar-close,
+.xd-sidebar-backdrop,
+.xd-dashboard-nav a{
+
+    touch-action:manipulation;
+
+}
+
 .xd-admin-visitor-details{
 
     margin-bottom:1rem;
@@ -1114,11 +1155,191 @@ Created : 05 July 2026
 
     }
 
+    body.xd-sidebar-enhanced .xd-dashboard-sidebar{
+
+        width:min(86vw,320px);
+
+        height:100vh;
+
+        height:100dvh;
+
+        position:fixed;
+
+        inset:0 auto 0 0;
+
+        z-index:1200;
+
+        overflow-y:auto;
+
+        overscroll-behavior:contain;
+
+        pointer-events:none;
+
+        transform:translateX(-105%);
+
+        visibility:hidden;
+
+        transition:transform .28s ease, visibility .28s ease;
+
+    }
+
+    body.xd-sidebar-enhanced.xd-sidebar-open .xd-dashboard-sidebar{
+
+        transform:translateX(0);
+
+        visibility:visible;
+
+        pointer-events:auto;
+
+    }
+
+    body.xd-sidebar-enhanced .xd-sidebar-close{
+
+        width:44px;
+
+        height:44px;
+
+        margin-left:auto;
+
+        border:1px solid rgba(255,255,255,.14);
+
+        border-radius:12px;
+
+        display:inline-flex;
+
+        align-items:center;
+
+        justify-content:center;
+
+        flex:0 0 auto;
+
+        background:rgba(255,255,255,.08);
+
+        color:#ffffff;
+
+        cursor:pointer;
+
+    }
+
+    body.xd-sidebar-enhanced .xd-sidebar-close:focus-visible{
+
+        outline:3px solid rgba(147,197,253,.85);
+
+        outline-offset:2px;
+
+    }
+
+    body.xd-sidebar-enhanced .xd-sidebar-backdrop{
+
+        position:fixed;
+
+        inset:0;
+
+        z-index:1100;
+
+        display:block;
+
+        border:0;
+
+        padding:0;
+
+        background:rgba(15,23,42,.58);
+
+        opacity:0;
+
+        visibility:hidden;
+
+        pointer-events:none;
+
+        transition:opacity .28s ease, visibility .28s ease;
+
+    }
+
+    body.xd-sidebar-enhanced.xd-sidebar-open .xd-sidebar-backdrop{
+
+        opacity:1;
+
+        visibility:visible;
+
+        pointer-events:auto;
+
+    }
+
+    body.xd-sidebar-enhanced.xd-sidebar-open{
+
+        overflow:hidden;
+
+    }
+
     .xd-dashboard-header{
 
         flex-direction:column;
 
         align-items:flex-start;
+
+    }
+
+    .xd-header-left{
+
+        width:100%;
+
+        flex-direction:column;
+
+        align-items:flex-start;
+
+        gap:1rem;
+
+    }
+
+    .xd-mobile-menu-toolbar{
+
+        width:100%;
+
+        display:flex;
+
+        align-items:center;
+
+    }
+
+    .xd-sidebar-toggle{
+
+        width:auto;
+
+        min-width:96px;
+
+        height:44px;
+
+        min-height:44px;
+
+        display:inline-flex;
+
+        align-items:center;
+
+        justify-content:center;
+
+        gap:.55rem;
+
+        padding:0 1rem;
+
+        flex-direction:row;
+
+        flex-wrap:nowrap;
+
+        white-space:nowrap;
+
+        color:#0f172a;
+
+        touch-action:manipulation;
+
+    }
+
+    .xd-sidebar-toggle-label{
+
+        display:inline;
+
+        font-size:.95rem;
+
+        font-weight:700;
 
     }
 
@@ -1168,6 +1389,17 @@ Created : 05 July 2026
     .xd-dashboard-card{
 
         padding:1.25rem;
+
+    }
+
+}
+
+@media(prefers-reduced-motion:reduce){
+
+    body.xd-sidebar-enhanced .xd-dashboard-sidebar,
+    body.xd-sidebar-enhanced .xd-sidebar-backdrop{
+
+        transition:none;
 
     }
 
@@ -1502,4 +1734,713 @@ Created : 05 July 2026
 .xd-website-info small{
     font-size:13px;
     color:#64748b;
+}
+
+/* ==========================================
+   35. PHASE M1 MOBILE FOUNDATION
+========================================== */
+
+body.xd-modal-open{
+    overflow:hidden;
+}
+
+@media(max-width:992px){
+
+    .xd-dashboard-main{
+        min-width:0;
+        padding-top:1rem;
+        padding-right:max(1rem,env(safe-area-inset-right));
+        padding-bottom:max(1rem,env(safe-area-inset-bottom));
+        padding-left:max(1rem,env(safe-area-inset-left));
+        font-size:1rem;
+    }
+
+    .xd-dashboard-header{
+        gap:1rem;
+        margin-bottom:1.5rem;
+    }
+
+    .xd-header-left,
+    .xd-header-right,
+    .xd-header-heading,
+    .xd-header-profile,
+    .xd-dashboard-panel,
+    .xd-dashboard-card,
+    .xd-panel-header,
+    .xd-form,
+    .xd-form-group{
+        min-width:0;
+    }
+
+    .xd-mobile-menu-toolbar{
+        min-height:44px;
+    }
+
+    .xd-sidebar-toggle{
+        width:auto;
+        min-width:0;
+        min-height:44px;
+        flex-direction:row;
+        flex-wrap:nowrap;
+        gap:.5rem;
+        padding:0 1rem;
+        white-space:nowrap;
+    }
+
+    .xd-header-left h1{
+        font-size:clamp(1.5rem,5vw,1.75rem);
+        line-height:1.2;
+        overflow-wrap:anywhere;
+    }
+
+    .xd-header-left p{
+        margin-top:.35rem;
+        font-size:.875rem;
+        line-height:1.5;
+        overflow-wrap:anywhere;
+    }
+
+    .xd-header-right{
+        align-items:stretch;
+        gap:.75rem;
+    }
+
+    .xd-header-search{
+        min-height:48px;
+    }
+
+    .xd-header-search input{
+        min-width:0;
+        min-height:44px;
+        font-size:1rem;
+    }
+
+    .xd-header-icon{
+        width:48px;
+        height:48px;
+        min-width:48px;
+        min-height:48px;
+        flex:0 0 48px;
+        touch-action:manipulation;
+    }
+
+    .xd-header-profile{
+        min-height:48px;
+        overflow-wrap:anywhere;
+    }
+
+    .xd-header-profile strong{
+        font-size:1rem;
+        overflow-wrap:anywhere;
+    }
+
+    .xd-header-profile small{
+        font-size:.875rem;
+    }
+
+    .xd-dashboard-panel,
+    .xd-dashboard-card{
+        padding:1rem;
+    }
+
+    .xd-panel-header{
+        margin-bottom:1rem;
+    }
+
+    .xd-panel-header h2{
+        font-size:clamp(1.125rem,3.5vw,1.25rem);
+        line-height:1.3;
+        overflow-wrap:anywhere;
+    }
+
+    .xd-panel-header a{
+        min-height:44px;
+        display:inline-flex;
+        align-items:center;
+        justify-content:center;
+        padding:.5rem .75rem;
+        touch-action:manipulation;
+    }
+
+    .xd-dashboard-card small,
+    .xd-chat-info span,
+    .xd-chat-info small,
+    .xd-visitor-row small{
+        font-size:.875rem;
+        line-height:1.5;
+        overflow-wrap:anywhere;
+    }
+
+    .xd-alert{
+        padding:1rem;
+        font-size:1rem;
+        line-height:1.5;
+        overflow-wrap:anywhere;
+    }
+
+    .xd-form input[type="text"],
+    .xd-form input[type="url"],
+    .xd-form input[type="email"],
+    .xd-form input[type="password"],
+    .xd-form select,
+    .xd-form textarea,
+    .xd-dashboard-main .xd-visitors-filters input,
+    .xd-dashboard-main .xd-visitors-filters select{
+        min-height:48px;
+        font-size:1rem;
+    }
+
+    .xd-form-group label{
+        font-size:1rem;
+        line-height:1.4;
+    }
+
+    .xd-form-actions{
+        flex-wrap:wrap;
+        padding-bottom:env(safe-area-inset-bottom);
+    }
+
+    .xd-btn-submit,
+    .xd-btn-cancel,
+    .xd-btn-edit,
+    .xd-btn-delete,
+    .xd-dashboard-main .xd-filter-button,
+    .xd-dashboard-main .xd-filter-reset,
+    .xd-dashboard-main .xd-pagination a,
+    .xd-dashboard-main .xd-pagination span{
+        min-height:44px;
+        display:inline-flex;
+        align-items:center;
+        justify-content:center;
+        font-size:1rem;
+        touch-action:manipulation;
+    }
+
+    .xd-modal-overlay{
+        padding:max(1rem,env(safe-area-inset-top)) max(1rem,env(safe-area-inset-right)) max(1rem,env(safe-area-inset-bottom)) max(1rem,env(safe-area-inset-left));
+    }
+
+    .xd-modal-box{
+        width:100%;
+        max-width:420px;
+        max-height:calc(100dvh - 2rem);
+        overflow-y:auto;
+        padding:1.25rem;
+    }
+
+    .xd-modal-box h3{
+        font-size:1.25rem;
+    }
+
+    .xd-modal-box p{
+        font-size:1rem;
+        overflow-wrap:anywhere;
+    }
+
+    .xd-modal-actions{
+        flex-wrap:wrap;
+    }
+
+    .xd-modal-cancel,
+    .xd-modal-delete{
+        min-height:44px;
+        display:inline-flex;
+        align-items:center;
+        justify-content:center;
+        font-size:1rem;
+        touch-action:manipulation;
+    }
+
+}
+
+@media(max-width:480px){
+
+    .xd-header-search{
+        display:none;
+    }
+
+    .xd-header-right{
+        flex-wrap:nowrap;
+    }
+
+    .xd-header-profile{
+        flex:1 1 auto;
+        padding:.5rem .75rem;
+    }
+
+    .xd-profile-avatar{
+        width:44px;
+        height:44px;
+        flex:0 0 44px;
+    }
+
+    .xd-form-actions,
+    .xd-modal-actions{
+        width:100%;
+        flex-direction:column;
+        align-items:stretch;
+    }
+
+    .xd-btn-submit,
+    .xd-btn-cancel,
+    .xd-modal-cancel,
+    .xd-modal-delete{
+        width:100%;
+    }
+
+}
+
+/* ==========================================
+   36. PHASE M2 DASHBOARD HOME
+========================================== */
+
+/* Keep technical visitor data available without crowding the primary row. */
+.xd-home-visitor-content,
+.xd-home-visitor-heading,
+.xd-home-visitor-detail-grid,
+.xd-home-visitor-detail-grid > div{
+    min-width:0;
+}
+
+.xd-home-visitor-content{
+    flex:1;
+}
+
+.xd-home-visitor-heading{
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    gap:.75rem;
+}
+
+.xd-home-visitor-heading > strong{
+    min-width:0;
+    overflow-wrap:anywhere;
+}
+
+.xd-home-visitor-row .xd-home-visitor-status{
+    min-width:0;
+    display:inline-flex;
+    align-items:center;
+    gap:.35rem;
+    flex:0 0 auto;
+    font-size:.75rem;
+    line-height:1.4;
+    font-weight:700;
+    color:#475569;
+}
+
+.xd-home-visitor-status em{
+    width:.5rem;
+    height:.5rem;
+    flex:0 0 .5rem;
+    border-radius:50%;
+}
+
+.xd-home-visitor-status.is-open em{
+    background:#22c55e;
+}
+
+.xd-home-visitor-status.is-closed em{
+    background:#94a3b8;
+}
+
+.xd-home-visitor-row .xd-home-visitor-status > span{
+    min-width:0;
+    font-size:inherit;
+}
+
+.xd-home-visitor-website,
+.xd-home-visitor-environment,
+.xd-home-visitor-activity{
+    display:block;
+    overflow-wrap:anywhere;
+}
+
+.xd-home-visitor-details{
+    margin-top:.5rem;
+}
+
+.xd-home-visitor-details > summary{
+    width:max-content;
+    max-width:100%;
+    min-height:36px;
+    display:inline-flex;
+    align-items:center;
+    color:#2563eb;
+    font-size:.8125rem;
+    font-weight:700;
+    cursor:pointer;
+    touch-action:manipulation;
+}
+
+.xd-home-visitor-detail-grid{
+    margin-top:.35rem;
+    display:grid;
+    gap:.5rem;
+    padding:.75rem;
+    border:1px solid #e2e8f0;
+    border-radius:12px;
+    background:#fff;
+}
+
+.xd-home-visitor-detail-grid > div{
+    display:grid;
+    gap:.15rem;
+}
+
+.xd-home-visitor-detail-grid span,
+.xd-home-visitor-detail-grid strong{
+    min-width:0;
+    margin:0;
+    overflow-wrap:anywhere;
+}
+
+.xd-home-visitor-row .xd-home-visitor-detail-grid span{
+    font-size:.75rem;
+    line-height:1.4;
+    color:#64748b;
+}
+
+.xd-home-visitor-detail-grid strong{
+    font-size:.8125rem;
+    line-height:1.45;
+    font-weight:600;
+    color:#334155;
+}
+
+@media(max-width:768px){
+
+    .xd-home-stats{
+        grid-template-columns:repeat(2,minmax(0,1fr));
+        gap:.75rem;
+        margin-bottom:1rem;
+    }
+
+    .xd-home-stat-card{
+        min-height:0;
+        display:flex;
+        flex-direction:column;
+        align-items:flex-start;
+        padding:1rem;
+        border-radius:18px;
+    }
+
+    .xd-home-stat-icon{
+        width:48px;
+        height:48px;
+        flex:0 0 48px;
+        margin-bottom:.75rem;
+        border-radius:14px;
+        font-size:1.2rem;
+    }
+
+    .xd-home-stat-card > span{
+        margin-bottom:.35rem;
+        font-size:.875rem;
+        line-height:1.35;
+        font-weight:600;
+    }
+
+    .xd-home-stat-card > strong{
+        margin-bottom:.4rem;
+        font-size:clamp(1.75rem,8vw,2rem);
+        line-height:1.1;
+    }
+
+    .xd-home-stat-card > small{
+        margin-top:auto;
+        font-size:.75rem;
+        line-height:1.4;
+        overflow-wrap:anywhere;
+    }
+
+    .xd-home-grid{
+        gap:1rem;
+    }
+
+    .xd-home-panel{
+        overflow:hidden;
+    }
+
+    .xd-home-panel-header{
+        gap:.75rem;
+    }
+
+    .xd-home-view-all{
+        min-width:44px;
+        min-height:44px;
+    }
+
+    .xd-home-chat-list,
+    .xd-home-visitor-list{
+        gap:.75rem;
+    }
+
+    .xd-home-chat-row{
+        min-width:0;
+        display:grid;
+        grid-template-columns:44px minmax(0,1fr) auto;
+        align-items:start;
+        gap:.75rem;
+        padding:.75rem;
+        border-radius:14px;
+        background:#f8fafc;
+    }
+
+    .xd-home-chat-avatar{
+        width:44px;
+        height:44px;
+        flex:0 0 44px;
+        font-size:.875rem;
+    }
+
+    .xd-home-chat-info{
+        min-width:0;
+    }
+
+    .xd-home-chat-info strong,
+    .xd-home-chat-info span,
+    .xd-home-chat-info small{
+        min-width:0;
+        overflow:hidden;
+        text-overflow:ellipsis;
+    }
+
+    .xd-home-chat-info strong,
+    .xd-home-chat-info small{
+        white-space:nowrap;
+    }
+
+    .xd-home-chat-info span{
+        display:-webkit-box;
+        -webkit-box-orient:vertical;
+        -webkit-line-clamp:2;
+        line-clamp:2;
+        white-space:normal;
+    }
+
+    .xd-home-chat-meta{
+        min-width:4.5rem;
+        display:flex;
+        flex-direction:column;
+        align-items:flex-end;
+        gap:.35rem;
+    }
+
+    .xd-home-chat-meta small{
+        max-width:5.5rem;
+        margin:0;
+        font-size:.75rem;
+        line-height:1.35;
+        white-space:normal;
+    }
+
+    .xd-home-chat-meta .xd-badge{
+        font-size:.75rem;
+        line-height:1.3;
+    }
+
+    .xd-home-empty-row{
+        grid-template-columns:44px minmax(0,1fr);
+    }
+
+    .xd-home-visitor-row{
+        min-width:0;
+        display:grid;
+        grid-template-columns:44px minmax(0,1fr);
+        align-items:start;
+        gap:.75rem;
+        padding:.75rem;
+        border-radius:14px;
+        background:#f8fafc;
+    }
+
+    .xd-home-visitor-row .xd-home-visitor-avatar{
+        width:44px;
+        height:44px;
+        min-width:44px;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        border-radius:50%;
+        background:#ede9fe;
+        color:#6d28d9;
+        font-size:.875rem;
+        line-height:1;
+        font-weight:800;
+    }
+
+    .xd-home-visitor-content{
+        width:100%;
+    }
+
+    .xd-home-visitor-heading > strong{
+        margin-bottom:.25rem;
+        font-size:1rem;
+        line-height:1.35;
+    }
+
+    .xd-home-visitor-website,
+    .xd-home-visitor-environment,
+    .xd-home-visitor-activity{
+        font-size:.875rem;
+        line-height:1.45;
+    }
+
+    .xd-home-visitor-environment{
+        display:-webkit-box;
+        overflow:hidden;
+        -webkit-box-orient:vertical;
+        -webkit-line-clamp:2;
+        line-clamp:2;
+    }
+
+    .xd-home-visitor-details > summary{
+        min-height:44px;
+        font-size:.875rem;
+    }
+
+    .xd-home-visitor-detail-grid{
+        padding:.75rem;
+    }
+
+    .xd-home-visitor-row .xd-home-visitor-detail-grid span{
+        font-size:.75rem;
+    }
+
+    .xd-home-visitor-detail-grid strong{
+        font-size:.875rem;
+    }
+
+}
+
+@media(max-width:340px){
+
+    .xd-home-stats{
+        grid-template-columns:minmax(0,1fr);
+    }
+
+    .xd-home-chat-row{
+        grid-template-columns:44px minmax(0,1fr);
+    }
+
+    .xd-home-chat-meta{
+        grid-column:2;
+        width:100%;
+        min-width:0;
+        flex-direction:row;
+        align-items:center;
+        justify-content:space-between;
+        gap:.75rem;
+        text-align:left;
+    }
+
+    .xd-home-chat-meta small{
+        max-width:none;
+        text-align:left;
+    }
+
+}
+
+/* ==========================================
+   37. COMPACT MOBILE HEADER
+========================================== */
+
+.xd-mobile-account-identity{
+    display:none;
+}
+
+@media(max-width:480px){
+
+    .xd-dashboard-header{
+        width:100%;
+        display:grid;
+        grid-template-columns:minmax(0,1fr) auto;
+        grid-template-areas:
+            "title menu"
+            "description description"
+            "identity notification";
+        align-items:center;
+        gap:.5rem .75rem;
+        margin-bottom:1.25rem;
+    }
+
+    .xd-header-left,
+    .xd-header-right,
+    .xd-header-heading{
+        display:contents;
+    }
+
+    .xd-header-left h1{
+        grid-area:title;
+        min-width:0;
+        align-self:center;
+        margin:0;
+        overflow-wrap:anywhere;
+    }
+
+    .xd-mobile-menu-toolbar{
+        grid-area:menu;
+        width:auto;
+        min-width:0;
+        min-height:44px;
+        align-self:start;
+        justify-self:end;
+    }
+
+    .xd-sidebar-toggle{
+        flex:0 0 auto;
+    }
+
+    .xd-header-left p{
+        grid-area:description;
+        min-width:0;
+        display:block;
+        margin:0;
+        overflow-wrap:anywhere;
+    }
+
+    .xd-header-search{
+        display:none;
+    }
+
+    .xd-header-profile{
+        grid-area:identity;
+        width:auto;
+        max-width:100%;
+        min-width:0;
+        min-height:44px;
+        padding:0;
+        border-radius:0;
+        background:transparent;
+        box-shadow:none;
+        overflow:visible;
+    }
+
+    .xd-profile-avatar,
+    .xd-header-profile-details{
+        display:none;
+    }
+
+    .xd-mobile-account-identity{
+        min-width:0;
+        display:block;
+        color:#334155;
+        font-size:.875rem;
+        line-height:1.4;
+        font-weight:700;
+        overflow-wrap:anywhere;
+    }
+
+    .xd-header-icon{
+        grid-area:notification;
+        width:44px;
+        height:44px;
+        min-width:44px;
+        min-height:44px;
+        align-self:center;
+        justify-self:end;
+    }
+
 }

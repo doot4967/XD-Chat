@@ -16,12 +16,19 @@ XD Chat is being built as a secure, fast, modern, SaaS-ready live chat platform.
 
 The chat module has reached a stability checkpoint. Core live chat, widget, dashboard chat controls, visitor experience, media sharing, message actions, and search/filter features are complete for internal and real-user testing.
 
+Estimated completion at this checkpoint:
+
+- Core Chat MVP: approximately 85% complete.
+- Full SaaS vision: approximately 60-65% complete.
+
 Current status:
 
 - Chat module: feature-frozen for real-user testing.
 - Widget module: functional with security checks and visitor chat flow.
 - Dashboard chat module: functional with conversation controls and message actions.
 - Upload/media module: functional with secure upload/download flow.
+- Super Admin module: largely complete, including access control, user/status management, platform overviews, audit logs, analytics, and settings; final browser QA and production hardening remain.
+- Responsive dashboard/chat/settings changes: implemented locally and awaiting browser regression QA and bug-only stabilization before a clean commit.
 - Documentation phase: active checkpoint documentation is being maintained.
 
 ## Completed Modules
@@ -44,6 +51,7 @@ Current status:
 - Reply and copy: reply preview, quoted reply display, copy feedback.
 - Delete for me: current-side message hiding through `message_deletions`.
 - Chat search and filters: sidebar search by visitor name, visitor email, and website name with open/closed/unread filters.
+- Super Admin foundation: role-protected dashboard, users and status controls, website/widget/chat overviews, audit logs, platform analytics, account settings, and platform settings.
 
 ## Current Folder Structure Summary
 
@@ -62,7 +70,7 @@ XD-Chat/
   database/                 Database connection and SQL schema
   docs/                     Existing internal documentation
   includes/                 Shared PHP templates and reusable functions
-  super-admin/              Future super admin module placeholder
+  super-admin/              Largely complete platform administration module
   uploads/                  Secured uploaded chat files
     chat-files/
       images/
@@ -158,17 +166,18 @@ Recent chat-related database changes applied during development:
 
 ## Known Pending Items
 
-- Real-user testing is pending.
-- Super Admin Panel is planned, not completed.
-- Subscription/billing system is pending.
-- Message text search is currently on hold.
-- Quick Replies are on hold until real business workflow is clear.
-- Desktop browser notifications are planned but not completed.
-- WhatsApp integration is pending.
-- AI auto reply/chatbot is pending.
-- Multi-agent assignment and routing is pending.
-- Analytics depth is pending.
-- Production deployment checklist is pending.
+- Real-user and multi-user testing.
+- Cross-browser and responsive regression QA for the current dashboard, chat, Super Admin, and settings changes.
+- Desktop browser notifications.
+- Message-content search.
+- Quick Replies after real business workflow is validated.
+- Delete for Everyone.
+- Team accounts, chat assignment, transfer, and routing.
+- WebSocket-based realtime transport; the current implementation remains polling-based.
+- AI suggested replies and controlled auto-reply workflows.
+- WhatsApp, email, CRM/webhook, and team-notification integrations.
+- Subscription billing, plans, trials, and usage limits.
+- Production monitoring, operational alerting, and final launch hardening.
 
 ## Known Limitations
 
@@ -177,23 +186,36 @@ Recent chat-related database changes applied during development:
 - Desktop browser notifications are not fully implemented yet.
 - Quick Replies are intentionally on hold until real business usage is observed.
 - Delete for Everyone is reserved for future behavior; current active behavior is Delete for Me.
-- Super Admin Panel is planned but not complete.
+- Super Admin is largely complete but still requires browser regression QA, abuse/spam workflow validation, and production hardening.
 - Multi-agent assignment/routing is not implemented yet.
 - Production deployment hardening still needs final review.
 - Real-user testing has not been completed yet.
 
-## Next Planned Features
+## Immediate Next Milestone
+
+Run browser QA on the current responsive dashboard/chat/settings changes, fix verified regressions only, and then prepare one clean commit. New chat features remain on hold during this milestone.
+
+Required checks include:
+
+- Desktop and mobile navigation, focus handling, overlays, and responsive breakpoints.
+- Chat send/receive, polling, unread/seen state, typing, presence, and open/close/reopen flows.
+- Uploads, voice recording, media playback, reply, copy, and Delete for Me.
+- Profile and password settings, Super Admin navigation, and role isolation.
+- Multi-user ownership isolation and slow-network/stale-response behavior.
+
+## Later Planned Features
 
 - Real-user testing and bug-only stabilization.
-- Production readiness checklist.
-- Super Admin Panel.
 - Message text search after freeze is lifted.
 - Quick Replies after real workflow is clear.
 - Desktop notifications.
-- Multi-agent support.
-- AI auto reply/chatbot.
-- WhatsApp integration.
-- Subscription and billing system.
+- Delete for Everyone.
+- Team accounts, assignment, transfer, and routing.
+- WebSocket transport.
+- AI suggested replies and controlled auto reply.
+- External integrations.
+- Subscription billing, plans, trials, and limits.
+- Production monitoring and operational hardening.
 
 ## Deployment Documents
 

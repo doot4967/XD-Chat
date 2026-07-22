@@ -571,6 +571,68 @@ function getPlatformConfiguredBaseUrl(): string
 }
 
 
+function getPlatformConfiguredBasePath(): string
+{
+
+    $configuredBaseUrl = trim(getPlatformConfiguredBaseUrl());
+
+    $parsedBaseUrl = parse_url($configuredBaseUrl);
+
+    if (!is_array($parsedBaseUrl)) {
+        return "/";
+    }
+
+    $configuredScheme = strtolower((string) ($parsedBaseUrl["scheme"] ?? ""));
+
+    $hasValidAbsoluteUrl = in_array($configuredScheme, ["http", "https"], true)
+        && !empty($parsedBaseUrl["host"]);
+
+    $hasValidRootRelativePath = strpos($configuredBaseUrl, "/") === 0;
+
+    if (!$hasValidAbsoluteUrl && !$hasValidRootRelativePath) {
+        return "/";
+    }
+
+    $basePath = $parsedBaseUrl["path"] ?? "/";
+
+    if (!is_string($basePath) || $basePath === "") {
+        return "/";
+    }
+
+    $basePath = str_replace("\\", "/", $basePath);
+
+    $pathSegments = array_values(array_filter(
+        explode("/", trim($basePath, "/")),
+        static function (string $segment): bool {
+            return $segment !== "" && $segment !== ".";
+        }
+    ));
+
+    foreach ($pathSegments as $pathSegment) {
+
+        $decodedPathSegment = rawurldecode($pathSegment);
+
+        if (
+            in_array($decodedPathSegment, [".", ".."], true)
+            || strpos($decodedPathSegment, "/") !== false
+            || strpos($decodedPathSegment, "\\") !== false
+            || preg_match('/[\x00-\x1F\x7F]/', $decodedPathSegment)
+            || preg_match('/\s/', $pathSegment)
+        ) {
+            return "/";
+        }
+
+    }
+
+    if (empty($pathSegments)) {
+        return "/";
+    }
+
+    return "/" . implode("/", $pathSegments) . "/";
+
+}
+
+
 function normalizePlatformBrandingSettingPath(string $path): string
 {
 
@@ -664,7 +726,7 @@ function hasPlatformFavicon(PDO $pdo): bool
 function getPlatformBrandingAssetUrl(string $type): string
 {
 
-    return getPlatformConfiguredBaseUrl()
+    return getPlatformConfiguredBasePath()
         . "platform-branding-asset.php?"
         . http_build_query([
             "type" => $type,

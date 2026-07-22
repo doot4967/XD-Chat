@@ -14,9 +14,82 @@ $dashboardPlatformTagline = isset($pdo) && $pdo instanceof PDO
 $dashboardPlatformLogoUrl = isset($pdo) && $pdo instanceof PDO
     ? getPlatformLogoUrl($pdo)
     : "";
+
+$dashboardSidebarUserName = (string) ($_SESSION["user_name"] ?? "User");
+
+$dashboardSidebarInitial = function_exists("mb_substr")
+    ? mb_substr($dashboardSidebarUserName, 0, 1, "UTF-8")
+    : substr($dashboardSidebarUserName, 0, 1);
+
+$dashboardCurrentPage = basename((string) ($_SERVER["SCRIPT_NAME"] ?? ""));
+
+$dashboardPageMenuMap = [
+    "index.php" => "dashboard",
+    "chats.php" => "chats",
+    "websites.php" => "websites",
+    "website-add.php" => "websites",
+    "website-edit.php" => "websites",
+    "website-view.php" => "websites",
+    "widgets.php" => "widgets",
+    "widget-add.php" => "widgets",
+    "widget-edit.php" => "widgets",
+    "visitors.php" => "visitors",
+    "analytics.php" => "analytics",
+    "settings.php" => "settings",
+    "profile.php" => "settings"
+];
+
+$dashboardActiveMenu = $dashboardPageMenuMap[$dashboardCurrentPage] ?? "";
+
+$dashboardMenus = [
+    [
+        "key" => "dashboard",
+        "label" => "Dashboard",
+        "icon" => "fa-solid fa-house",
+        "href" => "index.php"
+    ],
+    [
+        "key" => "chats",
+        "label" => "Live Chats",
+        "icon" => "fa-regular fa-comments",
+        "href" => "chats.php"
+    ],
+    [
+        "key" => "websites",
+        "label" => "Websites",
+        "icon" => "fa-solid fa-globe",
+        "href" => "websites.php"
+    ],
+    [
+        "key" => "widgets",
+        "label" => "Widgets",
+        "icon" => "fa-solid fa-puzzle-piece",
+        "href" => "widgets.php"
+    ],
+    [
+        "key" => "visitors",
+        "label" => "Visitors",
+        "icon" => "fa-solid fa-users",
+        "href" => "visitors.php"
+    ],
+    [
+        "key" => "analytics",
+        "label" => "Analytics",
+        "icon" => "fa-solid fa-chart-line",
+        "href" => "analytics.php"
+    ],
+    [
+        "key" => "settings",
+        "label" => "Settings",
+        "icon" => "fa-solid fa-gear",
+        "href" => "settings.php"
+    ]
+];
 ?>
 
-<aside class="xd-dashboard-sidebar">
+<aside class="xd-dashboard-sidebar"
+       id="xdDashboardSidebar"
+       aria-label="Dashboard navigation">
 
     <div>
 
@@ -36,6 +109,13 @@ $dashboardPlatformLogoUrl = isset($pdo) && $pdo instanceof PDO
                 <small><?php echo htmlspecialchars($dashboardPlatformTagline); ?></small>
             </div>
 
+            <button type="button"
+                    class="xd-sidebar-close"
+                    id="xdDashboardSidebarClose"
+                    aria-label="Close navigation">
+                <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+            </button>
+
         </div>
 
         <div class="xd-sidebar-label">
@@ -44,40 +124,19 @@ $dashboardPlatformLogoUrl = isset($pdo) && $pdo instanceof PDO
 
         <nav class="xd-dashboard-nav">
 
-            <a href="index.php">
-                <i class="fa-solid fa-house"></i>
-                Dashboard
-            </a>
+            <?php foreach ($dashboardMenus as $dashboardMenu) { ?>
 
-            <a href="chats.php">
-                <i class="fa-regular fa-comments"></i>
-                Live Chats
-            </a>
+                <?php $isDashboardMenuActive = $dashboardActiveMenu === $dashboardMenu["key"]; ?>
 
-            <a href="websites.php">
-                <i class="fa-solid fa-globe"></i>
-                Websites
-            </a>
+                <a href="<?php echo htmlspecialchars($dashboardMenu["href"], ENT_QUOTES, "UTF-8"); ?>"
+                   class="<?php echo $isDashboardMenuActive ? "active" : ""; ?>"
+                   <?php if ($isDashboardMenuActive) { ?>aria-current="page"<?php } ?>>
+                    <i class="<?php echo htmlspecialchars($dashboardMenu["icon"], ENT_QUOTES, "UTF-8"); ?>"
+                       aria-hidden="true"></i>
+                    <?php echo htmlspecialchars($dashboardMenu["label"], ENT_QUOTES, "UTF-8"); ?>
+                </a>
 
-            <a href="widgets.php">
-                <i class="fa-solid fa-puzzle-piece"></i>
-                Widgets
-            </a>
-
-            <a href="visitors.php">
-                <i class="fa-solid fa-users"></i>
-                Visitors
-            </a>
-
-            <a href="analytics.php">
-                <i class="fa-solid fa-chart-line"></i>
-                Analytics
-            </a>
-
-            <a href="settings.php">
-                <i class="fa-solid fa-gear"></i>
-                Settings
-            </a>
+            <?php } ?>
 
         </nav>
 
@@ -88,11 +147,11 @@ $dashboardPlatformLogoUrl = isset($pdo) && $pdo instanceof PDO
         <div class="xd-sidebar-profile">
 
             <div class="xd-sidebar-avatar">
-                <?php echo strtoupper(substr($_SESSION["user_name"], 0, 1)); ?>
+                <?php echo htmlspecialchars(strtoupper($dashboardSidebarInitial), ENT_QUOTES, "UTF-8"); ?>
             </div>
 
             <div>
-                <strong><?php echo $_SESSION["user_name"]; ?></strong>
+                <strong><?php echo htmlspecialchars($dashboardSidebarUserName, ENT_QUOTES, "UTF-8"); ?></strong>
                 <small>Administrator</small>
             </div>
 
@@ -107,3 +166,9 @@ $dashboardPlatformLogoUrl = isset($pdo) && $pdo instanceof PDO
     </div>
 
 </aside>
+
+<button type="button"
+        class="xd-sidebar-backdrop"
+        id="xdDashboardSidebarBackdrop"
+        aria-label="Close navigation"
+        tabindex="-1"></button>

@@ -60,9 +60,63 @@ document.addEventListener("DOMContentLoaded", function () {
 
     const cancelButton = document.querySelector(".xd-modal-cancel");
 
-    if (!modal || !deleteForm || !deleteId) {
+    if (!modal || !deleteForm || !deleteId || !deleteConfirm || !cancelButton) {
 
         return;
+
+    }
+
+    const focusableSelector = [
+        "a[href]",
+        "button:not([disabled])",
+        "input:not([type='hidden']):not([disabled])",
+        "select:not([disabled])",
+        "textarea:not([disabled])",
+        "[tabindex]:not([tabindex='-1'])"
+    ].join(",");
+
+    let lastFocusedElement = null;
+
+    modal.setAttribute("role", "dialog");
+    modal.setAttribute("aria-modal", "true");
+    modal.setAttribute("aria-label", "Confirm deletion");
+    modal.setAttribute("aria-hidden", "true");
+
+    function openModal(button) {
+
+        lastFocusedElement = button;
+
+        if (deleteName) {
+            deleteName.textContent = button.dataset.name || "this item";
+        }
+
+        deleteId.value = button.dataset.id || "";
+
+        modal.classList.add("active");
+        modal.setAttribute("aria-hidden", "false");
+        document.body.classList.add("xd-modal-open");
+
+        window.requestAnimationFrame(function () {
+            cancelButton.focus();
+        });
+
+    }
+
+    function closeModal() {
+
+        if (!modal.classList.contains("active")) {
+            return;
+        }
+
+        if (lastFocusedElement && typeof lastFocusedElement.focus === "function") {
+            lastFocusedElement.focus({ preventScroll: true });
+        }
+
+        modal.classList.remove("active");
+        modal.setAttribute("aria-hidden", "true");
+        document.body.classList.remove("xd-modal-open");
+
+        lastFocusedElement = null;
 
     }
 
@@ -72,11 +126,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
             event.preventDefault();
 
-            deleteName.textContent = button.dataset.name;
-
-            deleteId.value = button.dataset.id;
-
-            modal.classList.add("active");
+            openModal(button);
 
         });
 
@@ -92,7 +142,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     cancelButton.addEventListener("click", function () {
 
-        modal.classList.remove("active");
+        closeModal();
 
     });
 
@@ -100,7 +150,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
         if (event.target === modal) {
 
-            modal.classList.remove("active");
+            closeModal();
 
         }
 
@@ -108,9 +158,38 @@ document.addEventListener("DOMContentLoaded", function () {
 
     document.addEventListener("keydown", function (event) {
 
-        if (event.key === "Escape") {
+        if (event.key === "Escape" && modal.classList.contains("active")) {
 
-            modal.classList.remove("active");
+            closeModal();
+
+            return;
+
+        }
+
+        if (event.key !== "Tab" || !modal.classList.contains("active")) {
+            return;
+        }
+
+        const focusableElements = Array.from(modal.querySelectorAll(focusableSelector)).filter(
+            function (element) {
+                return element.offsetParent !== null;
+            }
+        );
+
+        if (focusableElements.length === 0) {
+            event.preventDefault();
+            return;
+        }
+
+        const firstFocusable = focusableElements[0];
+        const lastFocusable = focusableElements[focusableElements.length - 1];
+
+        if (event.shiftKey && document.activeElement === firstFocusable) {
+            event.preventDefault();
+            lastFocusable.focus();
+        } else if (!event.shiftKey && document.activeElement === lastFocusable) {
+            event.preventDefault();
+            firstFocusable.focus();
 
         }
 
